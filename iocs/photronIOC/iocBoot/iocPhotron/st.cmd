@@ -7,7 +7,7 @@ dbLoadDatabase("$(TOP)/dbd/PhotronApp.dbd")
 photronApp_registerRecordDeviceDriver(pdbbase) 
 
 # Prefix for all records
-epicsEnvSet("PREFIX", "pho:")
+epicsEnvSet("PREFIX", "kmp5:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PHO1")
 # The queue size for all plugins
@@ -41,42 +41,4 @@ asynSetMinTimerPeriod(0.001)
 # PhotronConfig(const char *portName, int maxSizeX, int maxSizeY, int dataType,
 #                   int maxBuffers, int maxMemory, int priority, int stackSize)
 PhotronConfig("$(PORT)", $(XSIZE), $(YSIZE), 1, 0, 0)
-# To have the rate calculation use a non-zero smoothing factor use the following line
-#dbLoadRecords("Photron.template",     "P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1,RATE_SMOOTH=0.2")
-dbLoadRecords("$(ADPHOTRON)/db/Photron.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
-# Load an NDFile database.  This is not supported for the Photron which does not write files.
-#dbLoadRecords("NDFile.template","P=$(PREFIX),R=cam1:,PORT=SIM1,ADDR=0,TIMEOUT=1")
-
-# Create a standard arrays plugin, set it to get data from first Photron driver.
-NDStdArraysConfigure("Image1", 3, 0, "$(PORT)", 0)
-
-# This creates a waveform large enough for 2000x2000x3 (e.g. RGB color) arrays.
-# This waveform only allows transporting 8-bit images
-dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int8,FTVL=UCHAR,NELEMENTS=12000000")
-# This waveform only allows transporting 16-bit images
-#dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int16,FTVL=USHORT,NELEMENTS=12000000")
-# This waveform allows transporting 32-bit images
-#dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int32,FTVL=LONG,NELEMENTS=12000000")
-
-# Create a standard arrays plugin, set it to get data from second Photron driver.
-NDStdArraysConfigure("Image2", 1, 0, "SIM2", 0)
-
-# This creates a waveform large enough for 640x480x3 (e.g. RGB color) arrays.
-# This waveform allows transporting 64-bit images, so it can handle any detector data type at the expense of more memory and bandwidth
-dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image2:,PORT=Image2,ADDR=0,TIMEOUT=1,NDARRAY_PORT=SIM2,TYPE=Float64,FTVL=DOUBLE,NELEMENTS=921600")
-
-# Load all other plugins using commonPlugins.cmd
-< $(ADCORE)/iocBoot/commonPlugins.cmd
-set_requestfile_path("$(ADPHOTRON)/photronApp/Db")
-
-#asynSetTraceIOMask("$(PORT)",0,2)
-#asynSetTraceMask("$(PORT)",0,255)
-#asynSetTraceIOMask("FileNetCDF",0,2)
-#asynSetTraceMask("FileNetCDF",0,255)
-#asynSetTraceMask("FileNexus",0,255)
-
-iocInit()
-
-# save things every thirty seconds
-create_monitor_set("auto_settings.req", 30, "P=$(PREFIX)")
