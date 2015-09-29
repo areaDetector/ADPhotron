@@ -31,6 +31,9 @@
 #include <epicsExport.h>
 #include "Photron.h"
 
+#include <windows.h>
+#include "PDCLIB.h"
+
 static const char *driverName = "Photron";
 
 
@@ -78,7 +81,18 @@ Photron::Photron(const char *portName, int maxSizeX, int maxSizeY, NDDataType_t 
     int status = asynSuccess;
     const char *functionName = "Photron";
 
-	printf("Kevin was here\n");
+	unsigned long nRet;
+	unsigned long nErrorCode;
+	
+	nRet = PDC_Init(&nErrorCode);
+	if (nRet == PDC_FAILED)
+	{
+		printf("PDC_Init Error %d\n", nErrorCode);
+	}
+	else
+	{
+		printf("PDC_Init Successful\n");
+	}
 	
     /* Create the epicsEvents for signaling to the simulate task when acquisition starts and stops */
     this->startEventId = epicsEventCreate(epicsEventEmpty);

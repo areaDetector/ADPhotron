@@ -16,6 +16,7 @@ INC += Photron.h
 
 LIBRARY_IOC = Photron
 LIB_SRCS += Photron.cpp
+LIB_LIBS += PDCLIB
 
 DBD += PhotronSupport.dbd
 
