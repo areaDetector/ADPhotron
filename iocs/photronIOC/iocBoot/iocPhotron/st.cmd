@@ -41,4 +41,3 @@ asynSetMinTimerPeriod(0.001)
 # PhotronConfig(const char *portName, int maxSizeX, int maxSizeY, int dataType,
 #                   int maxBuffers, int maxMemory, int priority, int stackSize)
 PhotronConfig("$(PORT)", $(XSIZE), $(YSIZE), 1, 0, 0)
-
