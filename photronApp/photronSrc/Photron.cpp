@@ -32,7 +32,7 @@
 #include "Photron.h"
 
 #include <windows.h>
-#include "PDCLIB.h"
+#include "SDK/Include/PDCLIB.h"
 
 static const char *driverName = "Photron";
 
@@ -81,8 +81,15 @@ Photron::Photron(const char *portName, int maxSizeX, int maxSizeY, NDDataType_t 
     int status = asynSuccess;
     const char *functionName = "Photron";
 
+	//char * defaultIP = "192.168.0.10";
+
 	unsigned long nRet;
 	unsigned long nErrorCode;
+	PDC_DETECT_NUM_INFO DetectNumInfo; 		/* Search result */
+	unsigned long IPList[PDC_MAX_DEVICE]; 	/* IP ADDRESS being searched */
+	
+	//IPList[0] = 0xC0A8000A;
+	IPList[0] = 0xC0A80000;
 	
 	nRet = PDC_Init(&nErrorCode);
 	if (nRet == PDC_FAILED)
@@ -92,6 +99,35 @@ Photron::Photron(const char *portName, int maxSizeX, int maxSizeY, NDDataType_t 
 	else
 	{
 		printf("PDC_Init Successful\n");
+	
+		nRet = PDC_DetectDevice(PDC_INTTYPE_G_ETHER,	/* Gigabit ethernet interface */
+								IPList,					/* IP address */
+								1,						/* Max number of searched devices */
+								//PDC_DETECT_NORMAL,		/* Specifies an IP address explicitly */
+								PDC_DETECT_AUTO,		/* Specifies an IP address explicitly */
+								&DetectNumInfo,
+								&nErrorCode);
+
+
+		if (nRet == PDC_FAILED)
+		{
+			printf("PDC_DetectDevice Error %d\n", nErrorCode);
+		}
+		else
+		{
+			printf("PDC_DetectDevice \"Successful\"\n");
+			
+			if (DetectNumInfo.m_nDeviceNum == 0)
+			{
+				printf("No devices detected\n");
+			}
+			else
+			{
+				printf("\tdevice index: %d\n", DetectNumInfo.m_nDeviceNum);
+				printf("\tdevice code: %d\n", DetectNumInfo.m_DetectInfo[0].m_nDeviceCode);
+			}
+		}
+
 	}
 	
     /* Create the epicsEvents for signaling to the simulate task when acquisition starts and stops */
