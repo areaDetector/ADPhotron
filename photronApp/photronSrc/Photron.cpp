@@ -33,7 +33,6 @@
 #include "Photron.h"
 
 #include <windows.h>
-#include <Winsock2.h>
 #include "SDK/Include/PDCLIB.h"
 
 static const char *driverName = "Photron";
