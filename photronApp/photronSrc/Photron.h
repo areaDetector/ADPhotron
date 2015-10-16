@@ -4,7 +4,7 @@
 /** Simulation detector driver; demonstrates most of the features that areaDetector drivers can support. */
 class epicsShareClass Photron : public ADDriver {
 public:
-    Photron(const char *portName, int maxSizeX, int maxSizeY, NDDataType_t dataType,
+    Photron(const char *portName, const char *ipAddress, int autoDetect,
                 int maxBuffers, size_t maxMemory,
                 int priority, int stackSize);
 
@@ -21,11 +21,22 @@ protected:
 private:
     /* These are the methods that are new to this class */
 
+    /* These items are specific to the Photron driver */
+    char *cameraId;                /* This can be a uniqueID, IP name, or IP address */
+    unsigned long uniqueIP;
+    unsigned long uniqueId;
     /* Our data */
     epicsEventId startEventId;
     epicsEventId stopEventId;
     NDArray *pRaw;
+
 };
+
+typedef struct {
+    ELLNODE node;
+    Photron *pCamera;
+} cameraNode;
+
 
 // Define param strings here
 //#define SimGainXString          "SIM_GAIN_X"

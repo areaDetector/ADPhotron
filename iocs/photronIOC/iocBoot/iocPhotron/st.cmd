@@ -38,6 +38,6 @@ asynSetMinTimerPeriod(0.001)
 #epicsEnvSet("EPICS_CA_MAX_ARRAY_BYTES", "10000000")
 
 # Create a Photron driver
-# PhotronConfig(const char *portName, int maxSizeX, int maxSizeY, int dataType,
+# PhotronConfig(const char *portName, const char *ipAddress, int autoDetect, 
 #                   int maxBuffers, int maxMemory, int priority, int stackSize)
-PhotronConfig("$(PORT)", $(XSIZE), $(YSIZE), 1, 0, 0)
+PhotronConfig("$(PORT)", "192.168.0.10", 0, 1, 0, 0)

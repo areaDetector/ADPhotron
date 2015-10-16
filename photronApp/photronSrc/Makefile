@@ -18,6 +18,8 @@ LIBRARY_IOC = Photron
 LIB_SRCS += Photron.cpp
 LIB_LIBS += PDCLIB
 
+Photron_SYS_LIBS_WIN32 += ws2_32
+
 DBD += PhotronSupport.dbd
 
 include $(ADCORE)/ADApp/commonLibraryMakefile
