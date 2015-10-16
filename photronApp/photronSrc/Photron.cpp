@@ -85,11 +85,12 @@ Photron::Photron(const char *portName, int maxSizeX, int maxSizeY, NDDataType_t 
 
 	unsigned long nRet;
 	unsigned long nErrorCode;
+	unsigned long nDeviceNo;				/* Device number */
 	PDC_DETECT_NUM_INFO DetectNumInfo; 		/* Search result */
 	unsigned long IPList[PDC_MAX_DEVICE]; 	/* IP ADDRESS being searched */
 	
-	//IPList[0] = 0xC0A8000A;
-	IPList[0] = 0xC0A80000;
+	IPList[0] = 0xC0A8000A;
+	//IPList[0] = 0xC0A80000;
 	
 	nRet = PDC_Init(&nErrorCode);
 	if (nRet == PDC_FAILED)
@@ -103,8 +104,8 @@ Photron::Photron(const char *portName, int maxSizeX, int maxSizeY, NDDataType_t 
 		nRet = PDC_DetectDevice(PDC_INTTYPE_G_ETHER,	/* Gigabit ethernet interface */
 								IPList,					/* IP address */
 								1,						/* Max number of searched devices */
-								//PDC_DETECT_NORMAL,		/* Specifies an IP address explicitly */
-								PDC_DETECT_AUTO,		/* Specifies an IP address explicitly */
+								PDC_DETECT_NORMAL,		/* Specifies an IP address explicitly */
+								//PDC_DETECT_AUTO,		/*  */
 								&DetectNumInfo,
 								&nErrorCode);
 
@@ -121,10 +122,37 @@ Photron::Photron(const char *portName, int maxSizeX, int maxSizeY, NDDataType_t 
 			{
 				printf("No devices detected\n");
 			}
+			/* only do this if not auto-searching for devices */
+			else if (DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo != IPList[0])
+			{
+				printf("The search result IP address is different\n");
+				printf("\tm_nTmpDeviceNo = %x\n", DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo);
+				printf("\tIPList[0] = %x\n", IPList[0]);
+			}
 			else
 			{
 				printf("\tdevice index: %d\n", DetectNumInfo.m_nDeviceNum);
 				printf("\tdevice code: %d\n", DetectNumInfo.m_DetectInfo[0].m_nDeviceCode);
+				printf("nRet = %d\n", nRet);
+			
+				//nRet = PDC_OpenDevice(&(DetectNumInfo.m_DetectInfo[0]), /* Subject device information */
+				//						&nDeviceNo,
+				//						&nErrorCode);
+				nRet = PDC_OpenDevice2(&(DetectNumInfo.m_DetectInfo[0]), /* Subject device information */
+										10,	/* nMaxRetryCount */
+										0,  /* nConnectMode -- 1=normal, 0=safe */
+										&nDeviceNo,
+										&nErrorCode);
+			
+				if (nRet == PDC_FAILED)
+				{
+					printf("PDC_OpenDeviceError %d\n", nErrorCode);
+				}
+				else
+				{
+					printf("Device #%i opened successfully\n", nDeviceNo);
+				}
+			
 			}
 		}
 
