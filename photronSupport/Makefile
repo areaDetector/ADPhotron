@@ -23,11 +23,14 @@ BIN_INSTALLS_WIN32    += ../SDK/Dll/32bit(x86)/DSA1.dll
 BIN_INSTALLS_WIN32    += ../SDK/Dll/32bit(x86)/DSAZ.dll
 #BIN_INSTALLS_WIN32    += C:/Windows/System32/vcomp120.dll
 
-#!else ifeq (windows-x64, $(findstring windows-x64, $(T_A)))
-#!LIB_INSTALLS_WIN32    += ../os/windows-x64/XISL.lib
-#!BIN_INSTALLS_WIN32    += ../os/windows-x64/XISL.dll
-#!BIN_INSTALLS_WIN32    += ../os/windows-x64/gbif64.dll
-#!BIN_INSTALLS_WIN32    += ../os/windows-x64/libxml2_x64.dll
+else ifeq (windows-x64, $(findstring windows-x64, $(T_A)))
+LIB_INSTALLS_WIN32    += ../SDK/Lib/64bit(x64)/PDCLIB.lib
+BIN_INSTALLS_WIN32    += ../SDK/Dll/64bit(x64)/PDCLIB.dll
+BIN_INSTALLS_WIN32    += ../SDK/Dll/64bit(x64)/PICCLIB.dll
+BIN_INSTALLS_WIN32    += ../SDK/Dll/64bit(x64)/IGETHER.dll
+BIN_INSTALLS_WIN32    += ../SDK/Dll/64bit(x64)/GEthLib.dll
+BIN_INSTALLS_WIN32    += ../SDK/Dll/64bit(x64)/DSA1.dll
+BIN_INSTALLS_WIN32    += ../SDK/Dll/64bit(x64)/DSAZ.dll
 
 endif
 
