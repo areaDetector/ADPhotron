@@ -8,6 +8,10 @@ public:
                 int maxBuffers, size_t maxMemory,
                 int priority, int stackSize);
 
+    /* These methods are overwritten from asynPortDriver */
+    virtual asynStatus connect(asynUser* pasynUser);
+    virtual asynStatus disconnect(asynUser* pasynUser);
+
     /* These are the methods that we override from ADDriver */
     virtual void report(FILE *fp, int details);
 
@@ -20,11 +24,14 @@ protected:
 
 private:
     /* These are the methods that are new to this class */
+	asynStatus disconnectCamera();
+	asynStatus connectCamera();
 
     /* These items are specific to the Photron driver */
-    char *cameraId;                /* This can be a uniqueID, IP name, or IP address */
+    char *cameraId;                /* This can be an IP name, or IP address */
     unsigned long uniqueIP;
     unsigned long uniqueId;
+	int autoDetect;
     /* Our data */
     epicsEventId startEventId;
     epicsEventId stopEventId;

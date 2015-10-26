@@ -27,6 +27,7 @@
 #include <cantProceed.h>
 #include <osiSock.h>
 #include <iocsh.h>
+//#include <epicsExit.h>
 
 #include "ADDriver.h"
 #include <epicsExport.h>
@@ -37,9 +38,9 @@
 
 static const char *driverName = "Photron";
 
-//static int PDCLibInitialized;
+static int PDCLibInitialized;
 
-//static ELLLIST *cameraList;
+static ELLLIST *cameraList;
 
 
 /** Report status of the driver.
@@ -60,18 +61,137 @@ void Photron::report(FILE *fp, int details)
 }
 
 /* From asynPortDriver: Connects driver to device; */
-/*asynStatus Photron::connect(asynUser* pasynUser) {
+asynStatus Photron::connect(asynUser* pasynUser) {
 
     return connectCamera();
-}*/
-
+}
 
 /* From asynPortDriver: Disconnects driver from device; */
-/*asynStatus Photron::disconnect(asynUser* pasynUser) {
+asynStatus Photron::disconnect(asynUser* pasynUser) {
 
     return disconnectCamera();
-}*/
+}
 
+asynStatus Photron::connectCamera()
+{
+	int status = asynSuccess;
+	static const char *functionName = "connectCamera";
+
+	struct in_addr ipAddr;
+	unsigned long ipNumWire;
+	unsigned long ipNumHost;
+	
+	unsigned long nRet;
+	unsigned long nErrorCode;
+	unsigned long nDeviceNo;				/* Device number */
+	PDC_DETECT_NUM_INFO DetectNumInfo; 		/* Search result */
+	unsigned long IPList[PDC_MAX_DEVICE]; 	/* IP ADDRESS being searched */
+
+	/* default IP address is "192.168.0.10" */
+	//IPList[0] = 0xC0A8000A;
+	/* default IP for auto-detection is "192.168.0.0" */
+	//IPList[0] = 0xC0A80000;
+	
+	/* Ensure that PDC library has been initialised */
+    if (!PDCLibInitialized) {
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+            "%s:%s: Connecting to camera %ld while the PDC library is uninitialized.\n", 
+            driverName, functionName, this->uniqueId);
+        return asynError;
+    }
+	
+	/* First disconnect from the camera */
+    disconnectCamera();
+
+    /* We have been given an IP address or IP name */
+    status = hostToIPAddr(this->cameraId, &ipAddr);
+    if (status) {
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+              "%s:%s: Cannot find IP address %s\n", 
+              driverName, functionName, this->cameraId);
+        //return asynError;
+    }
+    ipNumWire = (unsigned long) ipAddr.s_addr;
+	/* The Photron SDK needs the ip address in host byte order */
+	ipNumHost = ntohl(ipNumWire);
+
+	// Attempt to detect the type of detector at the specified ip addr
+	nRet = PDC_DetectDevice(PDC_INTTYPE_G_ETHER,	/* Gigabit ethernet interface */
+							IPList,					/* IP address */
+							1,						/* Max number of searched devices */
+							this->autoDetect,		/* 0=PDC_DETECT_NORMAL ; 1=PDC_DETECT_AUTO */
+							&DetectNumInfo,
+							&nErrorCode);
+
+	if (nRet == PDC_FAILED)
+	{
+		printf("PDC_DetectDevice Error %d\n", nErrorCode);
+		return asynError;
+	}
+
+	printf("PDC_DetectDevice \"Successful\"\n");
+
+	printf("\tdevice index: %d\n", DetectNumInfo.m_nDeviceNum);
+	printf("\tdevice code: %d\n", DetectNumInfo.m_DetectInfo[0].m_nDeviceCode);
+	printf("\tnRet = %d\n", nRet);
+
+	epicsThreadSleep(1.0);
+	
+	if (DetectNumInfo.m_nDeviceNum == 0)
+	{
+		printf("No devices detected\n");
+		return asynError;
+	}
+
+	/* only do this if not auto-searching for devices */
+	if ((this->autoDetect == PDC_DETECT_NORMAL) && (DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo != IPList[0]))
+	{
+		printf("The specified and detected IP addresses differ:\n");
+		printf("\tIPList[0] = %x\n", IPList[0]);
+		printf("\tm_nTmpDeviceNo = %x\n", DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo);
+		return asynError;
+	}
+
+	nRet = PDC_OpenDevice(&(DetectNumInfo.m_DetectInfo[0]), /* Subject device information */
+							&nDeviceNo,
+							&nErrorCode);
+	/* When should PDC_OpenDevice2 be used instead of PDC_OpenDevice? */
+	//nRet = PDC_OpenDevice2(&(DetectNumInfo.m_DetectInfo[0]), /* Subject device information */
+	//						10,	/* nMaxRetryCount */
+	//						0,  /* nConnectMode -- 1=normal, 0=safe */
+	//						&nDeviceNo,
+	//						&nErrorCode);
+	
+	if (nRet == PDC_FAILED)
+	{
+		printf("PDC_OpenDeviceError %d\n", nErrorCode);
+		return asynError;
+	}
+	else
+	{
+		printf("Device #%i opened successfully\n", nDeviceNo);
+	}
+	
+    /* Set some default values for parameters */
+    //status =  setStringParam (ADManufacturer, "Simulated detector");
+    //status |= setStringParam (ADModel, "Basic simulator");
+
+    //if (status) {
+    //    printf("%s: unable to set camera parameters\n", functionName);
+    //    return;
+    //}
+	
+	return asynSuccess;
+}
+
+asynStatus Photron::disconnectCamera()
+{
+    int status = asynSuccess;
+    static const char *functionName = "disconnectCamera";
+
+	return asynSuccess;
+}
+	
 /** Constructor for Photron; most parameters are simply passed to ADDriver::ADDriver.
   * After calling the base class constructor this method creates a thread to compute the simulated detector data,
   * and sets reasonable default values for parameters defined in this class, asynNDArrayDriver and ADDriver.
@@ -96,146 +216,53 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
 
 {
     int status = asynSuccess;
+	int pdcStatus = PDC_SUCCEEDED; // PDC_SUCCEEDED=1, PDC_FAILED=0
     const char *functionName = "Photron";
-
-	struct in_addr ipAddr;
-	unsigned long ipNum;
-	//char * defaultIP = "192.168.0.10";
-
-	unsigned long nRet;
-	unsigned long nErrorCode;
-	unsigned long nDeviceNo;				/* Device number */
-	PDC_DETECT_NUM_INFO DetectNumInfo; 		/* Search result */
-	unsigned long IPList[PDC_MAX_DEVICE]; 	/* IP ADDRESS being searched */
-
+	unsigned long errCode;
+	cameraNode *pNode = new cameraNode;
+ 
 	this->cameraId = epicsStrDup(ipAddress);
+	this->autoDetect = autoDetect;
 
-	IPList[0] = 0xC0A8000A;
-	//IPList[0] = 0xC0A80000;
-	
-    /* We have been given an IP address or IP name */
-    status = hostToIPAddr(this->cameraId, &ipAddr);
-    if (status) {
-        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-              "%s:%s: Cannot find IP address %s\n", 
-              driverName, functionName, this->cameraId);
-        //return asynError;
+    // If this is the first camera we need to initialize the camera list
+    if (!cameraList) {
+       cameraList = new ELLLIST;
+       ellInit(cameraList);
     }
-    ipNum = (unsigned long) ipAddr.s_addr;
-	/* The Photron SDK needs the ip address in host byte order */
-	ipNum = ntohl(ipNum);
-
-	if (ipNum == IPList[0])
-		printf("IP address is 192.168.0.10\n");
-	else
-	{
-		printf("IP address is NOT 192.168.0.10\n");
-		printf("\tipNum = %x\n", ipNum);
-		printf("\nIPList[0] = %x\n", IPList[0]);
-	}
-
-	nRet = PDC_Init(&nErrorCode);
-	if (nRet == PDC_FAILED)
-	{
-		printf("PDC_Init Error %d\n", nErrorCode);
-	}
-	else
-	{
-		printf("PDC_Init Successful\n");
+    pNode->pCamera = this;
+    ellAdd(cameraList, (ELLNODE *)pNode);
 	
-		nRet = PDC_DetectDevice(PDC_INTTYPE_G_ETHER,	/* Gigabit ethernet interface */
-								IPList,					/* IP address */
-								1,						/* Max number of searched devices */
-								autoDetect,		/* 0=PDC_DETECT_NORMAL ; 1=PDC_DETECT_AUTO */
-								&DetectNumInfo,
-								&nErrorCode);
-
-
-		if (nRet == PDC_FAILED)
-		{
-			printf("PDC_DetectDevice Error %d\n", nErrorCode);
-		}
-		else
-		{
-			printf("PDC_DetectDevice \"Successful\"\n");
-			
-			if (DetectNumInfo.m_nDeviceNum == 0)
-			{
-				printf("No devices detected\n");
-			}
-			/* only do this if not auto-searching for devices */
-			else if (DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo != IPList[0])
-			{
-				printf("The search result IP address is different\n");
-				printf("\tm_nTmpDeviceNo = %x\n", DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo);
-				printf("\tIPList[0] = %x\n", IPList[0]);
-			}
-			else
-			{
-				printf("\tdevice index: %d\n", DetectNumInfo.m_nDeviceNum);
-				printf("\tdevice code: %d\n", DetectNumInfo.m_DetectInfo[0].m_nDeviceCode);
-				printf("nRet = %d\n", nRet);
-			
-				//nRet = PDC_OpenDevice(&(DetectNumInfo.m_DetectInfo[0]), /* Subject device information */
-				//						&nDeviceNo,
-				//						&nErrorCode);
-				nRet = PDC_OpenDevice2(&(DetectNumInfo.m_DetectInfo[0]), /* Subject device information */
-										10,	/* nMaxRetryCount */
-										0,  /* nConnectMode -- 1=normal, 0=safe */
-										&nDeviceNo,
-										&nErrorCode);
-			
-				if (nRet == PDC_FAILED)
-				{
-					printf("PDC_OpenDeviceError %d\n", nErrorCode);
-				}
-				else
-				{
-					printf("Device #%i opened successfully\n", nDeviceNo);
-				}
-			
-			}
-		}
-
-	}
-	
-    /* Create the epicsEvents for signaling to the simulate task when acquisition starts and stops */
-    this->startEventId = epicsEventCreate(epicsEventEmpty);
-    if (!this->startEventId) {
-        printf("%s:%s epicsEventCreate failure for start event\n",
-            driverName, functionName);
-        return;
-    }
-    this->stopEventId = epicsEventCreate(epicsEventEmpty);
-    if (!this->stopEventId) {
-        printf("%s:%s epicsEventCreate failure for stop event\n",
-            driverName, functionName);
-        return;
-    }
-
 	// CREATE PARAMS HERE
     // createParam(SimGainXString,       asynParamFloat64, &SimGainX);
 
-    /* Set some default values for parameters */
-    //status =  setStringParam (ADManufacturer, "Simulated detector");
-    //status |= setStringParam (ADModel, "Basic simulator");
+	
+	if (!PDCLibInitialized) {
 
-    //if (status) {
-    //    printf("%s: unable to set camera parameters\n", functionName);
-    //    return;
-    //}
+		/* Initialize the Photron PDC library */
+		pdcStatus = PDC_Init(&errCode);
+		if (pdcStatus == PDC_FAILED)
+		{
+			printf("%s:%s: PDC_Init Error %d\n", driverName, functionName, errCode);
+			return;
+		}
 
-    /* Create the thread that updates the images */
-    //status = (epicsThreadCreate("SimDetTask",
-    //                            epicsThreadPriorityMedium,
-    //                            epicsThreadGetStackSize(epicsThreadStackMedium),
-    //                            (EPICSTHREADFUNC)simTaskC,
-    //                            this) == NULL);
-    //if (status) {
-    //    printf("%s:%s epicsThreadCreate failure for image task\n",
-    //        driverName, functionName);
-    //    return;
-    //}
+		PDCLibInitialized = 1;
+	}
+	
+    /* Try to connect to the camera.  
+     * It is not a fatal error if we cannot now, the camera may be off or owned by
+     * someone else.  It may connect later. */
+    this->lock();
+    status = connectCamera();
+    this->unlock();
+    if (status) {
+        printf("%s:%s: cannot connect to camera %s, manually connect when available.\n", 
+               driverName, functionName, cameraId);
+        return;
+    }
+    
+    /* Register the shutdown function for epicsAtExit */
+    //epicsAtExit(shutdown, (void*)this);
 }
 
 /** Configuration command, called directly or from iocsh */
