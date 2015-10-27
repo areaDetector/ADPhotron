@@ -192,9 +192,13 @@ asynStatus Photron::disconnectCamera()
 	unsigned long nRet;
 	unsigned long nErrorCode;
 
-	/* The Photron SDK documentation for PDC_CloseDevice contains the following:
-	Because this function is automatically called upon when the process using 
-	PDCLIB is terminated, it does not necessarily need to be used. */
+	/* Ensure that PDC library has been initialised */
+    if (!PDCLibInitialized) {
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+            "%s:%s: Connecting to camera %ld while the PDC library is uninitialized.\n", 
+            driverName, functionName, this->uniqueId);
+        return asynError;
+    }
 	
 	nRet = PDC_CloseDevice(this->nDeviceNo, &nErrorCode);
 	
