@@ -63,6 +63,8 @@ void Photron::report(FILE *fp, int details)
         /*fprintf(fp, "  Sensor bits:       %d\n",  (int)this->sensorBits);
         fprintf(fp, "  Sensor width:      %d\n",  (int)this->sensorWidth);
         fprintf(fp, "  Sensor height:     %d\n",  (int)this->sensorHeight);*/
+        fprintf(fp, "  Max Child Dev #:   %d\n",  (int)this->maxChildDevCount);
+        fprintf(fp, "  Child Dev #:       %d\n",  (int)this->childDevCount);
 
 		/*
         fprintf(fp, "  ID:                %lu\n", pInfo->UniqueId);
@@ -209,6 +211,18 @@ asynStatus Photron::connectCamera()
 		return asynError;
 	}	
 
+	nRet = PDC_GetMaxChildDeviceCount(this->nDeviceNo, &(this->maxChildDevCount), &nErrorCode);
+	if (nRet == PDC_FAILED) {
+		printf("PDC_GetMaxChildDeviceCount failed %d\n", nErrorCode);
+		return asynError;
+	}	
+
+	nRet = PDC_GetChildDeviceCount(this->nDeviceNo, &(this->childDevCount), &nErrorCode);
+	if (nRet == PDC_FAILED) {
+		printf("PDC_GetChildDeviceCount failed %d\n", nErrorCode);
+		return asynError;
+	}	
+	
 	/*
 	nRet = PDC_GetMaxResolution(this->nDeviceNo, 0, &(this->sensorWidth), &(this->sensorHeight), &nErrorCode);
 	if (nRet == PDC_FAILED) {

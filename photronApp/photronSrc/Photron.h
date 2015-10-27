@@ -41,6 +41,8 @@ private:
     unsigned long sensorWidth;
     unsigned long sensorHeight;
     char *sensorBits;
+	unsigned long maxChildDevCount;
+	unsigned long childDevCount;
 	
     /* Our data */
     epicsEventId startEventId;
