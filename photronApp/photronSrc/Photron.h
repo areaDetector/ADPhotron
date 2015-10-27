@@ -29,9 +29,10 @@ private:
 
     /* These items are specific to the Photron driver */
     char *cameraId;                /* This can be an IP name, or IP address */
+	int autoDetect;
     unsigned long uniqueIP;
     unsigned long uniqueId;
-	int autoDetect;
+    unsigned long nDeviceNo;
     /* Our data */
     epicsEventId startEventId;
     epicsEventId stopEventId;

@@ -170,6 +170,7 @@ asynStatus Photron::connectCamera()
 	else
 	{
 		printf("Device #%i opened successfully\n", nDeviceNo);
+		this->nDeviceNo = nDeviceNo;
 	}
 	
     /* Set some default values for parameters */
@@ -188,7 +189,24 @@ asynStatus Photron::disconnectCamera()
 {
     int status = asynSuccess;
     static const char *functionName = "disconnectCamera";
+	unsigned long nRet;
+	unsigned long nErrorCode;
 
+	/* The Photron SDK documentation for PDC_CloseDevice contains the following:
+	Because this function is automatically called upon when the process using 
+	PDCLIB is terminated, it does not necessarily need to be used. */
+	
+	nRet = PDC_CloseDevice(this->nDeviceNo, &nErrorCode);
+	
+	if (nRet == PDC_FAILED)
+	{
+		printf("PDC_CloseDevice for device #%d did not succeed.  Error code = %d\n", this->nDeviceNo, nErrorCode);
+	}
+	else
+	{
+		printf("PDC_CloseDevice succeeded for device #%d\n", this->nDeviceNo);
+	}
+	
 	return asynSuccess;
 }
 	
