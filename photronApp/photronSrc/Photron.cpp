@@ -38,7 +38,7 @@
 
 static const char *driverName = "Photron";
 
-static int PDCLibInitialized;
+static int PDCLibInitialized=0;
 
 static ELLLIST *cameraList;
 
@@ -137,6 +137,8 @@ asynStatus Photron::connectCamera()
 	/* The Photron SDK needs the ip address in host byte order */
 	ipNumHost = ntohl(ipNumWire);
 
+	IPList[0] = ipNumHost;
+	
 	// Attempt to detect the type of detector at the specified ip addr
 	nRet = PDC_DetectDevice(PDC_INTTYPE_G_ETHER,	/* Gigabit ethernet interface */
 							IPList,					/* IP address */
@@ -157,8 +159,6 @@ asynStatus Photron::connectCamera()
 	printf("\tdevice code: %d\n", DetectNumInfo.m_DetectInfo[0].m_nDeviceCode);
 	printf("\tnRet = %d\n", nRet);
 
-	epicsThreadSleep(1.0);
-	
 	if (DetectNumInfo.m_nDeviceNum == 0) {
 		printf("No devices detected\n");
 		return asynError;
