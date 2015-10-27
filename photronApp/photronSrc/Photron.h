@@ -33,6 +33,12 @@ private:
     unsigned long uniqueIP;
     unsigned long uniqueId;
     unsigned long nDeviceNo;
+	/* */
+	unsigned long deviceCode;
+	TCHAR deviceName[200];
+	/* The actual version number is 1/100 of the retrieved value */
+	unsigned long version;
+	
     /* Our data */
     epicsEventId startEventId;
     epicsEventId stopEventId;

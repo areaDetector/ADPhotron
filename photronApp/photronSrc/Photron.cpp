@@ -55,6 +55,29 @@ void Photron::report(FILE *fp, int details)
     fprintf(fp, "Photron detector %s\n", this->portName);
     if (details > 0) {
 		// put useful info here
+        fprintf(fp, "  Camera Id:         %s\n",  this->cameraId);
+        fprintf(fp, "  Auto-detect:       %d\n",  (int)this->autoDetect);
+        fprintf(fp, "  Device code:       %d\n",  (int)this->deviceCode);
+        fprintf(fp, "  Device name:       %s\n",  this->deviceName);
+        fprintf(fp, "  Version:           %0.2f\n",  (float)(this->version/100.0));
+
+		/*
+        fprintf(fp, "  ID:                %lu\n", pInfo->UniqueId);
+        fprintf(fp, "  IP address:        %s\n",  this->IPAddress);
+        fprintf(fp, "  Serial number:     %s\n",  pInfo->SerialNumber);
+        fprintf(fp, "  Camera name:       %s\n",  pInfo->CameraName);
+        fprintf(fp, "  Model:             %s\n",  pInfo->ModelName);
+        fprintf(fp, "  Firmware version:  %s\n",  pInfo->FirmwareVersion);
+        fprintf(fp, "  Access flags:      %lx\n", pInfo->PermittedAccess);
+        fprintf(fp, "  Sensor type:       %s\n",  this->sensorType);
+        fprintf(fp, "  Sensor bits:       %d\n",  (int)this->sensorBits);
+        fprintf(fp, "  Sensor width:      %d\n",  (int)this->sensorWidth);
+        fprintf(fp, "  Sensor height:     %d\n",  (int)this->sensorHeight);
+        fprintf(fp, "  Frame buffer size: %d\n",  (int)this->PvFrames[0].ImageBufferSize);
+        fprintf(fp, "  Time stamp freq:   %d\n",  (int)this->timeStampFrequency);
+        fprintf(fp, "  maxPvAPIFrames:    %d\n",  (int)this->maxPvAPIFrames_);
+		*/
+		
     }
     /* Invoke the base class method */
     ADDriver::report(fp, details);
@@ -83,7 +106,6 @@ asynStatus Photron::connectCamera()
 	
 	unsigned long nRet;
 	unsigned long nErrorCode;
-	unsigned long nDeviceNo;				/* Device number */
 	PDC_DETECT_NUM_INFO DetectNumInfo; 		/* Search result */
 	unsigned long IPList[PDC_MAX_DEVICE]; 	/* IP ADDRESS being searched */
 
@@ -137,15 +159,13 @@ asynStatus Photron::connectCamera()
 
 	epicsThreadSleep(1.0);
 	
-	if (DetectNumInfo.m_nDeviceNum == 0)
-	{
+	if (DetectNumInfo.m_nDeviceNum == 0) {
 		printf("No devices detected\n");
 		return asynError;
 	}
 
 	/* only do this if not auto-searching for devices */
-	if ((this->autoDetect == PDC_DETECT_NORMAL) && (DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo != IPList[0]))
-	{
+	if ((this->autoDetect == PDC_DETECT_NORMAL) && (DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo != IPList[0])) {
 		printf("The specified and detected IP addresses differ:\n");
 		printf("\tIPList[0] = %x\n", IPList[0]);
 		printf("\tm_nTmpDeviceNo = %x\n", DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo);
@@ -153,26 +173,42 @@ asynStatus Photron::connectCamera()
 	}
 
 	nRet = PDC_OpenDevice(&(DetectNumInfo.m_DetectInfo[0]), /* Subject device information */
-							&nDeviceNo,
+							&(this->nDeviceNo),
 							&nErrorCode);
 	/* When should PDC_OpenDevice2 be used instead of PDC_OpenDevice? */
 	//nRet = PDC_OpenDevice2(&(DetectNumInfo.m_DetectInfo[0]), /* Subject device information */
 	//						10,	/* nMaxRetryCount */
 	//						0,  /* nConnectMode -- 1=normal, 0=safe */
-	//						&nDeviceNo,
+	//						&(this->nDeviceNo),
 	//						&nErrorCode);
 	
-	if (nRet == PDC_FAILED)
-	{
+	if (nRet == PDC_FAILED) {
 		printf("PDC_OpenDeviceError %d\n", nErrorCode);
 		return asynError;
-	}
-	else
-	{
-		printf("Device #%i opened successfully\n", nDeviceNo);
-		this->nDeviceNo = nDeviceNo;
+	} else {
+		printf("Device #%i opened successfully\n", this->nDeviceNo);
 	}
 	
+	/* query the controller for info */
+	
+	nRet = PDC_GetDeviceCode(this->nDeviceNo, &(this->deviceCode), &nErrorCode);
+	if (nRet == PDC_FAILED) {
+		printf("PDC_GetDeviceCode failed %d\n", nErrorCode);
+		return asynError;
+	}	
+	
+	nRet = PDC_GetDeviceName(this->nDeviceNo, 0, this->deviceName, &nErrorCode);
+	if (nRet == PDC_FAILED) {
+		printf("PDC_GetDeviceName failed %d\n", nErrorCode);
+		return asynError;
+	}	
+	
+	nRet = PDC_GetVersion(this->nDeviceNo, 0, &(this->version), &nErrorCode);
+	if (nRet == PDC_FAILED) {
+		printf("PDC_GetVersion failed %d\n", nErrorCode);
+		return asynError;
+	}	
+
     /* Set some default values for parameters */
     //status =  setStringParam (ADManufacturer, "Simulated detector");
     //status |= setStringParam (ADModel, "Basic simulator");
