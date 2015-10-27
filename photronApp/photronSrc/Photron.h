@@ -38,6 +38,9 @@ private:
 	TCHAR deviceName[200];
 	/* The actual version number is 1/100 of the retrieved value */
 	unsigned long version;
+    unsigned long sensorWidth;
+    unsigned long sensorHeight;
+    char *sensorBits;
 	
     /* Our data */
     epicsEventId startEventId;

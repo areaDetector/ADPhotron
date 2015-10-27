@@ -60,6 +60,9 @@ void Photron::report(FILE *fp, int details)
         fprintf(fp, "  Device code:       %d\n",  (int)this->deviceCode);
         fprintf(fp, "  Device name:       %s\n",  this->deviceName);
         fprintf(fp, "  Version:           %0.2f\n",  (float)(this->version/100.0));
+        /*fprintf(fp, "  Sensor bits:       %d\n",  (int)this->sensorBits);
+        fprintf(fp, "  Sensor width:      %d\n",  (int)this->sensorWidth);
+        fprintf(fp, "  Sensor height:     %d\n",  (int)this->sensorHeight);*/
 
 		/*
         fprintf(fp, "  ID:                %lu\n", pInfo->UniqueId);
@@ -70,9 +73,6 @@ void Photron::report(FILE *fp, int details)
         fprintf(fp, "  Firmware version:  %s\n",  pInfo->FirmwareVersion);
         fprintf(fp, "  Access flags:      %lx\n", pInfo->PermittedAccess);
         fprintf(fp, "  Sensor type:       %s\n",  this->sensorType);
-        fprintf(fp, "  Sensor bits:       %d\n",  (int)this->sensorBits);
-        fprintf(fp, "  Sensor width:      %d\n",  (int)this->sensorWidth);
-        fprintf(fp, "  Sensor height:     %d\n",  (int)this->sensorHeight);
         fprintf(fp, "  Frame buffer size: %d\n",  (int)this->PvFrames[0].ImageBufferSize);
         fprintf(fp, "  Time stamp freq:   %d\n",  (int)this->timeStampFrequency);
         fprintf(fp, "  maxPvAPIFrames:    %d\n",  (int)this->maxPvAPIFrames_);
@@ -209,9 +209,31 @@ asynStatus Photron::connectCamera()
 		return asynError;
 	}	
 
+	/*
+	nRet = PDC_GetMaxResolution(this->nDeviceNo, 0, &(this->sensorWidth), &(this->sensorHeight), &nErrorCode);
+	if (nRet == PDC_FAILED) {
+		printf("PDC_GetMaxResolution failed %d\n", nErrorCode);
+		return asynError;
+	}	
+
+	nRet = PDC_GetMaxBitDepth(this->nDeviceNo, 0, this->sensorBits, &nErrorCode);
+	if (nRet == PDC_FAILED) {
+		printf("PDC_GetMaxBitDepth failed %d\n", nErrorCode);
+		return asynError;
+	}	
+	*/
+	
     /* Set some default values for parameters */
     //status =  setStringParam (ADManufacturer, "Simulated detector");
     //status |= setStringParam (ADModel, "Basic simulator");
+
+    /* Set some initial values for other parameters */
+    status =  setStringParam (ADManufacturer, "Photron");
+    status |= setStringParam (ADModel, this->deviceName);
+    /*status |= setIntegerParam(ADSizeX, this->sensorWidth);
+    status |= setIntegerParam(ADSizeY, this->sensorHeight);
+    status |= setIntegerParam(ADMaxSizeX, this->sensorWidth);
+    status |= setIntegerParam(ADMaxSizeY, this->sensorHeight);*/
 
     //if (status) {
     //    printf("%s: unable to set camera parameters\n", functionName);

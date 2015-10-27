@@ -1,0 +1,7 @@
+#=================================================================#
+# Template file: Photron.template
+# Database for the records specific to the Photron detector driver
+# Kevin Peterson
+# October 27, 2015
+
+include "ADBase.template"

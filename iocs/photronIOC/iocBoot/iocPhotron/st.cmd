@@ -41,3 +41,34 @@ asynSetMinTimerPeriod(0.001)
 # PhotronConfig(const char *portName, const char *ipAddress, int autoDetect, 
 #                   int maxBuffers, int maxMemory, int priority, int stackSize)
 PhotronConfig("$(PORT)", "192.168.0.10", 0, 1, 0, 0)
+# To have the rate calculation use a non-zero smoothing factor use the following line
+dbLoadRecords("$(ADPHOTRON)/db/Photron.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
+
+# Load an NDFile database.  This is not supported for the Photron which does not write files.
+#dbLoadRecords("NDFile.template","P=$(PREFIX),R=cam1:,PORT=SIM1,ADDR=0,TIMEOUT=1")
+
+# Create a standard arrays plugin, set it to get data from the Photron driver.
+NDStdArraysConfigure("Image1", 3, 0, "$(PORT)", 0)
+
+# This creates a waveform large enough for 2000x2000x3 (e.g. RGB color) arrays.
+# This waveform only allows transporting 8-bit images
+dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int8,FTVL=UCHAR,NELEMENTS=12000000")
+# This waveform only allows transporting 16-bit images
+#dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int16,FTVL=USHORT,NELEMENTS=12000000")
+# This waveform allows transporting 32-bit images
+#dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int32,FTVL=LONG,NELEMENTS=12000000")
+
+# Load all other plugins using commonPlugins.cmd
+< $(ADCORE)/iocBoot/commonPlugins.cmd
+set_requestfile_path("$(ADPHOTRON)/photronApp/Db")
+
+#asynSetTraceIOMask("$(PORT)",0,2)
+#asynSetTraceMask("$(PORT)",0,255)
+#asynSetTraceIOMask("FileNetCDF",0,2)
+#asynSetTraceMask("FileNetCDF",0,255)
+#asynSetTraceMask("FileNexus",0,255)
+
+iocInit()
+
+# save things every thirty seconds
+create_monitor_set("auto_settings.req", 30, "P=$(PREFIX)")
