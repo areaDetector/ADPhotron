@@ -51,6 +51,7 @@ static ELLLIST *cameraList;
   */
 void Photron::report(FILE *fp, int details)
 {
+	int index;
 
     fprintf(fp, "Photron detector %s\n", this->portName);
     if (details > 0) {
@@ -81,6 +82,15 @@ void Photron::report(FILE *fp, int details)
 		*/
 		
     }
+	
+	if (details > 4) {
+		fprintf(fp, "  Available functions:\n");
+		for( index=2; index<98; index++)
+		{
+			fprintf(fp, "    %d:         %d\n", index, this->functionList[index]);
+		}
+	}
+	
     /* Invoke the base class method */
     ADDriver::report(fp, details);
 }
@@ -111,6 +121,9 @@ asynStatus Photron::connectCamera()
 	PDC_DETECT_NUM_INFO DetectNumInfo; 		/* Search result */
 	unsigned long IPList[PDC_MAX_DEVICE]; 	/* IP ADDRESS being searched */
 
+	int index;
+	char nFlag; /* Existing function flag */
+	
 	/* default IP address is "192.168.0.10" */
 	//IPList[0] = 0xC0A8000A;
 	/* default IP for auto-detection is "192.168.0.0" */
@@ -190,6 +203,23 @@ asynStatus Photron::connectCamera()
 	} else {
 		printf("Device #%i opened successfully\n", this->nDeviceNo);
 	}
+
+	/* Assume only one child, for now */
+	this->nChildNo = 1;
+	
+	/* Determine which functions are supported by the camera */
+	for( index=2; index<98; index++)
+	{
+		nRet = PDC_IsFunction(this->nDeviceNo, this->nChildNo, index, &nFlag, &nErrorCode);
+		if (nRet == PDC_FAILED) {
+			printf("PDC_IsFunction failed for function %d, error = %d\n", index, nErrorCode);
+			return asynError;
+		} else {
+			this->functionList[index] = nFlag;
+		}
+		
+		printf("function queries succeeded\n");
+	}
 	
 	/* query the controller for info */
 	
@@ -223,19 +253,17 @@ asynStatus Photron::connectCamera()
 		return asynError;
 	}	
 	
-	/*
-	nRet = PDC_GetMaxResolution(this->nDeviceNo, 0, &(this->sensorWidth), &(this->sensorHeight), &nErrorCode);
+	nRet = PDC_GetMaxResolution(this->nDeviceNo, this->nChildNo, &(this->sensorWidth), &(this->sensorHeight), &nErrorCode);
 	if (nRet == PDC_FAILED) {
 		printf("PDC_GetMaxResolution failed %d\n", nErrorCode);
 		return asynError;
 	}	
 
-	nRet = PDC_GetMaxBitDepth(this->nDeviceNo, 0, this->sensorBits, &nErrorCode);
+	nRet = PDC_GetMaxBitDepth(this->nDeviceNo, this->nChildNo, this->sensorBits, &nErrorCode);
 	if (nRet == PDC_FAILED) {
 		printf("PDC_GetMaxBitDepth failed %d\n", nErrorCode);
 		return asynError;
 	}	
-	*/
 	
     /* Set some default values for parameters */
     //status =  setStringParam (ADManufacturer, "Simulated detector");

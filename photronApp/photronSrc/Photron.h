@@ -33,9 +33,12 @@ private:
     unsigned long uniqueIP;
     unsigned long uniqueId;
     unsigned long nDeviceNo;
+	unsigned long nChildNo;
 	/* */
 	unsigned long deviceCode;
 	TCHAR deviceName[200];
+	/* Indices of functions in functionList range from 2 to 97 */
+	char functionList[98];
 	/* The actual version number is 1/100 of the retrieved value */
 	unsigned long version;
     unsigned long sensorWidth;
