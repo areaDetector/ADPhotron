@@ -168,8 +168,9 @@ asynStatus Photron::connectCamera()
         return asynError;
     }
 	
+	// The Prosilica driver does this, but it isn't obvious why
 	/* First disconnect from the camera */
-    disconnectCamera();
+    //disconnectCamera();
 
     /* We have been given an IP address or IP name */
     status = hostToIPAddr(this->cameraId, &ipAddr);
@@ -311,13 +312,25 @@ asynStatus Photron::connectCamera()
     status |= setIntegerParam(ADSizeY, this->sensorHeight);
     status |= setIntegerParam(ADMaxSizeX, this->sensorWidth);
     status |= setIntegerParam(ADMaxSizeY, this->sensorHeight);
-
-    //if (status) {
-    //    printf("%s: unable to set camera parameters\n", functionName);
-    //    return;
-    //}
-	
-	return asynSuccess;
+    if (status) {
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+              "%s:%s: unable to set camera parameters on camera %lu\n",
+              driverName, functionName, this->uniqueId);
+        return asynError;
+    }
+ 
+    /* We found the camera and everything is OK.  Signal to asynManager that we are connected. */
+    status = pasynManager->exceptionConnect(this->pasynUserSelf);
+    if (status) {
+        asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+            "%s:%s: error calling pasynManager->exceptionConnect, error=%s\n",
+            driverName, functionName, pasynUserSelf->errorMessage);
+        return asynError;
+    }
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
+        "%s:%s: Camera connected; unique id: %ld\n", 
+        driverName, functionName, this->uniqueId);
+    return asynSuccess;
 }
 
 asynStatus Photron::disconnectCamera()
@@ -346,7 +359,18 @@ asynStatus Photron::disconnectCamera()
 		printf("PDC_CloseDevice succeeded for device #%d\n", this->nDeviceNo);
 	}
 	
-	return asynSuccess;
+	/* We've disconnected the camera. Signal to asynManager that we are disconnected. */
+	status = pasynManager->exceptionDisconnect(this->pasynUserSelf);
+	if (status) {
+		asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+			"%s:%s: error calling pasynManager->exceptionDisconnect, error=%s\n",
+			driverName, functionName, pasynUserSelf->errorMessage);
+	}
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
+        "%s:%s: Camera disconnected; unique id: %ld\n", 
+        driverName, functionName, this->uniqueId);
+
+	return((asynStatus)status);
 }
 	
 /** Constructor for Photron; most parameters are simply passed to ADDriver::ADDriver.
@@ -367,7 +391,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
 
     : ADDriver(portName, 1, NUM_PHOTRON_PARAMS, maxBuffers, maxMemory,
                0, 0, /* No interfaces beyond those set in ADDriver.cpp */
-               0, 1, /* ASYN_CANBLOCK=0, ASYN_MULTIDEVICE=0, autoConnect=1 */
+               0, 0, /* ASYN_CANBLOCK=0, ASYN_MULTIDEVICE=0, autoConnect=1 */
                priority, stackSize),
       pRaw(NULL)
 
