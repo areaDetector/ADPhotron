@@ -304,10 +304,6 @@ asynStatus Photron::connectCamera()
 		this->sensorBits = "N/A";
 	}
 	
-    /* Set some default values for parameters */
-    //status =  setStringParam (ADManufacturer, "Simulated detector");
-    //status |= setStringParam (ADModel, "Basic simulator");
-
     /* Set some initial values for other parameters */
     status =  setStringParam (ADManufacturer, "Photron");
     status |= setStringParam (ADModel, this->deviceName);
