@@ -4,10 +4,12 @@
 /** Simulation detector driver; demonstrates most of the features that areaDetector drivers can support. */
 class epicsShareClass Photron : public ADDriver {
 public:
+	/* Constructor and Destructor */
     Photron(const char *portName, const char *ipAddress, int autoDetect,
                 int maxBuffers, size_t maxMemory,
                 int priority, int stackSize);
-
+	~Photron();
+				
     /* These methods are overwritten from asynPortDriver */
     virtual asynStatus connect(asynUser* pasynUser);
     virtual asynStatus disconnect(asynUser* pasynUser);
@@ -15,6 +17,9 @@ public:
     /* These are the methods that we override from ADDriver */
     virtual void report(FILE *fp, int details);
 
+	/* These are called from C and so must be public */
+	static void shutdown(void *arg);
+	
 protected:
     //int SimGainX;
     //#define FIRST_SIM_DETECTOR_PARAM SimGainX

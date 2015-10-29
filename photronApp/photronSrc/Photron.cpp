@@ -27,7 +27,7 @@
 #include <cantProceed.h>
 #include <osiSock.h>
 #include <iocsh.h>
-//#include <epicsExit.h>
+#include <epicsExit.h>
 
 #include "ADDriver.h"
 #include <epicsExport.h>
@@ -43,6 +43,37 @@ static int PDCLibInitialized=0;
 static ELLLIST *cameraList;
 
 
+void Photron::shutdown (void* arg) {
+    Photron *p = (Photron*)arg;
+    if (p) delete p;
+}
+
+Photron::~Photron() {
+    int status;
+    cameraNode *pNode = (cameraNode *)ellFirst(cameraList);
+    static const char *functionName = "~Photron";
+
+    this->lock();
+    printf("Disconnecting camera %s\n", this->portName);
+    disconnectCamera();
+    this->unlock();
+
+    // Find this camera in the list:
+    while (pNode) {
+        if (pNode->pCamera == this) break;
+        pNode = (cameraNode *)ellNext(&pNode->node);
+    }
+    if (pNode) {
+        ellDelete(cameraList, (ELLNODE *)pNode);
+        delete pNode;
+    }
+
+    //  If this is the last camera in the IOC then unregister callbacks and uninitialize
+    if (ellCount(cameraList) == 0) {
+       delete cameraList;
+   }
+}
+
 /** Report status of the driver.
   * Prints details about the driver if details>0.
   * It then calls the ADDriver::report() method.
@@ -392,7 +423,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
     }
     
     /* Register the shutdown function for epicsAtExit */
-    //epicsAtExit(shutdown, (void*)this);
+    epicsAtExit(shutdown, (void*)this);
 }
 
 /** Configuration command, called directly or from iocsh */
