@@ -61,9 +61,9 @@ void Photron::report(FILE *fp, int details)
         fprintf(fp, "  Device code:       %d\n",  (int)this->deviceCode);
         fprintf(fp, "  Device name:       %s\n",  this->deviceName);
         fprintf(fp, "  Version:           %0.2f\n",  (float)(this->version/100.0));
-        /*fprintf(fp, "  Sensor bits:       %d\n",  (int)this->sensorBits);
+        fprintf(fp, "  Sensor bits:       %s\n",  this->sensorBits);
         fprintf(fp, "  Sensor width:      %d\n",  (int)this->sensorWidth);
-        fprintf(fp, "  Sensor height:     %d\n",  (int)this->sensorHeight);*/
+        fprintf(fp, "  Sensor height:     %d\n",  (int)this->sensorHeight);
         fprintf(fp, "  Max Child Dev #:   %d\n",  (int)this->maxChildDevCount);
         fprintf(fp, "  Child Dev #:       %d\n",  (int)this->childDevCount);
 
@@ -212,14 +212,18 @@ asynStatus Photron::connectCamera()
 	{
 		nRet = PDC_IsFunction(this->nDeviceNo, this->nChildNo, index, &nFlag, &nErrorCode);
 		if (nRet == PDC_FAILED) {
-			printf("PDC_IsFunction failed for function %d, error = %d\n", index, nErrorCode);
-			return asynError;
+			if (nErrorCode == PDC_ERROR_NOT_SUPPORTED) {
+				this->functionList[index] = PDC_EXIST_NOTSUPPORTED;
+			}
+			else {
+				printf("PDC_IsFunction failed for function %d, error = %d\n", index, nErrorCode);
+				return asynError;
+			}
 		} else {
 			this->functionList[index] = nFlag;
 		}
-		
-		printf("function queries succeeded\n");
 	}
+	printf("function queries succeeded\n");
 	
 	/* query the controller for info */
 	
@@ -259,11 +263,15 @@ asynStatus Photron::connectCamera()
 		return asynError;
 	}	
 
-	nRet = PDC_GetMaxBitDepth(this->nDeviceNo, this->nChildNo, this->sensorBits, &nErrorCode);
-	if (nRet == PDC_FAILED) {
-		printf("PDC_GetMaxBitDepth failed %d\n", nErrorCode);
-		return asynError;
-	}	
+	if (this->functionList[PDC_EXIST_BITDEPTH] == PDC_EXIST_SUPPORTED) {
+		nRet = PDC_GetMaxBitDepth(this->nDeviceNo, this->nChildNo, this->sensorBits, &nErrorCode);
+		if (nRet == PDC_FAILED) {
+			printf("PDC_GetMaxBitDepth failed %d\n", nErrorCode);
+			return asynError;
+		}
+	} else {
+		this->sensorBits = "N/A";
+	}
 	
     /* Set some default values for parameters */
     //status =  setStringParam (ADManufacturer, "Simulated detector");
@@ -272,10 +280,10 @@ asynStatus Photron::connectCamera()
     /* Set some initial values for other parameters */
     status =  setStringParam (ADManufacturer, "Photron");
     status |= setStringParam (ADModel, this->deviceName);
-    /*status |= setIntegerParam(ADSizeX, this->sensorWidth);
+    status |= setIntegerParam(ADSizeX, this->sensorWidth);
     status |= setIntegerParam(ADSizeY, this->sensorHeight);
     status |= setIntegerParam(ADMaxSizeX, this->sensorWidth);
-    status |= setIntegerParam(ADMaxSizeY, this->sensorHeight);*/
+    status |= setIntegerParam(ADMaxSizeY, this->sensorHeight);
 
     //if (status) {
     //    printf("%s: unable to set camera parameters\n", functionName);
