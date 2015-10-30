@@ -19,7 +19,8 @@ public:
     /* These are the methods that we override from ADDriver */
 	virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
     virtual void report(FILE *fp, int details);
-
+	void PhotronTask(); /**< Should be private, but gets called from C, so must be public */
+ 
 	/* These are called from C and so must be public */
 	static void shutdown(void *arg);
 	
@@ -36,7 +37,8 @@ private:
 	asynStatus connectCamera();
 	asynStatus setGeometry();
  	asynStatus readParameters();
-	asynStatus acquire();
+	asynStatus readImage();
+	asynStatus readImageDONOTUSE();
 
     /* These items are specific to the Photron driver */
     char *cameraId;                /* This can be an IP name, or IP address */

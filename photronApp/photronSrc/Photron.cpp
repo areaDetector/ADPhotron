@@ -433,11 +433,158 @@ asynStatus Photron::readParameters()
     return((asynStatus)status);
 }
 
-asynStatus Photron::acquire()
+asynStatus Photron::readImage()
 {
+	int status = asynSuccess;
+	int index, jndex;
+
 	unsigned long nRet;
 	unsigned long nErrorCode;
 	unsigned char *pBuf;	/* Memory sequence pointer for storing a live image */
+	
+    static const char *functionName = "readImage";
+
+	printf("acquire image here\n");
+
+	pBuf = (unsigned char*) malloc(this->sensorWidth * this->sensorHeight);
+	
+	nRet = PDC_GetLiveImageData(this->nDeviceNo, this->nChildNo,
+			8, /* 8 bits */
+			pBuf, &nErrorCode);
+	
+	if (nRet == PDC_FAILED)
+	{
+		printf("PDC_GetLiveImageData Failed. Error %d\n", nErrorCode);
+		free(pBuf);
+		return asynError;
+	}
+
+	//printf("sizeof(pBuf) = %d\n", sizeof(*pBuf));
+	//for (index=0; index<this->sensorHeight; index++)
+	for (index=0; index<100; index++)
+	{
+		//for (jndex=0; jndex<this->sensorWidth; jndex++)
+		for (jndex=0; jndex<100; jndex++)
+		{
+			printf("%d ", pBuf[(this->sensorWidth * index) + jndex]);
+		}
+		printf("\n");
+	}
+	
+	return asynSuccess;
+	
+}
+
+
+asynStatus Photron::readImageDONOTUSE()
+{
+    int status = asynSuccess;
+    NDDataType_t dataType;
+    int itemp;
+    int binX, binY, minX, minY, sizeX, sizeY, reverseX, reverseY;
+	int xDim=0, yDim=1, colorDim=-1;
+    int maxSizeX, maxSizeY;
+	
+    int colorMode=NDColorModeMono;
+    int depth=8;
+	
+	int ndims=0;
+    size_t dims[3];
+    NDArrayInfo_t arrayInfo;
+    NDArray *pImage;
+	
+	unsigned long nRet;
+	unsigned long nErrorCode;
+	unsigned char *pBuf;	/* Memory sequence pointer for storing a live image */
+
+    static const char *functionName = "readImage";
+
+	printf("readImage\n");
+	
+    /* NOTE: The caller of this function must have taken the mutex */
+
+    status |= getIntegerParam(ADBinX,         &binX);
+    status |= getIntegerParam(ADBinY,         &binY);
+    status |= getIntegerParam(ADMinX,         &minX);
+    status |= getIntegerParam(ADMinY,         &minY);
+    status |= getIntegerParam(ADSizeX,        &sizeX);
+    status |= getIntegerParam(ADSizeY,        &sizeY);
+    status |= getIntegerParam(ADReverseX,     &reverseX);
+    status |= getIntegerParam(ADReverseY,     &reverseY);
+    status |= getIntegerParam(ADMaxSizeX,     &maxSizeX);
+    status |= getIntegerParam(ADMaxSizeY,     &maxSizeY);
+    status |= getIntegerParam(NDColorMode,    &colorMode);
+    status |= getIntegerParam(NDDataType,     &itemp); dataType = (NDDataType_t)itemp;
+    if (status) asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                    "%s:%s: error getting parameters\n",
+                    driverName, functionName);
+
+    /* Make sure parameters are consistent, fix them if they are not */
+    if (binX < 1) {
+        binX = 1;
+        status |= setIntegerParam(ADBinX, binX);
+    }
+    if (binY < 1) {
+        binY = 1;
+        status |= setIntegerParam(ADBinY, binY);
+    }
+    if (minX < 0) {
+        minX = 0;
+        status |= setIntegerParam(ADMinX, minX);
+    }
+    if (minY < 0) {
+        minY = 0;
+        status |= setIntegerParam(ADMinY, minY);
+    }
+    if (minX > maxSizeX-1) {
+        minX = maxSizeX-1;
+        status |= setIntegerParam(ADMinX, minX);
+    }
+    if (minY > maxSizeY-1) {
+        minY = maxSizeY-1;
+        status |= setIntegerParam(ADMinY, minY);
+    }
+    if (minX+sizeX > maxSizeX) {
+        sizeX = maxSizeX-minX;
+        status |= setIntegerParam(ADSizeX, sizeX);
+    }
+    if (minY+sizeY > maxSizeY) {
+        sizeY = maxSizeY-minY;
+        status |= setIntegerParam(ADSizeY, sizeY);
+    }
+
+    // case NDColorModeMono:
+    ndims = 2;
+    dims[0] = sizeX;
+    dims[1] = sizeY;
+	dims[2] = 0;
+
+	switch (depth) {
+        case 1:
+        case 8:
+            dataType = NDUInt8;
+            break;
+        case 16:
+            dataType = NDUInt16;
+            break;
+        case 32:
+            dataType = NDUInt32;
+            break;
+        default:
+            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
+                "%s:%s: unsupported depth=%d\n", 
+                driverName, functionName, depth);
+            return(asynError);
+            break;
+    }
+   
+    if (pImage) pImage->release();
+    this->pArrays[0] = this->pNDArrayPool->alloc(ndims, dims, dataType, 0, NULL);
+    pImage = this->pArrays[0];
+    asynPrint(this->pasynUserSelf, ASYN_TRACEIO_DRIVER,
+        "%s:%s: reading Photron, dimensions=[%lu,%lu,%lu], depth=%d\n",
+        driverName, functionName,
+        (unsigned long)dims[0], (unsigned long)dims[1], (unsigned long)dims[2], depth);
 	
 	printf("acquire image here\n");
 
@@ -453,8 +600,146 @@ asynStatus Photron::acquire()
 		free(pBuf);
 		return asynError;
 	}
+
+	pImage->pData = pBuf;
 	
 	return asynSuccess;
+}
+
+static void PhotronTaskC(void *drvPvt)
+{
+    Photron *pPvt = (Photron *)drvPvt;
+
+    pPvt->PhotronTask();
+}
+
+/** This thread calls computeImage to compute new image data and does the callbacks to send it to higher layers.
+  * It implements the logic for single, multiple or continuous acquisition. */
+void Photron::PhotronTask()
+{
+    asynStatus imageStatus;
+    int imageCounter;
+    int numImages, numImagesCounter;
+    int imageMode;
+    int arrayCallbacks;
+    int acquire;
+    NDArray *pImage;
+    double acquirePeriod, delay;
+    epicsTimeStamp startTime, endTime;
+    double elapsedTime;
+    const char *functionName = "PhotronTask";
+
+    this->lock();
+    /* Loop forever */
+    while (1) {
+        /* Is acquisition active? */
+        getIntegerParam(ADAcquire, &acquire);
+		printf("is acquisition active?\n");
+
+        /* If we are not acquiring then wait for a semaphore that is given when acquisition is started */
+        if (!acquire) {
+            setIntegerParam(ADStatus, ADStatusIdle);
+            callParamCallbacks();
+            /* Release the lock while we wait for an event that says acquire has started, then lock again */
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+                "%s:%s: waiting for acquire to start\n", driverName, functionName);
+            this->unlock();
+            epicsEventWait(this->startEventId);
+            this->lock();
+            setIntegerParam(ADNumImagesCounter, 0);
+        }
+
+        /* We are acquiring. */
+        /* Get the current time */
+        epicsTimeGetCurrent(&startTime);
+
+        /* Get the exposure parameters */
+        getDoubleParam(ADAcquirePeriod, &acquirePeriod);
+
+        setIntegerParam(ADStatus, ADStatusAcquire);
+
+        /* Open the shutter */
+        setShutter(ADShutterOpen);
+
+        /* Call the callbacks to update any changes */
+        callParamCallbacks();
+
+		printf("I should do something\n");
+		
+        /* Read the image */
+        imageStatus = readImage();
+
+        /* Close the shutter */
+        setShutter(ADShutterClosed);
+        /* Call the callbacks to update any changes */
+        callParamCallbacks();
+        
+		if (imageStatus == asynSuccess) {
+            //pImage = this->pArrays[0];
+
+            /* Get the current parameters */
+            getIntegerParam(NDArrayCounter, &imageCounter);
+            getIntegerParam(ADNumImages, &numImages);
+            getIntegerParam(ADNumImagesCounter, &numImagesCounter);
+            getIntegerParam(ADImageMode, &imageMode);
+            getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
+            imageCounter++;
+            numImagesCounter++;
+            setIntegerParam(NDArrayCounter, imageCounter);
+            setIntegerParam(ADNumImagesCounter, numImagesCounter);
+
+            /* Put the frame number and time stamp into the buffer */
+            //pImage->uniqueId = imageCounter;
+            //pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
+            //updateTimeStamp(&pImage->epicsTS);
+
+            /* Get any attributes that have been defined for this driver */
+            //this->getAttributes(pImage->pAttributeList);
+
+            if (arrayCallbacks) {
+                /* Call the NDArray callback */
+                /* Must release the lock here, or we can get into a deadlock, because we can
+                 * block on the plugin lock, and the plugin can be calling us */
+                this->unlock();
+                asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+                     "%s:%s: calling imageData callback\n", driverName, functionName);
+                doCallbacksGenericPointer(pImage, NDArrayData, 0);
+                this->lock();
+            }
+        }
+
+        /* See if acquisition is done */
+        if ((imageStatus != asynSuccess) ||
+            (imageMode == ADImageSingle) ||
+            ((imageMode == ADImageMultiple) &&
+             (numImagesCounter >= numImages))) {
+            setIntegerParam(ADAcquire, 0);
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+                  "%s:%s: acquisition completed\n", driverName, functionName);
+        }
+
+        /* Call the callbacks to update any changes */
+        callParamCallbacks();
+        getIntegerParam(ADAcquire, &acquire);
+
+        /* If we are acquiring then sleep for the acquire period minus elapsed time. */
+        if (acquire) {
+            epicsTimeGetCurrent(&endTime);
+            elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
+            delay = acquirePeriod - elapsedTime;
+            asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+                     "%s:%s: delay=%f\n",
+                      driverName, functionName, delay);
+            if (delay >= 0.0) {
+                /* We set the status to readOut to indicate we are in the period delay */
+                setIntegerParam(ADStatus, ADStatusWaiting);
+                callParamCallbacks();
+                this->unlock();
+                epicsEventWaitWithTimeout(this->stopEventId, delay);
+                this->lock();
+            }
+        }
+    }
 }
 
 /** Called when asyn clients call pasynInt32->write().
@@ -466,6 +751,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value)
 {
     int function = pasynUser->reason;
     int status = asynSuccess;
+	int adstatus;
     static const char *functionName = "writeInt32";
 
     /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
@@ -483,35 +769,26 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value)
         status |= setGeometry();
 		
 	} else if (function == ADAcquire) {
-		// do something here
-		if (value)
-		{
-            int imageMode, numImages;
-            status |= getIntegerParam(ADImageMode, &imageMode);
-            status |= getIntegerParam(ADNumImages, &numImages);
-            switch(imageMode) {
-				case ADImageSingle:
-					this->framesRemaining = 1;
-					break;
-				case ADImageMultiple:
-					this->framesRemaining = numImages;
-					break;
-				case ADImageContinuous:
-					this->framesRemaining = -1;
-					break;
-           }
-            setIntegerParam(ADStatus, ADStatusAcquire);			
-			acquire();
-			
-		}
-	
+        getIntegerParam(ADStatus, &adstatus);
+        if (value && (adstatus == ADStatusIdle)) {
+            /* Send an event to wake up the acquisition task.
+             * It won't actually start generating new images until we release the lock below */
+            epicsEventSignal(this->startEventId);
+        }
+        if (!value && (adstatus != ADStatusIdle)) {
+            /* This was a command to stop acquisition */
+            /* Send the stop event */
+            epicsEventSignal(this->stopEventId);
+        }
+
     } else {
 		/* If this is not a parameter we have handled call the base class */
 		status = ADDriver::writeInt32(pasynUser, value);
 	}
 	
     /* Read the camera parameters and do callbacks */
-    status |= readParameters();    
+    status |= readParameters();
+	
     if (status) 
         asynPrint(pasynUser, ASYN_TRACE_ERROR, 
               "%s:%s: error, status=%d function=%d, value=%d\n", 
@@ -566,7 +843,6 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
 	
 	// CREATE PARAMS HERE
     // createParam(SimGainXString,       asynParamFloat64, &SimGainX);
-
 	
 	if (!PDCLibInitialized) {
 
@@ -580,6 +856,20 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
 
 		PDCLibInitialized = 1;
 	}
+
+    /* Create the epicsEvents for signaling to the acquisition task when acquisition starts and stops */
+    this->startEventId = epicsEventCreate(epicsEventEmpty);
+    if (!this->startEventId) {
+        printf("%s:%s epicsEventCreate failure for start event\n",
+            driverName, functionName);
+        return;
+    }
+    this->stopEventId = epicsEventCreate(epicsEventEmpty);
+    if (!this->stopEventId) {
+        printf("%s:%s epicsEventCreate failure for stop event\n",
+            driverName, functionName);
+        return;
+    }
 	
     /* Try to connect to the camera.  
      * It is not a fatal error if we cannot now, the camera may be off or owned by
@@ -592,9 +882,21 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
                driverName, functionName, cameraId);
         return;
     }
-    
+
     /* Register the shutdown function for epicsAtExit */
     epicsAtExit(shutdown, (void*)this);
+
+    /* Create the thread that updates the images */
+    status = (epicsThreadCreate("PhotronTask",
+                                epicsThreadPriorityMedium,
+                                epicsThreadGetStackSize(epicsThreadStackMedium),
+                                (EPICSTHREADFUNC)PhotronTaskC,
+                                this) == NULL);
+    if (status) {
+        printf("%s:%s epicsThreadCreate failure for image task\n",
+            driverName, functionName);
+        return;
+    }
 }
 
 /** Configuration command, called directly or from iocsh */
