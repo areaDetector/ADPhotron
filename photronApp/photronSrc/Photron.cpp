@@ -95,6 +95,7 @@ void Photron::report(FILE *fp, int details)
         fprintf(fp, "  Sensor height:     %d\n",  (int)this->sensorHeight);
         fprintf(fp, "  Max Child Dev #:   %d\n",  (int)this->maxChildDevCount);
         fprintf(fp, "  Child Dev #:       %d\n",  (int)this->childDevCount);
+		fprintf(fp, "  Camera Status:     %d\n",  (int)this->nStatus);
 
 		/*
         fprintf(fp, "  ID:                %lu\n", pInfo->UniqueId);
@@ -302,7 +303,22 @@ asynStatus Photron::connectCamera()
 	} else {
 		this->sensorBits = "N/A";
 	}
-	
+
+	nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
+	if (nRet == PDC_FAILED) {
+		printf("PDC_GetStatus failed %d\n", nErrorCode);
+		return asynError;
+	} else {
+		if (this->nStatus == PDC_STATUS_PLAYBACK)
+		{
+			nRet = PDC_SetStatus(this->nDeviceNo, PDC_STATUS_LIVE, &nErrorCode);
+			if (nRet == PDC_FAILED)
+			{
+				printf("PDC_SetStatus failed. error = %d\n", nErrorCode);
+			}
+		}
+	}
+
     /* Set some initial values for other parameters */
     status =  setStringParam (ADManufacturer, "Photron");
     status |= setStringParam (ADModel, this->deviceName);
@@ -417,6 +433,30 @@ asynStatus Photron::readParameters()
     return((asynStatus)status);
 }
 
+asynStatus Photron::acquire()
+{
+	unsigned long nRet;
+	unsigned long nErrorCode;
+	unsigned char *pBuf;	/* Memory sequence pointer for storing a live image */
+	
+	printf("acquire image here\n");
+
+	pBuf = (unsigned char*) malloc(this->sensorWidth * this->sensorHeight);
+	
+	nRet = PDC_GetLiveImageData(this->nDeviceNo, this->nChildNo,
+			8, /* 8 bits */
+			pBuf, &nErrorCode);
+	
+	if (nRet == PDC_FAILED)
+	{
+		printf("PDC_GetLiveImageData Failed. Error %d\n", nErrorCode);
+		free(pBuf);
+		return asynError;
+	}
+	
+	return asynSuccess;
+}
+
 /** Called when asyn clients call pasynInt32->write().
   * This function performs actions for some parameters, including ADAcquire, ADBinX, etc.
   * For all parameters it sets the value in the parameter library and calls any registered callbacks..
@@ -444,6 +484,26 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value)
 		
 	} else if (function == ADAcquire) {
 		// do something here
+		if (value)
+		{
+            int imageMode, numImages;
+            status |= getIntegerParam(ADImageMode, &imageMode);
+            status |= getIntegerParam(ADNumImages, &numImages);
+            switch(imageMode) {
+				case ADImageSingle:
+					this->framesRemaining = 1;
+					break;
+				case ADImageMultiple:
+					this->framesRemaining = numImages;
+					break;
+				case ADImageContinuous:
+					this->framesRemaining = -1;
+					break;
+           }
+            setIntegerParam(ADStatus, ADStatusAcquire);			
+			acquire();
+			
+		}
 	
     } else {
 		/* If this is not a parameter we have handled call the base class */

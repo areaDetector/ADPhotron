@@ -36,6 +36,7 @@ private:
 	asynStatus connectCamera();
 	asynStatus setGeometry();
  	asynStatus readParameters();
+	asynStatus acquire();
 
     /* These items are specific to the Photron driver */
     char *cameraId;                /* This can be an IP name, or IP address */
@@ -44,6 +45,7 @@ private:
     unsigned long uniqueId;
     unsigned long nDeviceNo;
 	unsigned long nChildNo;
+	unsigned long nStatus; // camera status
 	/* */
 	unsigned long deviceCode;
 	TCHAR deviceName[PDC_MAX_STRING_LENGTH];
@@ -56,6 +58,7 @@ private:
     char *sensorBits;
 	unsigned long maxChildDevCount;
 	unsigned long childDevCount;
+	int framesRemaining;
 
     /* Our data */
     epicsEventId startEventId;
