@@ -34,7 +34,6 @@
 #include "Photron.h"
 
 #include <windows.h>
-#include "SDK/Include/PDCLIB.h"
 
 static const char *driverName = "Photron";
 
@@ -49,7 +48,6 @@ void Photron::shutdown (void* arg) {
 }
 
 Photron::~Photron() {
-    int status;
     cameraNode *pNode = (cameraNode *)ellFirst(cameraList);
     static const char *functionName = "~Photron";
 
@@ -372,7 +370,100 @@ asynStatus Photron::disconnectCamera()
 
 	return((asynStatus)status);
 }
+
+asynStatus Photron::setGeometry()
+{
+    int status = asynSuccess;
+    int binX, binY, minY, minX, sizeX, sizeY, maxSizeX, maxSizeY;
+    static const char *functionName = "setGeometry";
+    
+    /* Get all of the current geometry parameters from the parameter library */
+    status |= getIntegerParam(ADBinX, &binX);
+    if (binX < 1) binX = 1;
+    status |= getIntegerParam(ADBinY, &binY);
+    if (binY < 1) binY = 1;
+    status |= getIntegerParam(ADMinX, &minX);
+    status |= getIntegerParam(ADMinY, &minY);
+    status |= getIntegerParam(ADSizeX, &sizeX);
+    status |= getIntegerParam(ADSizeY, &sizeY);
+    status |= getIntegerParam(ADMaxSizeX, &maxSizeX);
+    status |= getIntegerParam(ADMaxSizeY, &maxSizeY);
+
+    if (minX + sizeX > maxSizeX) {
+        sizeX = maxSizeX - minX;
+        setIntegerParam(ADSizeX, sizeX);
+    }
+    if (minY + sizeY > maxSizeY) {
+        sizeY = maxSizeY - minY;
+        setIntegerParam(ADSizeY, sizeY);
+    }
+    
+    if (status) asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+                      "%s:%s: error, status=%d\n", 
+                      driverName, functionName, status);
+    return((asynStatus)status);
+}
+
+asynStatus Photron::readParameters()
+{
+    int status = asynSuccess;
+    static const char *functionName = "readParameters";    /* Call the callbacks to update the values in higher layers */
+ 
+	callParamCallbacks();
+    
+    if (status) asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+                      "%s:%s: error, status=%d\n", 
+                      driverName, functionName, status);
+    return((asynStatus)status);
+}
+
+/** Called when asyn clients call pasynInt32->write().
+  * This function performs actions for some parameters, including ADAcquire, ADBinX, etc.
+  * For all parameters it sets the value in the parameter library and calls any registered callbacks..
+  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
+  * \param[in] value Value to write. */
+asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value)
+{
+    int function = pasynUser->reason;
+    int status = asynSuccess;
+    static const char *functionName = "writeInt32";
+
+    /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
+     * status at the end, but that's OK */
+    status |= setIntegerParam(function, value);
+
+    if ((function == ADBinX) ||
+        (function == ADBinY) ||
+        (function == ADMinX) ||
+        (function == ADSizeX) ||
+        (function == ADMinY) ||
+        (function == ADSizeY)) {
+        /* These commands change the chip readout geometry.  We need to cache them and apply them in the
+         * correct order */
+        status |= setGeometry();
+		
+	} else if (function == ADAcquire) {
+		// do something here
 	
+    } else {
+		/* If this is not a parameter we have handled call the base class */
+		status = ADDriver::writeInt32(pasynUser, value);
+	}
+	
+    /* Read the camera parameters and do callbacks */
+    status |= readParameters();    
+    if (status) 
+        asynPrint(pasynUser, ASYN_TRACE_ERROR, 
+              "%s:%s: error, status=%d function=%d, value=%d\n", 
+              driverName, functionName, status, function, value);
+    else        
+        asynPrint(pasynUser, ASYN_TRACEIO_DRIVER, 
+              "%s:%s: function=%d, value=%d\n", 
+              driverName, functionName, function, value);
+    return((asynStatus)status);
+
+}
+
 /** Constructor for Photron; most parameters are simply passed to ADDriver::ADDriver.
   * After calling the base class constructor this method creates a thread to compute the simulated detector data,
   * and sets reasonable default values for parameters defined in this class, asynNDArrayDriver and ADDriver.

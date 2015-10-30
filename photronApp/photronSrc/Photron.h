@@ -1,6 +1,8 @@
 #include <epicsEvent.h>
 #include "ADDriver.h"
 
+#include "SDK/Include/PDCLIB.h"
+
 /** Simulation detector driver; demonstrates most of the features that areaDetector drivers can support. */
 class epicsShareClass Photron : public ADDriver {
 public:
@@ -15,6 +17,7 @@ public:
     virtual asynStatus disconnect(asynUser* pasynUser);
 
     /* These are the methods that we override from ADDriver */
+	virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
     virtual void report(FILE *fp, int details);
 
 	/* These are called from C and so must be public */
@@ -31,6 +34,8 @@ private:
     /* These are the methods that are new to this class */
 	asynStatus disconnectCamera();
 	asynStatus connectCamera();
+	asynStatus setGeometry();
+ 	asynStatus readParameters();
 
     /* These items are specific to the Photron driver */
     char *cameraId;                /* This can be an IP name, or IP address */
@@ -41,7 +46,7 @@ private:
 	unsigned long nChildNo;
 	/* */
 	unsigned long deviceCode;
-	TCHAR deviceName[200];
+	TCHAR deviceName[PDC_MAX_STRING_LENGTH];
 	/* Indices of functions in functionList range from 2 to 97 */
 	char functionList[98];
 	/* The actual version number is 1/100 of the retrieved value */
@@ -51,7 +56,7 @@ private:
     char *sensorBits;
 	unsigned long maxChildDevCount;
 	unsigned long childDevCount;
-	
+
     /* Our data */
     epicsEventId startEventId;
     epicsEventId stopEventId;
