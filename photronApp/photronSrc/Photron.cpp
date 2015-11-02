@@ -438,15 +438,29 @@ asynStatus Photron::readImage()
 	int status = asynSuccess;
 	int index, jndex;
 
+    int sizeX, sizeY;
+    size_t dims[2];
+    double gain;
+
+    NDArray *pImage;
+    NDArrayInfo_t arrayInfo;
+    int colorMode = NDColorModeMono;
+
+	
 	unsigned long nRet;
 	unsigned long nErrorCode;
 	epicsUInt8 *pBuf;	/* Memory sequence pointer for storing a live image */
 	
     static const char *functionName = "readImage";
 
+    getIntegerParam(ADSizeX,  &sizeX);
+    getIntegerParam(ADSizeX,  &sizeY);
+    getDoubleParam (ADGain,   &gain);
+	
 	printf("acquire image here\n");
 
-	pBuf = (epicsUInt8*) malloc(this->sensorWidth * this->sensorHeight * sizeof(epicsUInt16));
+	// Will this result in a memory leak?
+	pBuf = (epicsUInt8*) malloc(this->sensorWidth * this->sensorHeight * sizeof(epicsUInt8));
 	
 	nRet = PDC_GetLiveImageData(this->nDeviceNo, this->nChildNo,
 			8, /* 8 bits */
@@ -461,18 +475,39 @@ asynStatus Photron::readImage()
 
 	//printf("sizeof(pBuf) = %d\n", sizeof(*pBuf));
 	//for (index=0; index<this->sensorHeight; index++)
-	for (index=0; index<60; index++)
+	for (index=0; index<10; index++)
 	{
 		//for (jndex=0; jndex<this->sensorWidth; jndex++)
-		for (jndex=0; jndex<60; jndex++)
+		for (jndex=0; jndex<10; jndex++)
 		{
 			printf("%d ", pBuf[(this->sensorWidth * index) + jndex]);
 		}
 		printf("\n");
 	}
+
+    /* We save the most recent image buffer so it can be used in the read() function.
+     * Now release it before getting a new version. */
+    if (this->pArrays[0]) 
+		this->pArrays[0]->release();
+	
+    /* Allocate the raw buffer we use to compute images. */
+    dims[0] = sizeX;
+    dims[1] = sizeY;
+    pImage = this->pNDArrayPool->alloc(2, dims, NDUInt8, 0, pBuf);
+    if (!pImage) {
+        asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                  "%s:%s: error allocating buffer\n",
+                  driverName, functionName);
+        return(asynError);
+    }
+    this->pArrays[0] = pImage;
+    pImage->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, &colorMode);
+    pImage->getInfo(&arrayInfo);
+    setIntegerParam(NDArraySize,  (int)arrayInfo.totalBytes);
+    setIntegerParam(NDArraySizeX, (int)pImage->dims[0].size);
+    setIntegerParam(NDArraySizeY, (int)pImage->dims[1].size);
 	
 	return asynSuccess;
-	
 }
 
 
@@ -675,7 +710,7 @@ void Photron::PhotronTask()
         callParamCallbacks();
         
 		if (imageStatus == asynSuccess) {
-            //pImage = this->pArrays[0];
+            pImage = this->pArrays[0];
 
             /* Get the current parameters */
             getIntegerParam(NDArrayCounter, &imageCounter);
