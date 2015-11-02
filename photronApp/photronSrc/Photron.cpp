@@ -440,13 +440,13 @@ asynStatus Photron::readImage()
 
 	unsigned long nRet;
 	unsigned long nErrorCode;
-	unsigned char *pBuf;	/* Memory sequence pointer for storing a live image */
+	epicsUInt8 *pBuf;	/* Memory sequence pointer for storing a live image */
 	
     static const char *functionName = "readImage";
 
 	printf("acquire image here\n");
 
-	pBuf = (unsigned char*) malloc(this->sensorWidth * this->sensorHeight);
+	pBuf = (epicsUInt8*) malloc(this->sensorWidth * this->sensorHeight * sizeof(epicsUInt16));
 	
 	nRet = PDC_GetLiveImageData(this->nDeviceNo, this->nChildNo,
 			8, /* 8 bits */
@@ -461,10 +461,10 @@ asynStatus Photron::readImage()
 
 	//printf("sizeof(pBuf) = %d\n", sizeof(*pBuf));
 	//for (index=0; index<this->sensorHeight; index++)
-	for (index=0; index<100; index++)
+	for (index=0; index<60; index++)
 	{
 		//for (jndex=0; jndex<this->sensorWidth; jndex++)
-		for (jndex=0; jndex<100; jndex++)
+		for (jndex=0; jndex<60; jndex++)
 		{
 			printf("%d ", pBuf[(this->sensorWidth * index) + jndex]);
 		}
