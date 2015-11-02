@@ -5,3 +5,22 @@
 # October 27, 2015
 
 include "ADBase.template"
+
+record(mbbo, "$(P)$(R)8BitSel")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "8 Bit Select")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_8_BIT_SEL")
+   field(PINI, "YES")
+   field(ZRST, "None")
+   field(ZRVL, "0")
+   field(ONST, "One")
+   field(ONVL, "1")
+   field(TWST, "Two")
+   field(TWVL, "2")
+   field(THST, "Three")
+   field(THVL, "3")
+   field(FRST, "Four")
+   field(FRVL, "4")
+   field(VAL,  "0")
+}

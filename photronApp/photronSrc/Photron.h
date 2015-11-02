@@ -25,11 +25,10 @@ public:
 	static void shutdown(void *arg);
 	
 protected:
-    //int SimGainX;
-    //#define FIRST_SIM_DETECTOR_PARAM SimGainX
-    //int SimPeakHeightVariation;
-
-    //#define LAST_SIM_DETECTOR_PARAM SimPeakHeightVariation
+    int P8BitSel;
+    #define FIRST_PHOTRON_PARAM P8BitSel
+    
+    #define LAST_PHOTRON_PARAM P8BitSel
 
 private:
     /* These are the methods that are new to this class */
@@ -39,6 +38,7 @@ private:
  	asynStatus readParameters();
 	asynStatus readImage();
 	asynStatus readImageDONOTUSE();
+	asynStatus setTransferOption();
 
     /* These items are specific to the Photron driver */
     char *cameraId;                /* This can be an IP name, or IP address */
@@ -76,9 +76,8 @@ typedef struct {
 
 
 // Define param strings here
-//#define SimGainXString          "SIM_GAIN_X"
-//#define SimPeakHeightVariationString  "SIM_PEAK_HEIGHT_VARIATION"
+ /*                                       String              asyn interface  access   Description  */
+#define Photron8BitSelectString          "PHOTRON_8_BIT_SEL" /* (asynInt32,    rw)     bit position during 8-bit transfer from a device of more than 8 bits. */
 
-//#define NUM_SIM_DETECTOR_PARAMS ((int)(&LAST_SIM_DETECTOR_PARAM - &FIRST_SIM_DETECTOR_PARAM + 1))
-#define NUM_PHOTRON_PARAMS 0
+#define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM - &FIRST_PHOTRON_PARAM + 1))
 

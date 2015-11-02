@@ -777,6 +777,27 @@ void Photron::PhotronTask()
     }
 }
 
+asynStatus Photron::setTransferOption()
+{
+	unsigned long nRet;
+	unsigned long nErrorCode;
+	int status = asynSuccess;
+	int n8BitSel;
+	
+    static const char *functionName = "setTransferOption";
+
+    status = getIntegerParam(P8BitSel, &n8BitSel);
+	
+	// TODO: confirm that we are in 8-bit acquisition mode, otherwise this isn't necessary
+	nRet = PDC_SetTransferOption(this->nDeviceNo, this->nChildNo, n8BitSel, PDC_FUNCTION_OFF, PDC_FUNCTION_OFF, &nErrorCode);
+	if (nRet == PDC_FAILED) {
+		printf("PDC_GetMaxResolution failed %d\n", nErrorCode);
+		return asynError;
+	}	
+	
+	return asynSuccess;
+}
+
 /** Called when asyn clients call pasynInt32->write().
   * This function performs actions for some parameters, including ADAcquire, ADBinX, etc.
   * For all parameters it sets the value in the parameter library and calls any registered callbacks..
@@ -816,7 +837,10 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value)
             epicsEventSignal(this->stopEventId);
         }
 
-    } else {
+    } else if (function == P8BitSel) {
+		/* Specifies the bit position during 8-bit transfer from a device of more than 8 bits. */
+		setTransferOption();
+	} else {
 		/* If this is not a parameter we have handled call the base class */
 		status = ADDriver::writeInt32(pasynUser, value);
 	}
@@ -877,7 +901,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
     ellAdd(cameraList, (ELLNODE *)pNode);
 	
 	// CREATE PARAMS HERE
-    // createParam(SimGainXString,       asynParamFloat64, &SimGainX);
+    createParam(Photron8BitSelectString,       asynParamInt32, &P8BitSel);
 	
 	if (!PDCLibInitialized) {
 
