@@ -61,6 +61,10 @@ private:
 	unsigned long maxChildDevCount;
 	unsigned long childDevCount;
 	int framesRemaining;
+	unsigned long triggerMode;
+	unsigned long trigAFrames;
+	unsigned long trigRFrames;
+	unsigned long trigRCount;
 
     /* Our data */
     epicsEventId startEventId;

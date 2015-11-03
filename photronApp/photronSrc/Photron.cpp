@@ -319,6 +319,26 @@ asynStatus Photron::connectCamera()
 		}
 	}
 
+	/*
+	PDC_GetTriggerMode succeeded
+        Mode = 0
+        AFrames = 5457
+        RFrames = 0
+        RCount = 0
+	*/
+	
+	nRet = PDC_GetTriggerMode(this->nDeviceNo, &(this->triggerMode), &(this->trigAFrames), &(this->trigRFrames), &(this->trigRCount), &nErrorCode);
+	if (nRet == PDC_FAILED) {
+		printf("PDC_GetTriggerMode failed %d\n", nErrorCode);
+		return asynError;
+	} else {
+		printf("PDC_GetTriggerMode succeeded\n");
+		printf("\tMode = %d\n", this->triggerMode);
+		printf("\tAFrames = %d\n", this->trigAFrames);
+		printf("\tRFrames = %d\n", this->trigRFrames);
+		printf("\tRCount = %d\n", this->trigRCount);
+	}
+	
     /* Set some initial values for other parameters */
     status =  setStringParam (ADManufacturer, "Photron");
     status |= setStringParam (ADModel, this->deviceName);
