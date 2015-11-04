@@ -826,18 +826,6 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
         return;
     }
 	
-    /* Try to connect to the camera.  
-     * It is not a fatal error if we cannot now, the camera may be off or owned by
-     * someone else.  It may connect later. */
-    this->lock();
-    status = connectCamera();
-    this->unlock();
-    if (status) {
-        printf("%s:%s: cannot connect to camera %s, manually connect when available.\n", 
-               driverName, functionName, cameraId);
-        return;
-    }
-
     /* Register the shutdown function for epicsAtExit */
     epicsAtExit(shutdown, (void*)this);
 
@@ -850,6 +838,18 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
     if (status) {
         printf("%s:%s epicsThreadCreate failure for image task\n",
             driverName, functionName);
+        return;
+    }
+
+    /* Try to connect to the camera.  
+     * It is not a fatal error if we cannot now, the camera may be off or owned by
+     * someone else.  It may connect later. */
+    this->lock();
+    status = connectCamera();
+    this->unlock();
+    if (status) {
+        printf("%s:%s: cannot connect to camera %s, manually connect when available.\n", 
+               driverName, functionName, cameraId);
         return;
     }
 }
