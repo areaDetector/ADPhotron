@@ -127,7 +127,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   status = connectCamera();
   this->unlock();
   if (status) {
-    printf("%s:%s: cannot connect to camera %s, manually connect when available.\n", 
+    printf("%s:%s: cannot connect to camera %s, manually connect later\n", 
            driverName, functionName, cameraId);
     return;
   }
