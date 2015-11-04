@@ -35,6 +35,7 @@ private:
   asynStatus disconnectCamera();
   asynStatus connectCamera();
   asynStatus setGeometry();
+  asynStatus getGeometry();
   asynStatus readParameters();
   asynStatus readImage();
   asynStatus setTransferOption();

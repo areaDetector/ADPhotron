@@ -685,6 +685,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
      (function == ADSizeX) || (function == ADMinY) || (function == ADSizeY)) {
     /* These commands change the chip readout geometry.  We need to cache them 
      * and apply them in the correct order */
+    //printf("calling setGeometry. function=%d, value=%d\n", function, value);
     status |= setGeometry();
   } else if (function == ADAcquire) {
     getIntegerParam(ADStatus, &adstatus);
@@ -723,24 +724,58 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
 }
 
 
+asynStatus Photron::getGeometry() {
+  int status = asynSuccess;
+  int binX, binY, minY, minX, sizeX, sizeY, maxSizeX, maxSizeY;
+  static const char *functionName = "getGeometry";
+
+  // Eventually this will read from the detector; for now, hardcode values
+  binX = binY = 1;
+  minX = minY = 0;
+  sizeX = sizeY = maxSizeX = maxSizeY = 1024;
+  
+  status |= setIntegerParam(ADBinX,  binX);
+  status |= setIntegerParam(ADBinY,  binY);
+  status |= setIntegerParam(ADMinX,  minX*binX);
+  status |= setIntegerParam(ADMinY,  minY*binY);
+  status |= setIntegerParam(ADSizeX, sizeX*binX);
+  status |= setIntegerParam(ADSizeY, sizeY*binY);
+  status |= setIntegerParam(NDArraySizeX, sizeX);
+  status |= setIntegerParam(NDArraySizeY, sizeY);
+
+  if (status)
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+              "%s:%s: error, status=%d\n", driverName, functionName, status);
+
+  return((asynStatus)status);
+}
+
 asynStatus Photron::setGeometry() {
   int status = asynSuccess;
   int binX, binY, minY, minX, sizeX, sizeY, maxSizeX, maxSizeY;
   static const char *functionName = "setGeometry";
   
   /* Get all of the current geometry parameters from the parameter library */
-  status |= getIntegerParam(ADBinX, &binX);
+  status = getIntegerParam(ADBinX, &binX);
+  //printf("\tBinX status = %d\n", status);
   if (binX < 1)
     binX = 1;
-  status |= getIntegerParam(ADBinY, &binY);
+  status = getIntegerParam(ADBinY, &binY);
+  //printf("\tBinY status = %d\n", status);
   if (binY < 1)
     binY = 1;
-  status |= getIntegerParam(ADMinX, &minX);
-  status |= getIntegerParam(ADMinY, &minY);
-  status |= getIntegerParam(ADSizeX, &sizeX);
-  status |= getIntegerParam(ADSizeY, &sizeY);
-  status |= getIntegerParam(ADMaxSizeX, &maxSizeX);
-  status |= getIntegerParam(ADMaxSizeY, &maxSizeY);
+  status = getIntegerParam(ADMinX, &minX);
+  //printf("\tMinX status = %d\n", status);
+  status = getIntegerParam(ADMinY, &minY);
+  //printf("\tMinY status = %d\n", status);
+  status = getIntegerParam(ADSizeX, &sizeX);
+  //printf("\tSizeX status = %d\n", status);
+  status = getIntegerParam(ADSizeY, &sizeY);
+  //printf("\tSizeY status = %d\n", status);
+  status = getIntegerParam(ADMaxSizeX, &maxSizeX);
+  //printf("\tMaxSizeX status = %d\n", status);
+  status = getIntegerParam(ADMaxSizeY, &maxSizeY);
+  //printf("\tMAxSizeY status = %d\n", status);
 
   if (minX + sizeX > maxSizeX) {
     sizeX = maxSizeX - minX;
@@ -785,6 +820,8 @@ asynStatus Photron::setTransferOption() {
 asynStatus Photron::readParameters() {
   int status = asynSuccess;
   static const char *functionName = "readParameters";    
+  
+  status |= getGeometry();
   
   /* Call the callbacks to update the values in higher layers */
   callParamCallbacks();
