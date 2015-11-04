@@ -469,6 +469,7 @@ asynStatus Photron::readImage()
 	
 	unsigned long nRet;
 	unsigned long nErrorCode;
+	int numBytes;
 	epicsUInt8 *pBuf;	/* Memory sequence pointer for storing a live image */
 	
     static const char *functionName = "readImage";
@@ -480,7 +481,8 @@ asynStatus Photron::readImage()
 	printf("acquire image here\n");
 
 	// Will this result in a memory leak?
-	pBuf = (epicsUInt8*) malloc(this->sensorWidth * this->sensorHeight * sizeof(epicsUInt8));
+	numBytes = this->sensorWidth * this->sensorHeight * sizeof(epicsUInt8);
+	pBuf = (epicsUInt8*) malloc(numBytes);
 	
 	nRet = PDC_GetLiveImageData(this->nDeviceNo, this->nChildNo,
 			8, /* 8 bits */
@@ -513,150 +515,24 @@ asynStatus Photron::readImage()
     /* Allocate the raw buffer we use to compute images. */
     dims[0] = sizeX;
     dims[1] = sizeY;
-    pImage = this->pNDArrayPool->alloc(2, dims, NDUInt8, 0, pBuf);
+    pImage = this->pNDArrayPool->alloc(2, dims, NDUInt8, 0, NULL);
     if (!pImage) {
         asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
                   "%s:%s: error allocating buffer\n",
                   driverName, functionName);
         return(asynError);
     }
+	
+	memcpy(pImage->pData, pBuf, numBytes);
+	
     this->pArrays[0] = pImage;
     pImage->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, &colorMode);
     pImage->getInfo(&arrayInfo);
     setIntegerParam(NDArraySize,  (int)arrayInfo.totalBytes);
     setIntegerParam(NDArraySizeX, (int)pImage->dims[0].size);
     setIntegerParam(NDArraySizeY, (int)pImage->dims[1].size);
-	
-	return asynSuccess;
-}
 
-
-asynStatus Photron::readImageDONOTUSE()
-{
-    int status = asynSuccess;
-    NDDataType_t dataType;
-    int itemp;
-    int binX, binY, minX, minY, sizeX, sizeY, reverseX, reverseY;
-	int xDim=0, yDim=1, colorDim=-1;
-    int maxSizeX, maxSizeY;
-	
-    int colorMode=NDColorModeMono;
-    int depth=8;
-	
-	int ndims=0;
-    size_t dims[3];
-    NDArrayInfo_t arrayInfo;
-    NDArray *pImage;
-	
-	unsigned long nRet;
-	unsigned long nErrorCode;
-	unsigned char *pBuf;	/* Memory sequence pointer for storing a live image */
-
-    static const char *functionName = "readImage";
-
-	printf("readImage\n");
-	
-    /* NOTE: The caller of this function must have taken the mutex */
-
-    status |= getIntegerParam(ADBinX,         &binX);
-    status |= getIntegerParam(ADBinY,         &binY);
-    status |= getIntegerParam(ADMinX,         &minX);
-    status |= getIntegerParam(ADMinY,         &minY);
-    status |= getIntegerParam(ADSizeX,        &sizeX);
-    status |= getIntegerParam(ADSizeY,        &sizeY);
-    status |= getIntegerParam(ADReverseX,     &reverseX);
-    status |= getIntegerParam(ADReverseY,     &reverseY);
-    status |= getIntegerParam(ADMaxSizeX,     &maxSizeX);
-    status |= getIntegerParam(ADMaxSizeY,     &maxSizeY);
-    status |= getIntegerParam(NDColorMode,    &colorMode);
-    status |= getIntegerParam(NDDataType,     &itemp); dataType = (NDDataType_t)itemp;
-    if (status) asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
-                    "%s:%s: error getting parameters\n",
-                    driverName, functionName);
-
-    /* Make sure parameters are consistent, fix them if they are not */
-    if (binX < 1) {
-        binX = 1;
-        status |= setIntegerParam(ADBinX, binX);
-    }
-    if (binY < 1) {
-        binY = 1;
-        status |= setIntegerParam(ADBinY, binY);
-    }
-    if (minX < 0) {
-        minX = 0;
-        status |= setIntegerParam(ADMinX, minX);
-    }
-    if (minY < 0) {
-        minY = 0;
-        status |= setIntegerParam(ADMinY, minY);
-    }
-    if (minX > maxSizeX-1) {
-        minX = maxSizeX-1;
-        status |= setIntegerParam(ADMinX, minX);
-    }
-    if (minY > maxSizeY-1) {
-        minY = maxSizeY-1;
-        status |= setIntegerParam(ADMinY, minY);
-    }
-    if (minX+sizeX > maxSizeX) {
-        sizeX = maxSizeX-minX;
-        status |= setIntegerParam(ADSizeX, sizeX);
-    }
-    if (minY+sizeY > maxSizeY) {
-        sizeY = maxSizeY-minY;
-        status |= setIntegerParam(ADSizeY, sizeY);
-    }
-
-    // case NDColorModeMono:
-    ndims = 2;
-    dims[0] = sizeX;
-    dims[1] = sizeY;
-	dims[2] = 0;
-
-	switch (depth) {
-        case 1:
-        case 8:
-            dataType = NDUInt8;
-            break;
-        case 16:
-            dataType = NDUInt16;
-            break;
-        case 32:
-            dataType = NDUInt32;
-            break;
-        default:
-            asynPrint(pasynUserSelf, ASYN_TRACE_ERROR, 
-                "%s:%s: unsupported depth=%d\n", 
-                driverName, functionName, depth);
-            return(asynError);
-            break;
-    }
-   
-    if (pImage) pImage->release();
-    this->pArrays[0] = this->pNDArrayPool->alloc(ndims, dims, dataType, 0, NULL);
-    pImage = this->pArrays[0];
-    asynPrint(this->pasynUserSelf, ASYN_TRACEIO_DRIVER,
-        "%s:%s: reading Photron, dimensions=[%lu,%lu,%lu], depth=%d\n",
-        driverName, functionName,
-        (unsigned long)dims[0], (unsigned long)dims[1], (unsigned long)dims[2], depth);
-	
-	printf("acquire image here\n");
-
-	pBuf = (unsigned char*) malloc(this->sensorWidth * this->sensorHeight);
-	
-	nRet = PDC_GetLiveImageData(this->nDeviceNo, this->nChildNo,
-			8, /* 8 bits */
-			pBuf, &nErrorCode);
-	
-	if (nRet == PDC_FAILED)
-	{
-		printf("PDC_GetLiveImageData Failed. Error %d\n", nErrorCode);
-		free(pBuf);
-		return asynError;
-	}
-
-	pImage->pData = pBuf;
+	free(pBuf);
 	
 	return asynSuccess;
 }

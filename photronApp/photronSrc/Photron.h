@@ -37,7 +37,6 @@ private:
 	asynStatus setGeometry();
  	asynStatus readParameters();
 	asynStatus readImage();
-	asynStatus readImageDONOTUSE();
 	asynStatus setTransferOption();
 
     /* These items are specific to the Photron driver */
