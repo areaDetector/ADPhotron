@@ -56,8 +56,7 @@ static ELLLIST *cameraList;
   * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
   */
 Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
-                         int maxBuffers, size_t maxMemory, int priority, int stackSize)
-
+                 int maxBuffers, size_t maxMemory, int priority, int stackSize)
     : ADDriver(portName, 1, NUM_PHOTRON_PARAMS, maxBuffers, maxMemory,
                0, 0, /* No interfaces beyond those set in ADDriver.cpp */
                0, 0, /* ASYN_CANBLOCK=0, ASYN_MULTIDEVICE=0, autoConnect=1 */
@@ -93,7 +92,8 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
     PDCLibInitialized = 1;
   }
 
-  /* Create the epicsEvents for signaling to the acquisition task when acquisition starts and stops */
+  /* Create the epicsEvents for signaling to the acquisition task when 
+     acquisition starts and stops */
   this->startEventId = epicsEventCreate(epicsEventEmpty);
   if (!this->startEventId) {
     printf("%s:%s epicsEventCreate failure for start event\n",
@@ -111,11 +111,9 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   epicsAtExit(shutdown, (void*)this);
 
   /* Create the thread that updates the images */
-  status = (epicsThreadCreate("PhotronTask",
-                              epicsThreadPriorityMedium,
-                              epicsThreadGetStackSize(epicsThreadStackMedium),
-                              (EPICSTHREADFUNC)PhotronTaskC,
-                              this) == NULL);
+  status = (epicsThreadCreate("PhotronTask", epicsThreadPriorityMedium,
+                epicsThreadGetStackSize(epicsThreadStackMedium),
+                (EPICSTHREADFUNC)PhotronTaskC, this) == NULL);
   if (status) {
     printf("%s:%s epicsThreadCreate failure for image task\n",
            driverName, functionName);
@@ -124,7 +122,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
 
   /* Try to connect to the camera.  
    * It is not a fatal error if we cannot now, the camera may be off or owned by
-   * someone else.  It may connect later. */
+   * someone else. It may connect later. */
   this->lock();
   status = connectCamera();
   this->unlock();
@@ -156,7 +154,8 @@ Photron::~Photron() {
     delete pNode;
   }
 
-  //  If this is the last camera in the IOC then unregister callbacks and uninitialize
+  /* If this is the last camera in the IOC then unregister callbacks and 
+     uninitialize */
   if (ellCount(cameraList) == 0) {
     delete cameraList;
   }
@@ -175,8 +174,9 @@ static void PhotronTaskC(void *drvPvt) {
 }
 
 
-/** This thread calls computeImage to compute new image data and does the callbacks to send it to higher layers.
-  * It implements the logic for single, multiple or continuous acquisition. */
+/** This thread calls readImage to retrieve new image data from the camera and 
+  * does the callbacks to send it to higher layers. It implements the logic for 
+  * single, multiple or continuous acquisition. */
 void Photron::PhotronTask() {
   asynStatus imageStatus;
   int imageCounter;
@@ -197,13 +197,16 @@ void Photron::PhotronTask() {
     getIntegerParam(ADAcquire, &acquire);
     printf("is acquisition active?\n");
 
-    /* If we are not acquiring then wait for a semaphore that is given when acquisition is started */
+    /* If we are not acquiring then wait for a semaphore that is given when 
+       acquisition is started */
     if (!acquire) {
       setIntegerParam(ADStatus, ADStatusIdle);
       callParamCallbacks();
-      /* Release the lock while we wait for an event that says acquire has started, then lock again */
+      /* Release the lock while we wait for an event that says acquire has 
+         started, then lock again */
       asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
-                "%s:%s: waiting for acquire to start\n", driverName, functionName);
+                "%s:%s: waiting for acquire to start\n", driverName, 
+                functionName);
       this->unlock();
       epicsEventWait(this->startEventId);
       this->lock();
@@ -259,11 +262,12 @@ void Photron::PhotronTask() {
 
       if (arrayCallbacks) {
         /* Call the NDArray callback */
-        /* Must release the lock here, or we can get into a deadlock, because we can
-         * block on the plugin lock, and the plugin can be calling us */
+        /* Must release the lock here, or we can get into a deadlock, because we
+         * can block on the plugin lock, and the plugin can be calling us */
         this->unlock();
         asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
-                  "%s:%s: calling imageData callback\n", driverName, functionName);
+                  "%s:%s: calling imageData callback\n", driverName,
+                  functionName);
         doCallbacksGenericPointer(pImage, NDArrayData, 0);
         this->lock();
       }
@@ -281,7 +285,7 @@ void Photron::PhotronTask() {
     callParamCallbacks();
     getIntegerParam(ADAcquire, &acquire);
 
-    /* If we are acquiring then sleep for the acquire period minus elapsed time. */
+    /* If acquiring then sleep for the acquire period minus elapsed time. */
     if (acquire) {
       epicsTimeGetCurrent(&endTime);
       elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
@@ -289,7 +293,7 @@ void Photron::PhotronTask() {
       asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
                 "%s:%s: delay=%f\n", driverName, functionName, delay);
       if (delay >= 0.0) {
-        /* We set the status to readOut to indicate we are in the period delay */
+        /* Set the status to readOut to indicate we are in the period delay */
         setIntegerParam(ADStatus, ADStatusWaiting);
         callParamCallbacks();
         this->unlock();
@@ -347,8 +351,8 @@ asynStatus Photron::readImage() {
     printf("\n");
   }
 
-  /* We save the most recent image buffer so it can be used in the read() function.
-   * Now release it before getting a new version. */
+  /* We save the most recent image buffer so it can be used in the read() 
+   * function. Now release it before getting a new version. */
   if (this->pArrays[0]) 
     this->pArrays[0]->release();
   
@@ -365,7 +369,8 @@ asynStatus Photron::readImage() {
   memcpy(pImage->pData, pBuf, numBytes);
   
   this->pArrays[0] = pImage;
-  pImage->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, &colorMode);
+  pImage->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, 
+                              &colorMode);
   pImage->getInfo(&arrayInfo);
   setIntegerParam(NDArraySize,  (int)arrayInfo.totalBytes);
   setIntegerParam(NDArraySizeX, (int)pImage->dims[0].size);
@@ -392,8 +397,8 @@ asynStatus Photron::disconnectCamera() {
   /* Ensure that PDC library has been initialised */
   if (!PDCLibInitialized) {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-              "%s:%s: Connecting to camera %ld while the PDC library is uninitialized.\n", 
-              driverName, functionName, this->uniqueId);
+        "%s:%s: Connecting to camera %ld while PDC library is uninitialized.\n", 
+        driverName, functionName, this->uniqueId);
     return asynError;
   }
   
@@ -405,7 +410,7 @@ asynStatus Photron::disconnectCamera() {
     printf("PDC_CloseDevice succeeded for device #%d\n", this->nDeviceNo);
   }
   
-  /* We've disconnected the camera. Signal to asynManager that we are disconnected. */
+  /* Camera is disconnected. Signal to asynManager that it is disconnected. */
   status = pasynManager->exceptionDisconnect(this->pasynUserSelf);
   if (status) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -450,7 +455,7 @@ asynStatus Photron::connectCamera() {
   /* Ensure that PDC library has been initialised */
   if (!PDCLibInitialized) {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-      "%s:%s: Connecting to camera %ld while the PDC library is uninitialized.\n", 
+      "%s:%s: Connecting to camera %ld while PDC library is uninitialized.\n", 
       driverName, functionName, this->uniqueId);
     return asynError;
   }
@@ -502,15 +507,15 @@ asynStatus Photron::connectCamera() {
      (DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo != IPList[0])) {
     printf("The specified and detected IP addresses differ:\n");
     printf("\tIPList[0] = %x\n", IPList[0]);
-    printf("\tm_nTmpDeviceNo = %x\n", DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo);
+    printf("\tm_nTmpDeviceNo = %x\n", 
+           DetectNumInfo.m_DetectInfo[0].m_nTmpDeviceNo);
     return asynError;
   }
 
-  nRet = PDC_OpenDevice(&(DetectNumInfo.m_DetectInfo[0]), /* Subject device information */
-              &(this->nDeviceNo),
-              &nErrorCode);
+  nRet = PDC_OpenDevice(&(DetectNumInfo.m_DetectInfo[0]), &(this->nDeviceNo),
+                        &nErrorCode);
   /* When should PDC_OpenDevice2 be used instead of PDC_OpenDevice? */
-  //nRet = PDC_OpenDevice2(&(DetectNumInfo.m_DetectInfo[0]), /* Subject device information */
+  //nRet = PDC_OpenDevice2(&(DetectNumInfo.m_DetectInfo[0]), 
   //            10,  /* nMaxRetryCount */
   //            0,  /* nConnectMode -- 1=normal, 0=safe */
   //            &(this->nDeviceNo),
@@ -527,12 +532,14 @@ asynStatus Photron::connectCamera() {
   
   /* Determine which functions are supported by the camera */
   for( index=2; index<98; index++) {
-    nRet = PDC_IsFunction(this->nDeviceNo, this->nChildNo, index, &nFlag, &nErrorCode);
+    nRet = PDC_IsFunction(this->nDeviceNo, this->nChildNo, index, &nFlag, 
+                          &nErrorCode);
     if (nRet == PDC_FAILED) {
       if (nErrorCode == PDC_ERROR_NOT_SUPPORTED) {
         this->functionList[index] = PDC_EXIST_NOTSUPPORTED;
       } else {
-        printf("PDC_IsFunction failed for function %d, error = %d\n", index, nErrorCode);
+        printf("PDC_IsFunction failed for function %d, error = %d\n", 
+               index, nErrorCode);
         return asynError;
       }
     } else {
@@ -561,26 +568,31 @@ asynStatus Photron::connectCamera() {
     return asynError;
   }  
 
-  nRet = PDC_GetMaxChildDeviceCount(this->nDeviceNo, &(this->maxChildDevCount), &nErrorCode);
+  nRet = PDC_GetMaxChildDeviceCount(this->nDeviceNo, &(this->maxChildDevCount), 
+                                    &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetMaxChildDeviceCount failed %d\n", nErrorCode);
     return asynError;
   }  
 
-  nRet = PDC_GetChildDeviceCount(this->nDeviceNo, &(this->childDevCount), &nErrorCode);
+  nRet = PDC_GetChildDeviceCount(this->nDeviceNo, &(this->childDevCount), 
+                                 &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetChildDeviceCount failed %d\n", nErrorCode);
     return asynError;
   }  
   
-  nRet = PDC_GetMaxResolution(this->nDeviceNo, this->nChildNo, &(this->sensorWidth), &(this->sensorHeight), &nErrorCode);
+  nRet = PDC_GetMaxResolution(this->nDeviceNo, this->nChildNo, 
+                              &(this->sensorWidth), &(this->sensorHeight), 
+                              &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetMaxResolution failed %d\n", nErrorCode);
     return asynError;
   }  
 
   if (this->functionList[PDC_EXIST_BITDEPTH] == PDC_EXIST_SUPPORTED) {
-    nRet = PDC_GetMaxBitDepth(this->nDeviceNo, this->nChildNo, this->sensorBits, &nErrorCode);
+    nRet = PDC_GetMaxBitDepth(this->nDeviceNo, this->nChildNo, this->sensorBits,
+                              &nErrorCode);
     if (nRet == PDC_FAILED) {
       printf("PDC_GetMaxBitDepth failed %d\n", nErrorCode);
       return asynError;
@@ -638,7 +650,8 @@ asynStatus Photron::connectCamera() {
     return asynError;
   }
  
-  /* We found the camera and everything is OK.  Signal to asynManager that we are connected. */
+  /* We found the camera. Everything is OK. Signal to asynManager that we are 
+     connected. */
   status = pasynManager->exceptionConnect(this->pasynUserSelf);
   if (status) {
     asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
@@ -664,20 +677,21 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int adstatus;
   static const char *functionName = "writeInt32";
 
-  /* Set the parameter and readback in the parameter library.  This may be overwritten when we read back the
-   * status at the end, but that's OK */
+  /* Set the parameter and readback in the parameter library.  This may be 
+   * overwritten when we read back the status at the end, but that's OK */
   status |= setIntegerParam(function, value);
 
   if ((function == ADBinX) || (function == ADBinY) || (function == ADMinX) ||
      (function == ADSizeX) || (function == ADMinY) || (function == ADSizeY)) {
-    /* These commands change the chip readout geometry.  We need to cache them and apply them in the
-     * correct order */
+    /* These commands change the chip readout geometry.  We need to cache them 
+     * and apply them in the correct order */
     status |= setGeometry();
   } else if (function == ADAcquire) {
     getIntegerParam(ADStatus, &adstatus);
     if (value && (adstatus == ADStatusIdle)) {
       /* Send an event to wake up the acquisition task.
-       * It won't actually start generating new images until we release the lock below */
+       * It won't actually start generating new images until we release the lock
+       * below */
       epicsEventSignal(this->startEventId);
     }
     if (!value && (adstatus != ADStatusIdle)) {
@@ -686,7 +700,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       epicsEventSignal(this->stopEventId);
     }
   } else if (function == P8BitSel) {
-    /* Specifies the bit position during 8-bit transfer from a device of more than 8 bits. */
+    /* Specifies the bit position during 8-bit transfer from a device of more 
+       than 8 bits. */
     setTransferOption();
   } else {
     /* If this is not a parameter we have handled call the base class */
@@ -754,7 +769,8 @@ asynStatus Photron::setTransferOption() {
 
   status = getIntegerParam(P8BitSel, &n8BitSel);
   
-  // TODO: confirm that we are in 8-bit acquisition mode, otherwise this isn't necessary
+  // TODO: confirm that we are in 8-bit acquisition mode, 
+  //       otherwise this isn't necessary
   nRet = PDC_SetTransferOption(this->nDeviceNo, this->nChildNo, n8BitSel,
                                PDC_FUNCTION_OFF, PDC_FUNCTION_OFF, &nErrorCode);
   if (nRet == PDC_FAILED) {
@@ -768,8 +784,9 @@ asynStatus Photron::setTransferOption() {
 
 asynStatus Photron::readParameters() {
   int status = asynSuccess;
-  static const char *functionName = "readParameters";    /* Call the callbacks to update the values in higher layers */
-
+  static const char *functionName = "readParameters";    
+  
+  /* Call the callbacks to update the values in higher layers */
   callParamCallbacks();
 
   if (status)
@@ -812,7 +829,6 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "  Firmware version:  %s\n",  pInfo->FirmwareVersion);
     fprintf(fp, "  Access flags:      %lx\n", pInfo->PermittedAccess);
     fprintf(fp, "  Sensor type:       %s\n",  this->sensorType);
-    fprintf(fp, "  Frame buffer size: %d\n",  (int)this->PvFrames[0].ImageBufferSize);
     fprintf(fp, "  Time stamp freq:   %d\n",  (int)this->timeStampFrequency);
     fprintf(fp, "  maxPvAPIFrames:    %d\n",  (int)this->maxPvAPIFrames_);
     */
@@ -857,7 +873,8 @@ static const iocshArg * const PhotronConfigArgs[] =  {&PhotronConfigArg0,
                                                       &PhotronConfigArg4,
                                                       &PhotronConfigArg5,
                                                       &PhotronConfigArg6};
-static const iocshFuncDef configPhotron = {"PhotronConfig", 7, PhotronConfigArgs};
+static const iocshFuncDef configPhotron = {"PhotronConfig", 7, 
+                                           PhotronConfigArgs};
 static void configPhotronCallFunc(const iocshArgBuf *args) {
     PhotronConfig(args[0].sval, args[1].sval, args[2].ival, args[3].ival,
                   args[4].ival, args[5].ival, args[6].ival);
