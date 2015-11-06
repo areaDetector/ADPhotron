@@ -48,6 +48,7 @@ private:
   unsigned long nDeviceNo;
   unsigned long nChildNo;
   unsigned long nStatus; // camera status
+  unsigned long nRate; // units = frames per second
   /* */
   unsigned long deviceCode;
   TCHAR deviceName[PDC_MAX_STRING_LENGTH];
@@ -65,7 +66,12 @@ private:
   unsigned long trigAFrames;
   unsigned long trigRFrames;
   unsigned long trigRCount;
-
+  unsigned long RateList[PDC_MAX_LIST_NUMBER];
+  unsigned long RateListSize;
+  
+  // SA1.1 doesn't support reading the bit depth
+  //char *bitDepth;
+  
   /* Our data */
   epicsEventId startEventId;
   epicsEventId stopEventId;

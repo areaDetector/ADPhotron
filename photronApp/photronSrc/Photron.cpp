@@ -558,6 +558,23 @@ asynStatus Photron::connectCamera() {
     printf("\tRFrames = %d\n", this->trigRFrames);
     printf("\tRCount = %d\n", this->trigRCount);
   }
+
+  nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 
+                               &(this->RateListSize), this->RateList, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetRecordRateList failed %d\n", nErrorCode);
+    return asynError;
+  } else {
+    printf("PDC_GetRecordRateList succeeded. Num =%d\n", this->RateListSize);
+    for (index=0; index<this->RateListSize; index++) {
+      printf("\t%d:\t%d FPS\n", (index + 1), this->RateList[index]);
+    }
+  }
+  
+  nRet = PDC_SetRecordRate(this->nDeviceNo, this->nChildNo, 60, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetRecordRate Error %d\n", nErrorCode);
+  }
   
   /* Set some initial values for other parameters */
   status =  setStringParam (ADManufacturer, "Photron");
@@ -612,8 +629,39 @@ asynStatus Photron::readImage() {
   getIntegerParam(ADSizeX,  &sizeY);
   getDoubleParam (ADGain,   &gain);
   
-  printf("acquire image here\n");
-
+  //-------
+  // DEBUG print the BitDepth
+  /*nRet = PDC_GetBitDepth(this->nDeviceNo, this->nChildNo, this->bitDepth, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetBitDepth failed %d\n", nErrorCode);
+    return asynError;
+  } else {
+    printf("PDC_GetBitDepth succeeded. bitDepth = %s\n", this->bitDepth);
+  }*/
+  //-------
+  
+  //-------
+  // DEBUG print the record rate
+  nRet = PDC_GetRecordRate(this->nDeviceNo, this->nChildNo, &(this->nRate), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetRecordRate failed %d\n", nErrorCode);
+    return asynError;
+  } else {
+    printf("PDC_GetRecordRate succeeded. rate = 1/%d\n", this->nRate);
+  }
+  //-------
+  
+  //-------
+  // DEBUG print the status
+  nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetStatus failed %d\n", nErrorCode);
+    return asynError;
+  } else {
+    printf("PDC_GetStatus succeeded. status = %d\n", this->nStatus);
+  }
+  //-------
+  
   // Will this result in a memory leak?
   numBytes = this->sensorWidth * this->sensorHeight * sizeof(epicsUInt8);
   pBuf = (epicsUInt8*) malloc(numBytes);
@@ -661,6 +709,17 @@ asynStatus Photron::readImage() {
   setIntegerParam(NDArraySizeY, (int)pImage->dims[1].size);
 
   free(pBuf);
+  
+  //-------
+  // DEBUG print the status
+  nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetStatus failed %d\n", nErrorCode);
+    return asynError;
+  } else {
+    printf("PDC_GetStatus succeeded. status = %d\n", this->nStatus);
+  }
+  //-------
   
   return asynSuccess;
 }
@@ -879,8 +938,10 @@ void Photron::report(FILE *fp, int details) {
     }
   }
   
-  /* Invoke the base class method */
-  ADDriver::report(fp, details);
+  if (details > 8) {
+    /* Invoke the base class method */
+    ADDriver::report(fp, details);
+  }
 }
 
 
