@@ -26,9 +26,10 @@ public:
   
 protected:
     int P8BitSel;
+    int PRecRate;
     #define FIRST_PHOTRON_PARAM P8BitSel
     
-    #define LAST_PHOTRON_PARAM P8BitSel
+    #define LAST_PHOTRON_PARAM PRecRate
 
 private:
   /* These are the methods that are new to this class */
@@ -39,6 +40,7 @@ private:
   asynStatus readParameters();
   asynStatus readImage();
   asynStatus setTransferOption();
+  asynStatus setRecordRate();
 
   /* These items are specific to the Photron driver */
   char *cameraId;                /* This can be an IP name, or IP address */
@@ -91,5 +93,6 @@ typedef struct {
 // Define param strings here
  /*                             String                  interface  access   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL" /* (asynInt32,    rw)   */
+#define PhotronRecordRateString "PHOTRON_REC_RATE"  /* (asynInt32,    rw)   */
 
 #define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM-&FIRST_PHOTRON_PARAM+1))

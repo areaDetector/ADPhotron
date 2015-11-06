@@ -24,3 +24,11 @@ record(mbbo, "$(P)$(R)8BitSel")
    field(FRVL, "4")
    field(VAL,  "0")
 }
+
+record(longout, "$(P)$(R)RecordRate")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Record Rate (FPS)")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_REC_RATE")
+   field(VAL,  "60")
+}

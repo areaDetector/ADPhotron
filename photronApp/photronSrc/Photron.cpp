@@ -81,6 +81,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
 
   // CREATE PARAMS HERE
   createParam(Photron8BitSelectString,       asynParamInt32, &P8BitSel);
+  createParam(PhotronRecordRateString,       asynParamInt32, &PRecRate);
   
   if (!PDCLibInitialized) {
     /* Initialize the Photron PDC library */
@@ -195,7 +196,7 @@ void Photron::PhotronTask() {
   while (1) {
     /* Is acquisition active? */
     getIntegerParam(ADAcquire, &acquire);
-    printf("is acquisition active?\n");
+    //printf("is acquisition active?\n");
 
     /* If we are not acquiring then wait for a semaphore that is given when 
        acquisition is started */
@@ -228,7 +229,7 @@ void Photron::PhotronTask() {
     /* Call the callbacks to update any changes */
     callParamCallbacks();
 
-    printf("I should do something\n");
+    //printf("I should do something\n");
     
     /* Read the image */
     imageStatus = readImage();
@@ -571,11 +572,6 @@ asynStatus Photron::connectCamera() {
     }
   }
   
-  nRet = PDC_SetRecordRate(this->nDeviceNo, this->nChildNo, 60, &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_SetRecordRate Error %d\n", nErrorCode);
-  }
-  
   /* Set some initial values for other parameters */
   status =  setStringParam (ADManufacturer, "Photron");
   status |= setStringParam (ADModel, this->deviceName);
@@ -583,6 +579,8 @@ asynStatus Photron::connectCamera() {
   status |= setIntegerParam(ADSizeY, this->sensorHeight);
   status |= setIntegerParam(ADMaxSizeX, this->sensorWidth);
   status |= setIntegerParam(ADMaxSizeY, this->sensorHeight);
+  //
+  status |= setIntegerParam(PRecRate, this->nRate);
   if (status) {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
               "%s:%s: unable to set camera parameters on camera %lu\n",
@@ -871,6 +869,27 @@ asynStatus Photron::setTransferOption() {
     printf("PDC_GetMaxResolution failed %d\n", nErrorCode);
     return asynError;
   }  
+  
+  return asynSuccess;
+}
+
+
+asynStatus Photron::setRecordRate() {
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  int status = asynSuccess;
+  int recRate;
+  
+  static const char *functionName = "setRecordRate";
+  
+  status = getIntegerParam(PRecRate, &recRate);
+  
+  //TODO: enforce valid record rates
+  nRet = PDC_SetRecordRate(this->nDeviceNo, this->nChildNo, recRate, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetRecordRate Error %d\n", nErrorCode);
+    return asynError;
+  }
   
   return asynSuccess;
 }
