@@ -898,9 +898,9 @@ asynStatus Photron::readParameters() {
   
   status |= getGeometry();
   
+  //printf("Reading parameters...\n");
   
   //##############################################################################
-  
   
   nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
   if (nRet == PDC_FAILED) {
@@ -914,16 +914,10 @@ asynStatus Photron::readParameters() {
     return asynError;
   }
   
-  
-  
-  
-
-
-
-
   //
   status |= setIntegerParam(PRecRate, this->nRate);
-  status |= setIntegerParam(PRecRate, this->nRate);
+  
+  //printf("callParamCallbacks\n");
   
   /* Call the callbacks to update the values in higher layers */
   callParamCallbacks();

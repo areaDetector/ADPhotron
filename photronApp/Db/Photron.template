@@ -39,6 +39,7 @@ record(mbbi, "$(P)$(R)8BitSel_RBV")
    field(THVL, "3")
    field(FRST, "Four")
    field(FRVL, "4")
+   field(SCAN, "I/O Intr")
 }
 
 record(longout, "$(P)$(R)RecordRate")
@@ -54,4 +55,5 @@ record(longin, "$(P)$(R)RecordRate_RBV")
    field(DTYP, "asynInt32")
    field(DESC, "Record Rate (FPS)")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_REC_RATE")
+   field(SCAN, "I/O Intr")
 }
