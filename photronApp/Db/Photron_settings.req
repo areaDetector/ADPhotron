@@ -2,3 +2,4 @@ file "ADBase_settings.req", P=$(P), R=$(R)
 
 #
 $(P)$(R)8BitSel
+$(P)$(R)RecordRate

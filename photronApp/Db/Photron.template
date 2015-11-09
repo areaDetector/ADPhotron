@@ -9,9 +9,9 @@ include "ADBase.template"
 record(mbbo, "$(P)$(R)8BitSel")
 {
    field(DTYP, "asynInt32")
+   field(PINI, "YES")
    field(DESC, "8 Bit Select")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_8_BIT_SEL")
-   field(PINI, "YES")
    field(ZRST, "None")
    field(ZRVL, "0")
    field(ONST, "One")
@@ -22,13 +22,36 @@ record(mbbo, "$(P)$(R)8BitSel")
    field(THVL, "3")
    field(FRST, "Four")
    field(FRVL, "4")
-   field(VAL,  "0")
+}
+
+record(mbbi, "$(P)$(R)8BitSel_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "8 Bit Select")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_8_BIT_SEL")
+   field(ZRST, "None")
+   field(ZRVL, "0")
+   field(ONST, "One")
+   field(ONVL, "1")
+   field(TWST, "Two")
+   field(TWVL, "2")
+   field(THST, "Three")
+   field(THVL, "3")
+   field(FRST, "Four")
+   field(FRVL, "4")
 }
 
 record(longout, "$(P)$(R)RecordRate")
 {
    field(DTYP, "asynInt32")
+   field(PINI, "YES")
    field(DESC, "Record Rate (FPS)")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_REC_RATE")
-   field(VAL,  "60")
+}
+
+record(longin, "$(P)$(R)RecordRate_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Record Rate (FPS)")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_REC_RATE")
 }
