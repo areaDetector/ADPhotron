@@ -80,6 +80,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   ellAdd(cameraList, (ELLNODE *)pNode);
 
   // CREATE PARAMS HERE
+  createParam(PhotronStatusString,           asynParamInt32, &PStatus);
   createParam(Photron8BitSelectString,       asynParamInt32, &P8BitSel);
   createParam(PhotronRecordRateString,       asynParamInt32, &PRecRate);
   
@@ -520,11 +521,25 @@ asynStatus Photron::connectCamera() {
     if (nRet == PDC_FAILED) {
       printf("PDC_GetMaxBitDepth failed %d\n", nErrorCode);
       return asynError;
+    } else {
+      printf("PDC_GetMaxBitDepth succeeded. maxBitDepth = %s\n", 
+             this->sensorBits);
+    }
+    
+    nRet = PDC_GetBitDepth(this->nDeviceNo, this->nChildNo, this->bitDepth,
+                           &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetBitDepth failed %d\n", nErrorCode);
+      return asynError;
+    } else {
+      printf("PDC_GetBitDepth succeeded. bitDepth = %s\n", this->bitDepth);
     }
   } else {
-    this->sensorBits = "N/A";
+      this->sensorBits = "N/A";
   }
-
+  
+  /* PDC_GetStatus is also called in readParameters(), but it is called here
+     so that the camera can be put into live mode */
   nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetStatus failed %d\n", nErrorCode);
@@ -579,15 +594,19 @@ asynStatus Photron::connectCamera() {
   status |= setIntegerParam(ADSizeY, this->sensorHeight);
   status |= setIntegerParam(ADMaxSizeX, this->sensorWidth);
   status |= setIntegerParam(ADMaxSizeY, this->sensorHeight);
-  //
-  status |= setIntegerParam(PRecRate, this->nRate);
+  
   if (status) {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
               "%s:%s: unable to set camera parameters on camera %lu\n",
               driverName, functionName, this->uniqueId);
     return asynError;
   }
- 
+  
+  /* Read the current camera settings */
+  status = readParameters();
+  if (status) 
+    return((asynStatus)status);
+  
   /* We found the camera. Everything is OK. Signal to asynManager that we are 
      connected. */
   status = pasynManager->exceptionConnect(this->pasynUserSelf);
@@ -629,38 +648,19 @@ asynStatus Photron::readImage() {
   
   //-------
   // DEBUG print the BitDepth
-  /*nRet = PDC_GetBitDepth(this->nDeviceNo, this->nChildNo, this->bitDepth, &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_GetBitDepth failed %d\n", nErrorCode);
-    return asynError;
-  } else {
-    printf("PDC_GetBitDepth succeeded. bitDepth = %s\n", this->bitDepth);
-  }*/
   //-------
   
   //-------
-  // DEBUG print the record rate
-  nRet = PDC_GetRecordRate(this->nDeviceNo, this->nChildNo, &(this->nRate), &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_GetRecordRate failed %d\n", nErrorCode);
-    return asynError;
-  } else {
-    printf("PDC_GetRecordRate succeeded. rate = 1/%d\n", this->nRate);
-  }
-  //-------
-  
-  //-------
-  // DEBUG print the status
-  nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
+  // DEBUG print the status - will I need to check the status before acquiring in the future?
+  /*nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetStatus failed %d\n", nErrorCode);
     return asynError;
   } else {
     printf("PDC_GetStatus succeeded. status = %d\n", this->nStatus);
-  }
+  }*/
   //-------
   
-  // Will this result in a memory leak?
   numBytes = this->sensorWidth * this->sensorHeight * sizeof(epicsUInt8);
   pBuf = (epicsUInt8*) malloc(numBytes);
   
@@ -673,7 +673,7 @@ asynStatus Photron::readImage() {
     return asynError;
   }
 
-  //printf("sizeof(pBuf) = %d\n", sizeof(*pBuf));
+  printf("\n");
   for (index=0; index<10; index++) {
     for (jndex=0; jndex<10; jndex++) {
       printf("%d ", pBuf[(this->sensorWidth * index) + jndex]);
@@ -707,17 +707,6 @@ asynStatus Photron::readImage() {
   setIntegerParam(NDArraySizeY, (int)pImage->dims[1].size);
 
   free(pBuf);
-  
-  //-------
-  // DEBUG print the status
-  nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_GetStatus failed %d\n", nErrorCode);
-    return asynError;
-  } else {
-    printf("PDC_GetStatus succeeded. status = %d\n", this->nStatus);
-  }
-  //-------
   
   return asynSuccess;
 }
@@ -761,6 +750,10 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
     setTransferOption();
+  } else if (function == PRecRate) {
+    /* Specifies the bit position during 8-bit transfer from a device of more 
+       than 8 bits. */
+    setRecordRate();
   } else {
     /* If this is not a parameter we have handled call the base class */
     status = ADDriver::writeInt32(pasynUser, value);
@@ -858,7 +851,7 @@ asynStatus Photron::setTransferOption() {
   int n8BitSel;
   
   static const char *functionName = "setTransferOption";
-
+  
   status = getIntegerParam(P8BitSel, &n8BitSel);
   
   // TODO: confirm that we are in 8-bit acquisition mode, 
@@ -881,7 +874,7 @@ asynStatus Photron::setRecordRate() {
   int recRate;
   
   static const char *functionName = "setRecordRate";
-  
+   
   status = getIntegerParam(PRecRate, &recRate);
   
   //TODO: enforce valid record rates
@@ -889,6 +882,8 @@ asynStatus Photron::setRecordRate() {
   if (nRet == PDC_FAILED) {
     printf("PDC_SetRecordRate Error %d\n", nErrorCode);
     return asynError;
+  } else {
+    printf("PDC_SetRecordRate succeeded\n");
   }
   
   return asynSuccess;
@@ -896,10 +891,39 @@ asynStatus Photron::setRecordRate() {
 
 
 asynStatus Photron::readParameters() {
+  unsigned long nRet;
+  unsigned long nErrorCode;
   int status = asynSuccess;
   static const char *functionName = "readParameters";    
   
   status |= getGeometry();
+  
+  
+  //##############################################################################
+  
+  
+  nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetStatus failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  nRet = PDC_GetRecordRate(this->nDeviceNo, this->nChildNo, &(this->nRate), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetRecordRate failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  
+  
+  
+
+
+
+
+  //
+  status |= setIntegerParam(PRecRate, this->nRate);
+  status |= setIntegerParam(PRecRate, this->nRate);
   
   /* Call the callbacks to update the values in higher layers */
   callParamCallbacks();

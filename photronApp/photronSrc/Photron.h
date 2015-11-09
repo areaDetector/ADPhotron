@@ -25,9 +25,10 @@ public:
   static void shutdown(void *arg);
   
 protected:
+    int PStatus;
     int P8BitSel;
     int PRecRate;
-    #define FIRST_PHOTRON_PARAM P8BitSel
+    #define FIRST_PHOTRON_PARAM PStatus
     
     #define LAST_PHOTRON_PARAM PRecRate
 
@@ -61,6 +62,7 @@ private:
   unsigned long sensorWidth;
   unsigned long sensorHeight;
   char *sensorBits;
+  char *bitDepth;
   unsigned long maxChildDevCount;
   unsigned long childDevCount;
   int framesRemaining;
@@ -92,6 +94,7 @@ typedef struct {
 
 // Define param strings here
  /*                             String                  interface  access   */
+#define PhotronStatusString     "PHOTRON_STATUS"    /* (asynInt32,    rw)   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL" /* (asynInt32,    rw)   */
 #define PhotronRecordRateString "PHOTRON_REC_RATE"  /* (asynInt32,    rw)   */
 
