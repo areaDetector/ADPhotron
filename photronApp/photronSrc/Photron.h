@@ -43,6 +43,7 @@ private:
   asynStatus setTransferOption();
   asynStatus setRecordRate(epicsInt32 value);
   asynStatus setStatus(epicsInt32 value);
+  asynStatus parseResolutionList();
 
   /* These items are specific to the Photron driver */
   // constructor
@@ -70,6 +71,8 @@ private:
   char *bitDepth;
   unsigned long RateListSize;
   unsigned long RateList[PDC_MAX_LIST_NUMBER];
+  unsigned long ResolutionListSize;
+  unsigned long ResolutionList[PDC_MAX_LIST_NUMBER];
   // readParameters
   unsigned long nStatus; // replace with PV?
   unsigned long nRate; // units = frames per second

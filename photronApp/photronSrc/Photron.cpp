@@ -635,9 +635,35 @@ asynStatus Photron::getCameraInfo() {
     return asynError;
   } 
   
+  nRet = PDC_GetResolutionList(this->nDeviceNo, this->nChildNo, 
+                               &(this->ResolutionListSize),
+                               this->ResolutionList, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetResolutionList failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  // Turn the resolution list into a more-usable form
+  parseResolutionList();
+  
   return asynSuccess;
 }
 
+asynStatus Photron::parseResolutionList() {
+  int index;
+  unsigned long width, height, value;
+  
+  for (index=0; index<this->ResolutionListSize; index++) {
+    value = this->ResolutionList[index];
+    // height is the lower 16 bits of value
+    height = value & 0xFFFF;
+    // width is the upper 16 bits of value
+    width = value >> 16;
+    printf("  %d\t%d x %d\n", index, width, height);
+  }
+  
+  return asynSuccess;
+}
 
 asynStatus Photron::readImage() {
   int status = asynSuccess;
@@ -797,6 +823,7 @@ asynStatus Photron::getGeometry() {
   // Photron cameras don't allow binning
   binX = binY = 1;
   
+  // There are fixed resolutions that can be used
   if (functionList[PDC_EXIST_ROI] == PDC_EXIST_SUPPORTED) {
     nRet = PDC_GetSegmentPosition(this->nDeviceNo, this->nChildNo, 
                                   &minX, &minY, &nErrorCode);
@@ -958,6 +985,8 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
     printf("PDC_SetRecordRate succeeded. Rate = %d\n", value);
   }
   
+  parseResolutionList();
+  
   return asynSuccess;
 }
 
@@ -1047,9 +1076,7 @@ asynStatus Photron::readParameters() {
     if (nRet == PDC_FAILED) {
       printf("PDC_GetHighSpeedMode failed. Error %d\n", nErrorCode);
       return asynError;
-    } else {
-      printf("PDC_GetHighSpeedMode succeeded.  Mode = %d\n", this->highSpeedMode);
-    }
+    } 
   }
   
   /* Call the callbacks to update the values in higher layers */
