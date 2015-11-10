@@ -763,7 +763,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
        than 8 bits. */
     setTransferOption();
   } else if (function == PhotronRecRate) {
-    setRecordRate();
+    setRecordRate(value);
   } else if (function == PhotronStatus) {
     setStatus(value);
   } else {
@@ -915,23 +915,47 @@ asynStatus Photron::setTransferOption() {
 }
 
 
-asynStatus Photron::setRecordRate() {
+asynStatus Photron::setRecordRate(epicsInt32 value) {
   unsigned long nRet;
   unsigned long nErrorCode;
   int status = asynSuccess;
-  int recRate;
+  int index;
+  epicsInt32 upperDiff, lowerDiff;
   
   static const char *functionName = "setRecordRate";
-   
-  status = getIntegerParam(PhotronRecRate, &recRate);
   
-  //TODO: enforce valid record rates
-  nRet = PDC_SetRecordRate(this->nDeviceNo, this->nChildNo, recRate, &nErrorCode);
+  /* Choose the closest allowed rate */
+  for (index=0; index<(this->RateListSize-1); index++) {
+    if (value < this->RateList[index+1]) {
+      upperDiff = (epicsInt32)this->RateList[index+1] - value;
+      lowerDiff = value - (epicsInt32)this->RateList[index];
+      // One of the rates (index or index+1) is the best choice
+      if (upperDiff < lowerDiff) {
+        value = this->RateList[index+1];
+        break;
+      } else {
+        value = this->RateList[index];
+        break;
+      }
+    } else {
+      // Are we at the end of the list?
+      if (index == this->RateListSize-1) {
+        // value is higher than the highest rate
+        value = this->RateList[index+1];
+        break;
+      } else {
+        // We haven't found the closest rate yet
+        continue;
+      }
+    }
+  }
+  
+  nRet = PDC_SetRecordRate(this->nDeviceNo, this->nChildNo, value, &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_SetRecordRate Error %d\n", nErrorCode);
     return asynError;
   } else {
-    printf("PDC_SetRecordRate succeeded\n");
+    printf("PDC_SetRecordRate succeeded. Rate = %d\n", value);
   }
   
   return asynSuccess;
@@ -992,6 +1016,9 @@ asynStatus Photron::readParameters() {
     return asynError;
   }
   
+  //
+  status |= setIntegerParam(PhotronRecRate, this->nRate);
+  
   /*
   PDC_GetTriggerMode succeeded
         Mode = 0
@@ -1014,10 +1041,16 @@ asynStatus Photron::readParameters() {
     printf("\tRCount = %d\n", this->trigRCount);
   } */
   
-  //
-  status |= setIntegerParam(PhotronRecRate, this->nRate);
-  
-  //printf("callParamCallbacks\n");
+  if (functionList[PDC_EXIST_HIGH_SPEED_MODE] == PDC_EXIST_SUPPORTED) {
+    nRet = PDC_GetHighSpeedMode(this->nDeviceNo, &(this->highSpeedMode),
+                                &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetHighSpeedMode failed. Error %d\n", nErrorCode);
+      return asynError;
+    } else {
+      printf("PDC_GetHighSpeedMode succeeded.  Mode = %d\n", this->highSpeedMode);
+    }
+  }
   
   /* Call the callbacks to update the values in higher layers */
   callParamCallbacks();
@@ -1059,6 +1092,7 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "  Child Dev #:       %d\n",  (int)this->childDevCount);
     fprintf(fp, "\n");
     fprintf(fp, "  Camera Status:     %d\n",  (int)this->nStatus);
+    fprintf(fp, "  Record Rate:       %d\n",  (int)this->nRate);
     fprintf(fp, "  Trigger mode:      %d\n",  (int)this->triggerMode);
     fprintf(fp, "    A Frames:        %d\n",  (int)this->trigAFrames);
     fprintf(fp, "    R Frames:        %d\n",  (int)this->trigRFrames);

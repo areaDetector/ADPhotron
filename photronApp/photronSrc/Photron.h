@@ -41,7 +41,7 @@ private:
   asynStatus readParameters();
   asynStatus readImage();
   asynStatus setTransferOption();
-  asynStatus setRecordRate();
+  asynStatus setRecordRate(epicsInt32 value);
   asynStatus setStatus(epicsInt32 value);
 
   /* These items are specific to the Photron driver */
@@ -77,6 +77,7 @@ private:
   unsigned long trigAFrames;
   unsigned long trigRFrames;
   unsigned long trigRCount;
+  unsigned long highSpeedMode;
   /* Our data */
   NDArray *pRaw;
 };
