@@ -25,12 +25,11 @@ public:
   static void shutdown(void *arg);
   
 protected:
-    int PStatus;
-    int P8BitSel;
-    int PRecRate;
-    #define FIRST_PHOTRON_PARAM PStatus
-    
-    #define LAST_PHOTRON_PARAM PRecRate
+    int PhotronStatus;
+    int Photron8BitSel;
+    int PhotronRecRate;
+    #define FIRST_PHOTRON_PARAM PhotronStatus
+    #define LAST_PHOTRON_PARAM PhotronRecRate
 
 private:
   /* These are the methods that are new to this class */
@@ -43,6 +42,7 @@ private:
   asynStatus readImage();
   asynStatus setTransferOption();
   asynStatus setRecordRate();
+  asynStatus setStatus(epicsInt32 value);
 
   /* These items are specific to the Photron driver */
   // constructor

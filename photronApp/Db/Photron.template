@@ -98,8 +98,11 @@ record(mbbi, "$(P)$(R)ColorMode_RBV")
 #  Note: The following records are specific to the Photron                    #
 ###############################################################################
 
-record(mbbo, "$(P)$(R)State")
+record(mbbo, "$(P)$(R)Status")
 {
+   field(DTYP, "asynInt32")
+   field(PINI, "YES")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_STATUS")
    field(ZRST, "Live")
    field(ZRVL, "0")
    field(ONST, "Playback")
@@ -116,26 +119,14 @@ record(mbbo, "$(P)$(R)State")
    field(SXVL, "6")
    field(SVST, "Pause")
    field(SVVL, "7")
+   field(VAL,  "0")
 }
 
-record(mbbi, "$(P)$(R)State_RBV")
+record(longin, "$(P)$(R)Status_RBV")
 {
-   field(ZRST, "Live")
-   field(ZRVL, "0")
-   field(ONST, "Playback")
-   field(ONVL, "1")
-   field(TWST, "RecReady")
-   field(TWVL, "2")
-   field(THST, "Endless")
-   field(THVL, "3")
-   field(FRST, "Record")
-   field(FRVL, "4")
-   field(FVST, "Save")
-   field(FVVL, "5")
-   field(SXST, "Load")
-   field(SXVL, "6")
-   field(SVST, "Pause")
-   field(SVVL, "7")
+   field(DTYP, "asynInt32")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_STATUS")
+   field(SCAN, "I/O Intr")
 }
 
 record(mbbo, "$(P)$(R)8BitSel")

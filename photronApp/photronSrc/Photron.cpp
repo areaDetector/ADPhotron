@@ -80,9 +80,9 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   ellAdd(cameraList, (ELLNODE *)pNode);
 
   // CREATE PARAMS HERE
-  createParam(PhotronStatusString,           asynParamInt32, &PStatus);
-  createParam(Photron8BitSelectString,       asynParamInt32, &P8BitSel);
-  createParam(PhotronRecordRateString,       asynParamInt32, &PRecRate);
+  createParam(PhotronStatusString,           asynParamInt32, &PhotronStatus);
+  createParam(Photron8BitSelectString,       asynParamInt32, &Photron8BitSel);
+  createParam(PhotronRecordRateString,       asynParamInt32, &PhotronRecRate);
   
   if (!PDCLibInitialized) {
     /* Initialize the Photron PDC library */
@@ -758,14 +758,14 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       /* Send the stop event */
       epicsEventSignal(this->stopEventId);
     }
-  } else if (function == P8BitSel) {
+  } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
     setTransferOption();
-  } else if (function == PRecRate) {
-    /* Specifies the bit position during 8-bit transfer from a device of more 
-       than 8 bits. */
+  } else if (function == PhotronRecRate) {
     setRecordRate();
+  } else if (function == PhotronStatus) {
+    setStatus(value);
   } else {
     /* If this is not a parameter we have handled call the base class */
     status = ADDriver::writeInt32(pasynUser, value);
@@ -856,7 +856,7 @@ asynStatus Photron::setTransferOption() {
   
   static const char *functionName = "setTransferOption";
   
-  status = getIntegerParam(P8BitSel, &n8BitSel);
+  status = getIntegerParam(Photron8BitSel, &n8BitSel);
   
   // TODO: confirm that we are in 8-bit acquisition mode, 
   //       otherwise this isn't necessary
@@ -879,7 +879,7 @@ asynStatus Photron::setRecordRate() {
   
   static const char *functionName = "setRecordRate";
    
-  status = getIntegerParam(PRecRate, &recRate);
+  status = getIntegerParam(PhotronRecRate, &recRate);
   
   //TODO: enforce valid record rates
   nRet = PDC_SetRecordRate(this->nDeviceNo, this->nChildNo, recRate, &nErrorCode);
@@ -889,6 +889,27 @@ asynStatus Photron::setRecordRate() {
   } else {
     printf("PDC_SetRecordRate succeeded\n");
   }
+  
+  return asynSuccess;
+}
+
+
+asynStatus Photron::setStatus(epicsInt32 value) {
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  unsigned long desiredStatus;
+  int status = asynSuccess;
+  static const char *functionName = "setStatus";
+  
+  /* The State PV is an mbbo, which has values 0-7.
+     The Photron FASTCAM SDK uses a bitmask */
+  if (value <= 0 || value > 7) {
+    desiredStatus = 0;
+  } else {
+    desiredStatus = 1 << (value - 1);
+  }
+  
+  printf("Output status = 0x%x\n", desiredStatus);
   
   return asynSuccess;
 }
@@ -911,6 +932,9 @@ asynStatus Photron::readParameters() {
     printf("PDC_GetStatus failed %d\n", nErrorCode);
     return asynError;
   }
+  
+  //
+  status |= setIntegerParam(PhotronStatus, this->nStatus);
   
   nRet = PDC_GetRecordRate(this->nDeviceNo, this->nChildNo, &(this->nRate), &nErrorCode);
   if (nRet == PDC_FAILED) {
@@ -939,9 +963,9 @@ asynStatus Photron::readParameters() {
     printf("\tRFrames = %d\n", this->trigRFrames);
     printf("\tRCount = %d\n", this->trigRCount);
   } */
-
+  
   //
-  status |= setIntegerParam(PRecRate, this->nRate);
+  status |= setIntegerParam(PhotronRecRate, this->nRate);
   
   //printf("callParamCallbacks\n");
   
