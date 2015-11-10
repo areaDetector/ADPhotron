@@ -553,6 +553,30 @@ asynStatus Photron::getCameraInfo() {
     return asynError;
   }
   
+  nRet = PDC_GetDeviceID(this->nDeviceNo, &(this->deviceID), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetDeviceID failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  nRet = PDC_GetLotID(this->nDeviceNo, 0, &(this->lotID), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetLotID failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  nRet = PDC_GetProductID(this->nDeviceNo, 0, &(this->productID), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetProductID failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  nRet = PDC_GetIndividualID(this->nDeviceNo, 0, &(this->individualID), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetIndividualID failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
   nRet = PDC_GetVersion(this->nDeviceNo, 0, &(this->version), &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetVersion failed %d\n", nErrorCode);
@@ -945,17 +969,27 @@ void Photron::report(FILE *fp, int details) {
     // put useful info here
     fprintf(fp, "  Camera Id:         %s\n",  this->cameraId);
     fprintf(fp, "  Auto-detect:       %d\n",  (int)this->autoDetect);
-    fprintf(fp, "  Device code:       %d\n",  (int)this->deviceCode);
     fprintf(fp, "  Device name:       %s\n",  this->deviceName);
+    fprintf(fp, "  Device code:       %d\n",  (int)this->deviceCode);
+    if (details > 8) {
+      fprintf(fp, "  Device ID:         %d\n",  (int)this->deviceID);
+      fprintf(fp, "  Product ID:        %d\n",  (int)this->productID);
+      fprintf(fp, "  Lot ID:            %d\n",  (int)this->lotID);
+      fprintf(fp, "  Individual ID:     %d\n",  (int)this->individualID);
+    }
     fprintf(fp, "  Version:           %0.2f\n",  (float)(this->version/100.0));
-    fprintf(fp, "  Sensor bits:       %s\n",  this->sensorBits);
     fprintf(fp, "  Sensor width:      %d\n",  (int)this->sensorWidth);
     fprintf(fp, "  Sensor height:     %d\n",  (int)this->sensorHeight);
+    fprintf(fp, "  Sensor bits:       %s\n",  this->sensorBits);
     fprintf(fp, "  Max Child Dev #:   %d\n",  (int)this->maxChildDevCount);
     fprintf(fp, "  Child Dev #:       %d\n",  (int)this->childDevCount);
+    fprintf(fp, "\n");
     fprintf(fp, "  Camera Status:     %d\n",  (int)this->nStatus);
-    
-    }
+    fprintf(fp, "  Trigger mode:      %d\n",  (int)this->triggerMode);
+    fprintf(fp, "    A Frames:        %d\n",  (int)this->trigAFrames);
+    fprintf(fp, "    R Frames:        %d\n",  (int)this->trigRFrames);
+    fprintf(fp, "    R Count:         %d\n",  (int)this->trigRCount);
+  }
   
   if (details > 4) {
     fprintf(fp, "  Available functions:\n");
@@ -963,7 +997,7 @@ void Photron::report(FILE *fp, int details) {
       fprintf(fp, "    %d:         %d\n", index, this->functionList[index]);
     }
     
-    fprintf(fp, "  Available recording rates:\n");
+    fprintf(fp, "\n  Available recording rates:\n");
     for (index=0; index<this->RateListSize; index++) {
       printf("\t%d:\t%d FPS\n", (index + 1), this->RateList[index]);
     }
