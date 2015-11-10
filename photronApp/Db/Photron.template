@@ -98,6 +98,8 @@ record(mbbi, "$(P)$(R)ColorMode_RBV")
 #  Note: The following records are specific to the Photron                    #
 ###############################################################################
 
+# This could probably be replaced with a bo, since there are only two values
+# that don't return errors.
 record(mbbo, "$(P)$(R)Status")
 {
    field(DTYP, "asynInt32")
@@ -107,18 +109,6 @@ record(mbbo, "$(P)$(R)Status")
    field(ZRVL, "0")
    field(ONST, "Playback")
    field(ONVL, "1")
-   field(TWST, "RecReady")
-   field(TWVL, "2")
-   field(THST, "Endless")
-   field(THVL, "3")
-   field(FRST, "Record")
-   field(FRVL, "4")
-   field(FVST, "Save")
-   field(FVVL, "5")
-   field(SXST, "Load")
-   field(SXVL, "6")
-   field(SVST, "Pause")
-   field(SVVL, "7")
    field(VAL,  "0")
 }
 

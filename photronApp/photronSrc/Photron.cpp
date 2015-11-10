@@ -901,15 +901,21 @@ asynStatus Photron::setStatus(epicsInt32 value) {
   int status = asynSuccess;
   static const char *functionName = "setStatus";
   
-  /* The State PV is an mbbo, which has values 0-7.
-     The Photron FASTCAM SDK uses a bitmask */
+  /* The Status PV is an mbbo with only two valid states
+     The Photron FASTCAM SDK uses a bitmask with seven bits */
+  // TODO: simplify this logic since only values of 1 and 0 will be written
   if (value <= 0 || value > 7) {
     desiredStatus = 0;
   } else {
     desiredStatus = 1 << (value - 1);
   }
   
-  printf("Output status = 0x%x\n", desiredStatus);
+  //printf("Output status = 0x%x\n", desiredStatus);
+  nRet = PDC_SetStatus(this->nDeviceNo, desiredStatus, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetStatus Error %d\n", nErrorCode);
+    return asynError;
+  }
   
   return asynSuccess;
 }
