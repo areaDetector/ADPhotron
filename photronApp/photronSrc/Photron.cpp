@@ -685,7 +685,7 @@ asynStatus Photron::readImage() {
   static const char *functionName = "readImage";
 
   getIntegerParam(ADSizeX,  &sizeX);
-  getIntegerParam(ADSizeX,  &sizeY);
+  getIntegerParam(ADSizeY,  &sizeY);
   getDoubleParam (ADGain,   &gain);
   
   //-------
@@ -699,7 +699,7 @@ asynStatus Photron::readImage() {
   }*/
   //-------
   
-  numBytes = this->sensorWidth * this->sensorHeight * sizeof(epicsUInt8);
+  numBytes = sizeX * sizeY * sizeof(epicsUInt8);
   pBuf = (epicsUInt8*) malloc(numBytes);
   
   nRet = PDC_GetLiveImageData(this->nDeviceNo, this->nChildNo,
@@ -714,7 +714,7 @@ asynStatus Photron::readImage() {
   printf("\n");
   for (index=0; index<10; index++) {
     for (jndex=0; jndex<10; jndex++) {
-      printf("%d ", pBuf[(this->sensorWidth * index) + jndex]);
+      printf("%d ", pBuf[(sizeX * index) + jndex]);
     }
     printf("\n");
   }
@@ -822,27 +822,15 @@ asynStatus Photron::getGeometry() {
 
   // Photron cameras don't allow binning
   binX = binY = 1;
+  // Assume the reduce resolution images use the upper-left corner of the chip
+  minX = minY = 0;
   
   // There are fixed resolutions that can be used
-  if (functionList[PDC_EXIST_ROI] == PDC_EXIST_SUPPORTED) {
-    nRet = PDC_GetSegmentPosition(this->nDeviceNo, this->nChildNo, 
-                                  &minX, &minY, &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_GetSegmentPosition Error %d\n", nErrorCode);
-      return asynError;
-    }
-    
-    nRet = PDC_GetResolutionROI(this->nDeviceNo, this->nChildNo, 
-                                  &sizeX, &sizeY, &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_GetResolutionROI Error %d\n", nErrorCode);
-      return asynError;
-    }
-  } else {
-    /* Camera doesn't support ROIs. Force the max chip size */
-    minX = minY = 0;
-    sizeX = this->sensorWidth;
-    sizeY = this->sensorHeight;
+  nRet = PDC_GetResolution(this->nDeviceNo, this->nChildNo, 
+                              &sizeX, &sizeY, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetResolution Error %d\n", nErrorCode);
+    return asynError;
   }
   
   status |= setIntegerParam(ADBinX,  binX);
@@ -891,26 +879,14 @@ asynStatus Photron::setGeometry() {
     setIntegerParam(ADSizeY, sizeY);
   }
   
-  if (functionList[PDC_EXIST_ROI] == PDC_EXIST_SUPPORTED) {
-    /* Is this the right call to get the ROI position? */
-    nRet = PDC_SetSegmentPosition(this->nDeviceNo, this->nChildNo, 
-                                  minX, minY, &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_GetSegmentPosition Error %d\n", nErrorCode);
-      return asynError;
-    }
-    
-    /* This should get the ROI size */
-    nRet = PDC_SetResolutionROI(this->nDeviceNo, this->nChildNo, 
-                                sizeX, sizeY, &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_GetResolutionROI Error %d\n", nErrorCode);
-      return asynError;
-    }
-  } else {
-    /* Don't do anything */
+  // There are fixed resolutions that can be used
+  nRet = PDC_SetResolution(this->nDeviceNo, this->nChildNo, 
+                           sizeX, sizeY, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetResolution Error %d\n", nErrorCode);
+    return asynError;
   }
-  
+
   if (status)
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
               "%s:%s: error, status=%d\n", driverName, functionName, status);
