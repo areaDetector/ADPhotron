@@ -787,14 +787,36 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
 
 
 asynStatus Photron::getGeometry() {
+  unsigned long nRet;
+  unsigned long nErrorCode;
   int status = asynSuccess;
-  int binX, binY, minY, minX, sizeX, sizeY, maxSizeX, maxSizeY;
+  int binX, binY;
+  unsigned long minY, minX, sizeX, sizeY;
   static const char *functionName = "getGeometry";
 
-  // Eventually this will read from the detector; for now, hardcode values
+  // Photron cameras don't allow binning
   binX = binY = 1;
-  minX = minY = 0;
-  sizeX = sizeY = maxSizeX = maxSizeY = 1024;
+  
+  if (functionList[PDC_EXIST_ROI] == PDC_EXIST_SUPPORTED) {
+    nRet = PDC_GetSegmentPosition(this->nDeviceNo, this->nChildNo, 
+                                  &minX, &minY, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetSegmentPosition Error %d\n", nErrorCode);
+      return asynError;
+    }
+    
+    nRet = PDC_GetResolutionROI(this->nDeviceNo, this->nChildNo, 
+                                  &sizeX, &sizeY, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetResolutionROI Error %d\n", nErrorCode);
+      return asynError;
+    }
+  } else {
+    /* Camera doesn't support ROIs. Force the max chip size */
+    minX = minY = 0;
+    sizeX = this->sensorWidth;
+    sizeY = this->sensorHeight;
+  }
   
   status |= setIntegerParam(ADBinX,  binX);
   status |= setIntegerParam(ADBinY,  binY);
@@ -813,6 +835,8 @@ asynStatus Photron::getGeometry() {
 }
 
 asynStatus Photron::setGeometry() {
+  unsigned long nRet;
+  unsigned long nErrorCode;
   int status = asynSuccess;
   int binX, binY, minY, minX, sizeX, sizeY, maxSizeX, maxSizeY;
   static const char *functionName = "setGeometry";
@@ -838,6 +862,26 @@ asynStatus Photron::setGeometry() {
   if (minY + sizeY > maxSizeY) {
     sizeY = maxSizeY - minY;
     setIntegerParam(ADSizeY, sizeY);
+  }
+  
+  if (functionList[PDC_EXIST_ROI] == PDC_EXIST_SUPPORTED) {
+    /* Is this the right call to get the ROI position? */
+    nRet = PDC_SetSegmentPosition(this->nDeviceNo, this->nChildNo, 
+                                  minX, minY, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetSegmentPosition Error %d\n", nErrorCode);
+      return asynError;
+    }
+    
+    /* This should get the ROI size */
+    nRet = PDC_SetResolutionROI(this->nDeviceNo, this->nChildNo, 
+                                sizeX, sizeY, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetResolutionROI Error %d\n", nErrorCode);
+      return asynError;
+    }
+  } else {
+    /* Don't do anything */
   }
   
   if (status)
