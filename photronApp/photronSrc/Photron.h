@@ -36,6 +36,7 @@ private:
   /* These are the methods that are new to this class */
   asynStatus disconnectCamera();
   asynStatus connectCamera();
+  asynStatus getCameraInfo();
   asynStatus setGeometry();
   asynStatus getGeometry();
   asynStatus readParameters();

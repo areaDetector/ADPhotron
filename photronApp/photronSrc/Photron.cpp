@@ -88,7 +88,9 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
     /* Initialize the Photron PDC library */
     pdcStatus = PDC_Init(&errCode);
     if (pdcStatus == PDC_FAILED) {
-      printf("%s:%s: PDC_Init Error %d\n", driverName, functionName, errCode);
+      asynPrint(
+          this->pasynUserSelf, ASYN_TRACE_ERROR, 
+          "%s:%s: PDC_Init Error %d\n", driverName, functionName, errCode);
       return;
     }
     PDCLibInitialized = 1;
@@ -225,7 +227,7 @@ void Photron::PhotronTask() {
     setIntegerParam(ADStatus, ADStatusAcquire);
 
     /* Open the shutter */
-    setShutter(ADShutterOpen);
+    //setShutter(ADShutterOpen);
 
     /* Call the callbacks to update any changes */
     callParamCallbacks();
@@ -236,10 +238,11 @@ void Photron::PhotronTask() {
     imageStatus = readImage();
 
     /* Close the shutter */
-    setShutter(ADShutterClosed);
+    //setShutter(ADShutterClosed);
+    
     /* Call the callbacks to update any changes */
     callParamCallbacks();
-
+    
     if (imageStatus == asynSuccess) {
       pImage = this->pArrays[0];
 
@@ -368,9 +371,6 @@ asynStatus Photron::connectCamera() {
   unsigned long nErrorCode;
   PDC_DETECT_NUM_INFO DetectNumInfo;     /* Search result */
   unsigned long IPList[PDC_MAX_DEVICE];   /* IP ADDRESS being searched */
-  //
-  int index;
-  char nFlag; /* Existing function flag */
   
   /* default IP address is "192.168.0.10" */
   //IPList[0] = 0xC0A8000A;
@@ -415,9 +415,8 @@ asynStatus Photron::connectCamera() {
     printf("PDC_DetectDevice Error %d\n", nErrorCode);
     return asynError;
   }
-
+  
   printf("PDC_DetectDevice \"Successful\"\n");
-
   printf("\tdevice index: %d\n", DetectNumInfo.m_nDeviceNum);
   printf("\tdevice code: %d\n", DetectNumInfo.m_DetectInfo[0].m_nDeviceCode);
   printf("\tnRet = %d\n", nRet);
@@ -455,6 +454,73 @@ asynStatus Photron::connectCamera() {
   /* Assume only one child, for now */
   this->nChildNo = 1;
   
+  /* PDC_GetStatus is also called in readParameters(), but it is called here
+     so that the camera can be put into live mode--will remove this after
+     making the mode a PV */
+  nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetStatus failed %d\n", nErrorCode);
+    return asynError;
+  } else {
+    if (this->nStatus == PDC_STATUS_PLAYBACK) {
+      nRet = PDC_SetStatus(this->nDeviceNo, PDC_STATUS_LIVE, &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_SetStatus failed. error = %d\n", nErrorCode);
+      }
+    }
+  }
+  /* Get information from the camera */
+  status = getCameraInfo();
+  if (status) {
+    return((asynStatus)status);
+  }
+  
+  /* Set some initial values for other parameters */
+  status =  setStringParam (ADManufacturer, "Photron");
+  status |= setStringParam (ADModel, this->deviceName);
+  status |= setIntegerParam(ADSizeX, this->sensorWidth);
+  status |= setIntegerParam(ADSizeY, this->sensorHeight);
+  status |= setIntegerParam(ADMaxSizeX, this->sensorWidth);
+  status |= setIntegerParam(ADMaxSizeY, this->sensorHeight);
+  
+  if (status) {
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+              "%s:%s: unable to set camera parameters on camera %lu\n",
+              driverName, functionName, this->uniqueId);
+    return asynError;
+  }
+  
+  /* Read the current camera settings */
+  status = readParameters();
+  if (status) {
+    return((asynStatus)status);
+  }
+  
+  /* We found the camera. Everything is OK. Signal to asynManager that we are 
+     connected. */
+  status = pasynManager->exceptionConnect(this->pasynUserSelf);
+  if (status) {
+    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
+      "%s:%s: error calling pasynManager->exceptionConnect, error=%s\n",
+      driverName, functionName, pasynUserSelf->errorMessage);
+    return asynError;
+  }
+  asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
+    "%s:%s: Camera connected; unique id: %ld\n", driverName,
+    functionName, this->uniqueId);
+  return asynSuccess;
+}
+
+
+asynStatus Photron::getCameraInfo() {
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  int status = asynSuccess;
+  static const char *functionName = "getCameraInfo";
+  //
+  int index;
+  char nFlag; /* Existing function flag */
+
   /* Determine which functions are supported by the camera */
   for( index=2; index<98; index++) {
     nRet = PDC_IsFunction(this->nDeviceNo, this->nChildNo, index, &nFlag, 
@@ -471,7 +537,7 @@ asynStatus Photron::connectCamera() {
       this->functionList[index] = nFlag;
     }
   }
-  printf("function queries succeeded\n");
+  //printf("function queries succeeded\n");
   
   /* query the controller for info */
   
@@ -514,7 +580,7 @@ asynStatus Photron::connectCamera() {
     printf("PDC_GetMaxResolution failed %d\n", nErrorCode);
     return asynError;
   }  
-
+  
   if (this->functionList[PDC_EXIST_BITDEPTH] == PDC_EXIST_SUPPORTED) {
     nRet = PDC_GetMaxBitDepth(this->nDeviceNo, this->nChildNo, this->sensorBits,
                               &nErrorCode);
@@ -538,87 +604,13 @@ asynStatus Photron::connectCamera() {
       this->sensorBits = "N/A";
   }
   
-  /* PDC_GetStatus is also called in readParameters(), but it is called here
-     so that the camera can be put into live mode */
-  nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_GetStatus failed %d\n", nErrorCode);
-    return asynError;
-  } else {
-    if (this->nStatus == PDC_STATUS_PLAYBACK) {
-      nRet = PDC_SetStatus(this->nDeviceNo, PDC_STATUS_LIVE, &nErrorCode);
-      if (nRet == PDC_FAILED) {
-        printf("PDC_SetStatus failed. error = %d\n", nErrorCode);
-      }
-    }
-  }
-
-  /*
-  PDC_GetTriggerMode succeeded
-        Mode = 0
-        AFrames = 5457
-        RFrames = 0
-        RCount = 0
-  */
-  
-  nRet = PDC_GetTriggerMode(this->nDeviceNo, &(this->triggerMode),
-                            &(this->trigAFrames), &(this->trigRFrames),
-                            &(this->trigRCount), &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_GetTriggerMode failed %d\n", nErrorCode);
-    return asynError;
-  } else {
-    printf("PDC_GetTriggerMode succeeded\n");
-    printf("\tMode = %d\n", this->triggerMode);
-    printf("\tAFrames = %d\n", this->trigAFrames);
-    printf("\tRFrames = %d\n", this->trigRFrames);
-    printf("\tRCount = %d\n", this->trigRCount);
-  }
-
   nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 
                                &(this->RateListSize), this->RateList, &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetRecordRateList failed %d\n", nErrorCode);
     return asynError;
-  } else {
-    printf("PDC_GetRecordRateList succeeded. Num =%d\n", this->RateListSize);
-    for (index=0; index<this->RateListSize; index++) {
-      printf("\t%d:\t%d FPS\n", (index + 1), this->RateList[index]);
-    }
-  }
+  } 
   
-  /* Set some initial values for other parameters */
-  status =  setStringParam (ADManufacturer, "Photron");
-  status |= setStringParam (ADModel, this->deviceName);
-  status |= setIntegerParam(ADSizeX, this->sensorWidth);
-  status |= setIntegerParam(ADSizeY, this->sensorHeight);
-  status |= setIntegerParam(ADMaxSizeX, this->sensorWidth);
-  status |= setIntegerParam(ADMaxSizeY, this->sensorHeight);
-  
-  if (status) {
-    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-              "%s:%s: unable to set camera parameters on camera %lu\n",
-              driverName, functionName, this->uniqueId);
-    return asynError;
-  }
-  
-  /* Read the current camera settings */
-  status = readParameters();
-  if (status) 
-    return((asynStatus)status);
-  
-  /* We found the camera. Everything is OK. Signal to asynManager that we are 
-     connected. */
-  status = pasynManager->exceptionConnect(this->pasynUserSelf);
-  if (status) {
-    asynPrint(pasynUserSelf, ASYN_TRACE_ERROR,
-      "%s:%s: error calling pasynManager->exceptionConnect, error=%s\n",
-      driverName, functionName, pasynUserSelf->errorMessage);
-    return asynError;
-  }
-  asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-    "%s:%s: Camera connected; unique id: %ld\n", driverName,
-    functionName, this->uniqueId);
   return asynSuccess;
 }
 
@@ -645,10 +637,6 @@ asynStatus Photron::readImage() {
   getIntegerParam(ADSizeX,  &sizeX);
   getIntegerParam(ADSizeX,  &sizeY);
   getDoubleParam (ADGain,   &gain);
-  
-  //-------
-  // DEBUG print the BitDepth
-  //-------
   
   //-------
   // DEBUG print the status - will I need to check the status before acquiring in the future?
@@ -807,25 +795,17 @@ asynStatus Photron::setGeometry() {
   
   /* Get all of the current geometry parameters from the parameter library */
   status = getIntegerParam(ADBinX, &binX);
-  //printf("\tBinX status = %d\n", status);
   if (binX < 1)
     binX = 1;
   status = getIntegerParam(ADBinY, &binY);
-  //printf("\tBinY status = %d\n", status);
   if (binY < 1)
     binY = 1;
   status = getIntegerParam(ADMinX, &minX);
-  //printf("\tMinX status = %d\n", status);
   status = getIntegerParam(ADMinY, &minY);
-  //printf("\tMinY status = %d\n", status);
   status = getIntegerParam(ADSizeX, &sizeX);
-  //printf("\tSizeX status = %d\n", status);
   status = getIntegerParam(ADSizeY, &sizeY);
-  //printf("\tSizeY status = %d\n", status);
   status = getIntegerParam(ADMaxSizeX, &maxSizeX);
-  //printf("\tMaxSizeX status = %d\n", status);
   status = getIntegerParam(ADMaxSizeY, &maxSizeY);
-  //printf("\tMAxSizeY status = %d\n", status);
 
   if (minX + sizeX > maxSizeX) {
     sizeX = maxSizeX - minX;
@@ -914,6 +894,28 @@ asynStatus Photron::readParameters() {
     return asynError;
   }
   
+  /*
+  PDC_GetTriggerMode succeeded
+        Mode = 0
+        AFrames = 5457
+        RFrames = 0
+        RCount = 0
+  */
+  
+  nRet = PDC_GetTriggerMode(this->nDeviceNo, &(this->triggerMode),
+                            &(this->trigAFrames), &(this->trigRFrames),
+                            &(this->trigRCount), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetTriggerMode failed %d\n", nErrorCode);
+    return asynError;
+  } /* else {
+    printf("PDC_GetTriggerMode succeeded\n");
+    printf("\tMode = %d\n", this->triggerMode);
+    printf("\tAFrames = %d\n", this->trigAFrames);
+    printf("\tRFrames = %d\n", this->trigRFrames);
+    printf("\tRCount = %d\n", this->trigRCount);
+  } */
+
   //
   status |= setIntegerParam(PRecRate, this->nRate);
   
@@ -972,6 +974,11 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "  Available functions:\n");
     for( index=2; index<98; index++) {
       fprintf(fp, "    %d:         %d\n", index, this->functionList[index]);
+    }
+    
+    fprintf(fp, "  Available recording rates:\n");
+    for (index=0; index<this->RateListSize; index++) {
+      printf("\t%d:\t%d FPS\n", (index + 1), this->RateList[index]);
     }
   }
   
