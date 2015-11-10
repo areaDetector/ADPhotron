@@ -325,8 +325,8 @@ asynStatus Photron::disconnectCamera() {
   /* Ensure that PDC library has been initialised */
   if (!PDCLibInitialized) {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-        "%s:%s: Connecting to camera %ld while PDC library is uninitialized.\n", 
-        driverName, functionName, this->uniqueId);
+        "%s:%s: Connecting to camera %s while PDC library is uninitialized.\n", 
+        driverName, functionName, this->cameraId);
     return asynError;
   }
   
@@ -346,8 +346,8 @@ asynStatus Photron::disconnectCamera() {
       driverName, functionName, pasynUserSelf->errorMessage);
   }
   asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-    "%s:%s: Camera disconnected; unique id: %ld\n", 
-    driverName, functionName, this->uniqueId);
+    "%s:%s: Camera disconnected; camera id: %s\n", 
+    driverName, functionName, this->cameraId);
 
   return((asynStatus)status);
 }
@@ -380,8 +380,8 @@ asynStatus Photron::connectCamera() {
   /* Ensure that PDC library has been initialised */
   if (!PDCLibInitialized) {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-      "%s:%s: Connecting to camera %ld while PDC library is uninitialized.\n", 
-      driverName, functionName, this->uniqueId);
+      "%s:%s: Connecting to camera %s while PDC library is uninitialized.\n", 
+      driverName, functionName, this->cameraId);
     return asynError;
   }
   
@@ -485,8 +485,8 @@ asynStatus Photron::connectCamera() {
   
   if (status) {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
-              "%s:%s: unable to set camera parameters on camera %lu\n",
-              driverName, functionName, this->uniqueId);
+              "%s:%s: unable to set camera parameters on camera %s\n",
+              driverName, functionName, this->cameraId);
     return asynError;
   }
   
@@ -506,8 +506,8 @@ asynStatus Photron::connectCamera() {
     return asynError;
   }
   asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW, 
-    "%s:%s: Camera connected; unique id: %ld\n", driverName,
-    functionName, this->uniqueId);
+    "%s:%s: Camera connected; camera id: %ld\n", driverName,
+    functionName, this->cameraId);
   return asynSuccess;
 }
 
@@ -954,20 +954,7 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "  Max Child Dev #:   %d\n",  (int)this->maxChildDevCount);
     fprintf(fp, "  Child Dev #:       %d\n",  (int)this->childDevCount);
     fprintf(fp, "  Camera Status:     %d\n",  (int)this->nStatus);
-
-    /*
-    fprintf(fp, "  ID:                %lu\n", pInfo->UniqueId);
-    fprintf(fp, "  IP address:        %s\n",  this->IPAddress);
-    fprintf(fp, "  Serial number:     %s\n",  pInfo->SerialNumber);
-    fprintf(fp, "  Camera name:       %s\n",  pInfo->CameraName);
-    fprintf(fp, "  Model:             %s\n",  pInfo->ModelName);
-    fprintf(fp, "  Firmware version:  %s\n",  pInfo->FirmwareVersion);
-    fprintf(fp, "  Access flags:      %lx\n", pInfo->PermittedAccess);
-    fprintf(fp, "  Sensor type:       %s\n",  this->sensorType);
-    fprintf(fp, "  Time stamp freq:   %d\n",  (int)this->timeStampFrequency);
-    fprintf(fp, "  maxPvAPIFrames:    %d\n",  (int)this->maxPvAPIFrames_);
-    */
-
+    
     }
   
   if (details > 4) {

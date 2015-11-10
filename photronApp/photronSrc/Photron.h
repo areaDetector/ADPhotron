@@ -47,8 +47,6 @@ private:
   /* These items are specific to the Photron driver */
   char *cameraId;                /* This can be an IP name, or IP address */
   int autoDetect;
-  unsigned long uniqueIP;
-  unsigned long uniqueId;
   unsigned long nDeviceNo;
   unsigned long nChildNo;
   unsigned long nStatus; // camera status
