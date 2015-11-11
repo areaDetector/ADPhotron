@@ -750,11 +750,15 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   status |= setIntegerParam(function, value);
 
   if ((function == ADBinX) || (function == ADBinY) || (function == ADMinX) ||
-     (function == ADSizeX) || (function == ADMinY) || (function == ADSizeY)) {
+     (function == ADMinY)) {
     /* These commands change the chip readout geometry.  We need to cache them 
      * and apply them in the correct order */
     //printf("calling setGeometry. function=%d, value=%d\n", function, value);
     status |= setGeometry();
+  } else if (function == ADSizeX) {
+    status |= setValidWidth(value);
+  } else if (function == ADSizeY) {
+    status |= setValidHeight(value);
   } else if (function == ADAcquire) {
     getIntegerParam(ADStatus, &adstatus);
     if (value && (adstatus == ADStatusIdle)) {
@@ -853,7 +857,7 @@ asynStatus Photron::updateResolution() {
   // We assume the resolution list is up-to-date (it should be updated by 
   // readParameters after the recording rate is modified
   
-  // Assume that only changing one dimension that results in another valid mode
+  // Only changing one dimension that results in another valid mode
   // for the same recording rate will not change the recording rate.
   // Find valid options for the current X and Y sizes
   numSizesX = numSizesY = 0;
@@ -882,7 +886,126 @@ asynStatus Photron::updateResolution() {
   
   return asynSuccess;
 }
+
+
+asynStatus Photron::setValidWidth(epicsInt32 value) {
+  int status = asynSuccess;
+  int index;
+  epicsInt32 upperDiff, lowerDiff;
+  static const char *functionName = "setValidWidth";
   
+  // Update the list of valid X and Y sizes (these change with recording rate)
+  updateResolution();
+  
+  if (this->ValidWidthListSize == 0) {
+    printf("Error: ValidWidthListSize is ZERO\n");
+    return asynError;
+  }
+  
+  if (this->ValidWidthListSize == 1) {
+    // Don't allow the value to be changed
+    value = this->ValidWidthList[0];
+  } else {
+    /* Choose the closest allowed width 
+       Note: this->ValidWidthList is in decending order */
+    for (index=0; index<(this->ValidWidthListSize-1); index++) {
+      if (value > this->ValidWidthList[index+1]) {
+        upperDiff = (epicsInt32)this->ValidWidthList[index] - value;
+        lowerDiff = value - (epicsInt32)this->ValidWidthList[index+1];
+        // One of the widths (index or index+1) is the best choice
+        if (upperDiff < lowerDiff) {
+          printf("Replaced %d ", value);
+          value = this->ValidWidthList[index];
+          printf("with %d\n", value);
+          break;
+        } else {
+          printf("Replaced %d ", value);
+          value = this->ValidWidthList[index+1];
+          printf("with %d\n", value);
+          break;
+        }
+      } else {
+        // Are we at the end of the list?
+        if (index == this->ValidWidthListSize-2) {
+          // Value is lower than the lowest rate
+          printf("Replaced %d ", value);
+          value = this->ValidWidthList[index+1];
+          printf("with %d\n", value);
+          break;
+        } else {
+          // We haven't found the closest width yet
+          continue;
+        }
+      }
+    }
+  }
+  
+  status |= setIntegerParam(ADSizeX, value);
+  status |= setGeometry();
+  
+  return (asynStatus)status;
+}
+
+
+asynStatus Photron::setValidHeight(epicsInt32 value) {
+  int status = asynSuccess;
+  int index;
+  epicsInt32 upperDiff, lowerDiff;
+  static const char *functionName = "setValidHeight";
+  
+  // Update the list of valid X and Y sizes (these change with recording rate)
+  updateResolution();
+  
+  if (this->ValidHeightListSize == 0) {
+    printf("Error: ValidHeightListSize is ZERO\n");
+    return asynError;
+  }
+  
+  if (this->ValidHeightListSize == 1) {
+    // Don't allow the value to be changed
+    value = this->ValidHeightList[0];
+  } else {
+    /* Choose the closest allowed width 
+       Note: this->ValidHeightList is in decending order */
+    for (index=0; index<(this->ValidHeightListSize-1); index++) {
+      if (value > this->ValidHeightList[index+1]) {
+        upperDiff = (epicsInt32)this->ValidHeightList[index] - value;
+        lowerDiff = value - (epicsInt32)this->ValidHeightList[index+1];
+        // One of the widths (index or index+1) is the best choice
+        if (upperDiff < lowerDiff) {
+          printf("Replaced %d ", value);
+          value = this->ValidHeightList[index];
+          printf("with %d\n", value);
+          break;
+        } else {
+          printf("Replaced %d ", value);
+          value = this->ValidHeightList[index+1];
+          printf("with %d\n", value);
+          break;
+        }
+      } else {
+        // Are we at the end of the list?
+        if (index == this->ValidHeightListSize-2) {
+          // Value is lower than the lowest rate
+          printf("Replaced %d ", value);
+          value = this->ValidHeightList[index+1];
+          printf("with %d\n", value);
+          break;
+        } else {
+          // We haven't found the closest width yet
+          continue;
+        }
+      }
+    }
+  }
+  
+  status |= setIntegerParam(ADSizeY, value);
+  status |= setGeometry();
+  
+  return (asynStatus)status;
+}
+
+
 asynStatus Photron::setGeometry() {
   unsigned long nRet;
   unsigned long nErrorCode;
@@ -890,8 +1013,7 @@ asynStatus Photron::setGeometry() {
   int binX, binY, minY, minX, sizeX, sizeY, maxSizeX, maxSizeY;
   static const char *functionName = "setGeometry";
   
-  // Update the list of valid X and Y sizes (these change with recording rate)
-  updateResolution();
+  // in the past updateResolution was called here
   
   /* Get all of the current geometry parameters from the parameter library */
   status = getIntegerParam(ADBinX, &binX);
@@ -964,28 +1086,39 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
   
   static const char *functionName = "setRecordRate";
   
-  /* Choose the closest allowed rate */
-  for (index=0; index<(this->RateListSize-1); index++) {
-    if (value < this->RateList[index+1]) {
-      upperDiff = (epicsInt32)this->RateList[index+1] - value;
-      lowerDiff = value - (epicsInt32)this->RateList[index];
-      // One of the rates (index or index+1) is the best choice
-      if (upperDiff < lowerDiff) {
-        value = this->RateList[index+1];
-        break;
+  if (this->RateListSize == 0) {
+    printf("Error: RateListSize is ZERO\n");
+    return asynError;
+  }
+  
+  if (this->RateListSize == 1) {
+    // Don't allow the value to be changed
+    value = this->RateList[0];
+  } else {
+    /* Choose the closest allowed rate 
+       NOTE: RateList is in ascending order */
+    for (index=0; index<(this->RateListSize-1); index++) {
+      if (value < this->RateList[index+1]) {
+        upperDiff = (epicsInt32)this->RateList[index+1] - value;
+        lowerDiff = value - (epicsInt32)this->RateList[index];
+        // One of the rates (index or index+1) is the best choice
+        if (upperDiff < lowerDiff) {
+          value = this->RateList[index+1];
+          break;
+        } else {
+          value = this->RateList[index];
+          break;
+        }
       } else {
-        value = this->RateList[index];
-        break;
-      }
-    } else {
-      // Are we at the end of the list?
-      if (index == this->RateListSize-1) {
-        // value is higher than the highest rate
-        value = this->RateList[index+1];
-        break;
-      } else {
-        // We haven't found the closest rate yet
-        continue;
+        // Are we at the end of the list?
+        if (index == this->RateListSize-2) {
+          // value is higher than the highest rate
+          value = this->RateList[index+1];
+          break;
+        } else {
+          // We haven't found the closest rate yet
+          continue;
+        }
       }
     }
   }
