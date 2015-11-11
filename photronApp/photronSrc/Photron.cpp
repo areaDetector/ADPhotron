@@ -1037,9 +1037,6 @@ asynStatus Photron::readParameters() {
   int status = asynSuccess;
   static const char *functionName = "readParameters";    
   
-  // getGeometry can't be called until the resolution list is retrieved at least once.
-  status |= getGeometry();
-  
   //printf("Reading parameters...\n");
   
   //##############################################################################
@@ -1080,6 +1077,7 @@ asynStatus Photron::readParameters() {
     printf("\tRCount = %d\n", this->trigRCount);
   } */
   
+  // Does this ever change?
   nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 
                                &(this->RateListSize), this->RateList, &nErrorCode);
   if (nRet == PDC_FAILED) {
@@ -1104,6 +1102,9 @@ asynStatus Photron::readParameters() {
       return asynError;
     } 
   }
+  
+  // getGeometry needs to be called after the resolution list has been updated
+  status |= getGeometry();
   
   /* Call the callbacks to update the values in higher layers */
   callParamCallbacks();
