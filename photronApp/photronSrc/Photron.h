@@ -36,6 +36,7 @@ private:
   asynStatus disconnectCamera();
   asynStatus connectCamera();
   asynStatus getCameraInfo();
+  asynStatus updateResolution();
   asynStatus setGeometry();
   asynStatus getGeometry();
   asynStatus readParameters();
@@ -44,6 +45,7 @@ private:
   asynStatus setRecordRate(epicsInt32 value);
   asynStatus setStatus(epicsInt32 value);
   asynStatus parseResolutionList();
+  void printResOptions();
 
   /* These items are specific to the Photron driver */
   // constructor
@@ -71,8 +73,14 @@ private:
   char *bitDepth;
   unsigned long RateListSize;
   unsigned long RateList[PDC_MAX_LIST_NUMBER];
+  unsigned long width;
+  unsigned long height;
   unsigned long ResolutionListSize;
   unsigned long ResolutionList[PDC_MAX_LIST_NUMBER];
+  unsigned long ValidWidthListSize;
+  unsigned long ValidWidthList[PDC_MAX_LIST_NUMBER];
+  unsigned long ValidHeightListSize;
+  unsigned long ValidHeightList[PDC_MAX_LIST_NUMBER];
   // readParameters
   unsigned long nStatus; // replace with PV?
   unsigned long nRate; // units = frames per second

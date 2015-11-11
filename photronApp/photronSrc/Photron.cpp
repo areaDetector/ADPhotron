@@ -628,6 +628,7 @@ asynStatus Photron::getCameraInfo() {
       this->sensorBits = "N/A";
   }
   
+  // Is this always the same or should it be moved to readParameters?
   nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 
                                &(this->RateListSize), this->RateList, &nErrorCode);
   if (nRet == PDC_FAILED) {
@@ -635,31 +636,14 @@ asynStatus Photron::getCameraInfo() {
     return asynError;
   } 
   
+  // This needs to be called once before readParameters is called, otherwise
+  // updateResolution will crash the IOC
   nRet = PDC_GetResolutionList(this->nDeviceNo, this->nChildNo, 
                                &(this->ResolutionListSize),
                                this->ResolutionList, &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetResolutionList failed %d\n", nErrorCode);
     return asynError;
-  }
-  
-  // Turn the resolution list into a more-usable form
-  parseResolutionList();
-  
-  return asynSuccess;
-}
-
-asynStatus Photron::parseResolutionList() {
-  int index;
-  unsigned long width, height, value;
-  
-  for (index=0; index<this->ResolutionListSize; index++) {
-    value = this->ResolutionList[index];
-    // height is the lower 16 bits of value
-    height = value & 0xFFFF;
-    // width is the upper 16 bits of value
-    width = value >> 16;
-    printf("  %d\t%d x %d\n", index, width, height);
   }
   
   return asynSuccess;
@@ -813,8 +797,6 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
 
 
 asynStatus Photron::getGeometry() {
-  unsigned long nRet;
-  unsigned long nErrorCode;
   int status = asynSuccess;
   int binX, binY;
   unsigned long minY, minX, sizeX, sizeY;
@@ -825,13 +807,10 @@ asynStatus Photron::getGeometry() {
   // Assume the reduce resolution images use the upper-left corner of the chip
   minX = minY = 0;
   
-  // There are fixed resolutions that can be used
-  nRet = PDC_GetResolution(this->nDeviceNo, this->nChildNo, 
-                              &sizeX, &sizeY, &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_GetResolution Error %d\n", nErrorCode);
-    return asynError;
-  }
+  status |= updateResolution();
+  
+  sizeX = this->width;
+  sizeY = this->height;
   
   status |= setIntegerParam(ADBinX,  binX);
   status |= setIntegerParam(ADBinY,  binY);
@@ -849,12 +828,70 @@ asynStatus Photron::getGeometry() {
   return((asynStatus)status);
 }
 
+
+asynStatus Photron::updateResolution() {
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  int status = asynSuccess;
+  unsigned long sizeX, sizeY;
+  unsigned long numSizesX, numSizesY;
+  unsigned long width, height, value;
+  int index;
+  static const char *functionName = "updateResolution";
+
+  // Is this needed or can we trust the values returned by setIntegerParam?
+  nRet = PDC_GetResolution(this->nDeviceNo, this->nChildNo, 
+                              &sizeX, &sizeY, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetResolution Error %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  this->width = sizeX;
+  this->height = sizeY;
+  
+  // We assume the resolution list is up-to-date (it should be updated by 
+  // readParameters after the recording rate is modified
+  
+  // Assume that only changing one dimension that results in another valid mode
+  // for the same recording rate will not change the recording rate.
+  // Find valid options for the current X and Y sizes
+  numSizesX = numSizesY = 0;
+  for (index=0; index<this->ResolutionListSize; index++) {
+    value = this->ResolutionList[index];
+    // height is the lower 16 bits of value
+    height = value & 0xFFFF;
+    // width is the upper 16 bits of value
+    width = value >> 16;
+    
+    if (sizeX == width) {
+      // This mode contains a valid value for Y
+      this->ValidHeightList[numSizesY] = height;
+      numSizesY++;
+    }
+    
+    if (sizeY == height) {
+      // This mode contains a valid value for X
+      this->ValidWidthList[numSizesX] = width;
+      numSizesX++;
+    }
+  }
+  
+  this->ValidWidthListSize = numSizesX;
+  this->ValidHeightListSize = numSizesY;
+  
+  return asynSuccess;
+}
+  
 asynStatus Photron::setGeometry() {
   unsigned long nRet;
   unsigned long nErrorCode;
   int status = asynSuccess;
   int binX, binY, minY, minX, sizeX, sizeY, maxSizeX, maxSizeY;
   static const char *functionName = "setGeometry";
+  
+  // Update the list of valid X and Y sizes (these change with recording rate)
+  updateResolution();
   
   /* Get all of the current geometry parameters from the parameter library */
   status = getIntegerParam(ADBinX, &binX);
@@ -961,7 +998,7 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
     printf("PDC_SetRecordRate succeeded. Rate = %d\n", value);
   }
   
-  parseResolutionList();
+  // Changing the record rate changes the current and available resolutions
   
   return asynSuccess;
 }
@@ -1000,6 +1037,7 @@ asynStatus Photron::readParameters() {
   int status = asynSuccess;
   static const char *functionName = "readParameters";    
   
+  // getGeometry can't be called until the resolution list is retrieved at least once.
   status |= getGeometry();
   
   //printf("Reading parameters...\n");
@@ -1011,8 +1049,6 @@ asynStatus Photron::readParameters() {
     printf("PDC_GetStatus failed %d\n", nErrorCode);
     return asynError;
   }
-  
-  //
   status |= setIntegerParam(PhotronStatus, this->nStatus);
   
   nRet = PDC_GetRecordRate(this->nDeviceNo, this->nChildNo, &(this->nRate), &nErrorCode);
@@ -1020,8 +1056,6 @@ asynStatus Photron::readParameters() {
     printf("PDC_GetRecordRate failed %d\n", nErrorCode);
     return asynError;
   }
-  
-  //
   status |= setIntegerParam(PhotronRecRate, this->nRate);
   
   /*
@@ -1046,6 +1080,22 @@ asynStatus Photron::readParameters() {
     printf("\tRCount = %d\n", this->trigRCount);
   } */
   
+  nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 
+                               &(this->RateListSize), this->RateList, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetRecordRateList failed %d\n", nErrorCode);
+    return asynError;
+  } 
+  
+  // Can this be moved to the setRecordRate method? Does anything else effect it?
+  nRet = PDC_GetResolutionList(this->nDeviceNo, this->nChildNo, 
+                               &(this->ResolutionListSize),
+                               this->ResolutionList, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetResolutionList failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
   if (functionList[PDC_EXIST_HIGH_SPEED_MODE] == PDC_EXIST_SUPPORTED) {
     nRet = PDC_GetHighSpeedMode(this->nDeviceNo, &(this->highSpeedMode),
                                 &nErrorCode);
@@ -1062,6 +1112,39 @@ asynStatus Photron::readParameters() {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
               "%s:%s: error, status=%d\n", driverName, functionName, status);
   return((asynStatus)status);
+}
+
+
+asynStatus Photron::parseResolutionList() {
+  int index;
+  unsigned long width, height, value;
+  
+  printf("  Available resolutions for rate=%d:\n", this->nRate);
+  for (index=0; index<this->ResolutionListSize; index++) {
+    value = this->ResolutionList[index];
+    // height is the lower 16 bits of value
+    height = value & 0xFFFF;
+    // width is the upper 16 bits of value
+    width = value >> 16;
+    printf("\t%d\t%d x %d\n", index, width, height);
+  }
+  
+  return asynSuccess;
+}
+
+
+void Photron::printResOptions() {
+  int index;
+  
+  printf("  Valid heights for rate=%d and width=%d\n", this->nRate, this->width);
+  for (index=0; index<this->ValidHeightListSize; index++) {
+    printf("\t%d\n", this->ValidHeightList[index]);
+  }
+  
+  printf("\n  Valid widths for rate=%d and height=%d\n", this->nRate, this->height);
+  for (index=0; index<this->ValidWidthListSize; index++) {
+    printf("\t%d\n", this->ValidWidthList[index]);
+  }
 }
 
 
@@ -1094,6 +1177,8 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "  Max Child Dev #:   %d\n",  (int)this->maxChildDevCount);
     fprintf(fp, "  Child Dev #:       %d\n",  (int)this->childDevCount);
     fprintf(fp, "\n");
+    fprintf(fp, "  Width:             %d\n",  (int)this->width);
+    fprintf(fp, "  Height:            %d\n",  (int)this->height);
     fprintf(fp, "  Camera Status:     %d\n",  (int)this->nStatus);
     fprintf(fp, "  Record Rate:       %d\n",  (int)this->nRate);
     fprintf(fp, "  Trigger mode:      %d\n",  (int)this->triggerMode);
@@ -1107,11 +1192,23 @@ void Photron::report(FILE *fp, int details) {
     for( index=2; index<98; index++) {
       fprintf(fp, "    %d:         %d\n", index, this->functionList[index]);
     }
-    
+  }
+  
+  if (details = 1) {
     fprintf(fp, "\n  Available recording rates:\n");
     for (index=0; index<this->RateListSize; index++) {
       printf("\t%d:\t%d FPS\n", (index + 1), this->RateList[index]);
     }
+    
+    fprintf(fp, "\n");
+    
+    // Turn the resolution list into a more-usable form
+    parseResolutionList();
+    
+    fprintf(fp, "\n");
+    
+    // 
+    printResOptions();
   }
   
   if (details > 8) {
