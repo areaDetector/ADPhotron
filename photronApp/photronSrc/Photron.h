@@ -28,8 +28,11 @@ protected:
     int PhotronStatus;
     int Photron8BitSel;
     int PhotronRecRate;
+    int PhotronAfterFrames;
+    int PhotronRandomFrames;
+    int PhotronRecCount;
     #define FIRST_PHOTRON_PARAM PhotronStatus
-    #define LAST_PHOTRON_PARAM PhotronRecRate
+    #define LAST_PHOTRON_PARAM PhotronRecCount
 
 private:
   /* These are the methods that are new to this class */
@@ -48,6 +51,7 @@ private:
   asynStatus setStatus(epicsInt32 value);
   asynStatus parseResolutionList();
   void printResOptions();
+  void printTrigModes();
   asynStatus setPixelFormat();
 
   /* These items are specific to the Photron driver */
@@ -74,17 +78,13 @@ private:
   unsigned long sensorHeight;
   char *sensorBits;
   char *bitDepth;
-  unsigned long RateListSize;
-  unsigned long RateList[PDC_MAX_LIST_NUMBER];
+  // updateResolution
   unsigned long width;
   unsigned long height;
-  unsigned long ResolutionListSize;
-  unsigned long ResolutionList[PDC_MAX_LIST_NUMBER];
   unsigned long ValidWidthListSize;
   unsigned long ValidWidthList[PDC_MAX_LIST_NUMBER];
   unsigned long ValidHeightListSize;
   unsigned long ValidHeightList[PDC_MAX_LIST_NUMBER];
-  unsigned long pixelBits;
   // readParameters
   unsigned long nStatus; // replace with PV?
   unsigned long nRate; // units = frames per second
@@ -92,6 +92,13 @@ private:
   unsigned long trigAFrames;
   unsigned long trigRFrames;
   unsigned long trigRCount;
+  unsigned long RateListSize;
+  unsigned long RateList[PDC_MAX_LIST_NUMBER];
+  unsigned long ResolutionListSize;
+  unsigned long ResolutionList[PDC_MAX_LIST_NUMBER];
+  unsigned long TriggerModeListSize;
+  unsigned long TriggerModeList[PDC_MAX_LIST_NUMBER];
+  unsigned long pixelBits;
   unsigned long highSpeedMode;
   /* Our data */
   NDArray *pRaw;
@@ -111,5 +118,8 @@ typedef struct {
 #define PhotronStatusString     "PHOTRON_STATUS"    /* (asynInt32,    rw)   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL" /* (asynInt32,    rw)   */
 #define PhotronRecordRateString "PHOTRON_REC_RATE"  /* (asynInt32,    rw)   */
+#define PhotronAfterFramesString "PHOTRON_AFTER_FRAMES" /* (asynInt32,    rw) */
+#define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
+#define PhotronRecCountString   "PHOTRON_REC_COUNT" /* (asynInt32,    rw)   */
 
 #define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM-&FIRST_PHOTRON_PARAM+1))

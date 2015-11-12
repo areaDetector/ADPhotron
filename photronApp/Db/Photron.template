@@ -12,6 +12,63 @@ include "ADBase.template"
 #        Photron                                                              #
 ###############################################################################
 
+record(mbbo, "$(P)$(R)TriggerMode")
+{
+   field(ZRST, "Start")
+   field(ZRVL, "0")
+   field(ONST, "Center")
+   field(ONVL, "1")
+   field(TWST, "End")
+   field(TWVL, "2")
+   field(THST, "Random")
+   field(THVL, "3")
+   field(FRST, "Manual")
+   field(FRVL, "4")
+   field(FVST, "Random reset")
+   field(FVVL, "5")
+   field(SXST, "Random center")
+   field(SXVL, "6")
+   field(SVST, "Random manual")
+   field(SVVL, "7")
+   field(EIST, "Two-stage")
+   field(EIVL, "8")
+   field(NIST, "Reset")
+   field(NIVL, "9")
+   field(TEST, "Recon cmd")
+   field(TEVL, "10")
+   field(ELST, "Random loop")
+   field(ELVL, "11")
+}
+
+record(mbbi, "$(P)$(R)TriggerMode_RBV")
+{
+   field(ZRST, "Start")
+   field(ZRVL, "0")
+   field(ONST, "Center")
+   field(ONVL, "1")
+   field(TWST, "End")
+   field(TWVL, "2")
+   field(THST, "Random")
+   field(THVL, "3")
+   field(FRST, "Manual")
+   field(FRVL, "4")
+   field(FVST, "Random reset")
+   field(FVVL, "5")
+   field(SXST, "Random center")
+   field(SXVL, "6")
+   field(SVST, "Random manual")
+   field(SVVL, "7")
+   field(EIST, "Two-stage")
+   field(EIVL, "8")
+   field(NIST, "Reset")
+   field(NIVL, "9")
+   field(TEST, "Recon cmd")
+   field(TEVL, "10")
+   field(ELST, "Random loop")
+   field(ELVL, "11")
+   field(SCAN, "I/O Intr")
+}
+
 # Only 2 data types are supported, unsigned 8 and 16 bit integers
 record(mbbo, "$(P)$(R)DataType")
 {
@@ -169,4 +226,64 @@ record(longin, "$(P)$(R)RecordRate_RBV")
    field(DESC, "Record Rate (FPS)")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_REC_RATE")
    field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(P)$(R)AfterFrames")
+{
+   field(DTYP, "asynInt32")
+   field(PINI, "YES")
+   field(DESC, "Trigger after frames")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_AFTER_FRAMES")
+}
+
+record(longin, "$(P)$(R)AfterFrames_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Trigger after frames")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_AFTER_FRAMES")
+   field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(P)$(R)RandomFrames")
+{
+   field(DTYP, "asynInt32")
+   field(PINI, "YES")
+   field(DESC, "Trigger random frames")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_RANDOM_FRAMES")
+}
+
+record(longin, "$(P)$(R)RandomFrames_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Trigger random frames")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_RANDOM_FRAMES")
+   field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(P)$(R)RecCount")
+{
+   field(DTYP, "asynInt32")
+   field(PINI, "YES")
+   field(DESC, "Num recorded")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_REC_COUNT")
+}
+
+record(longin, "$(P)$(R)RecCount_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Num recorded")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_REC_COUNT")
+   field(SCAN, "I/O Intr")
+}
+
+record(mbbi, "$(P)$(R)TwoStageMode_RBV")
+{
+   field(ZRST, "Full")
+   field(ZRVL, "0")
+   field(ONST, "Half")
+   field(ONVL, "1")
+   field(TWST, "Quarter")
+   field(TWVL, "2")
+   field(THST, "One-eighth")
+   field(THVL, "3")
 }

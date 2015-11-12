@@ -80,9 +80,12 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   ellAdd(cameraList, (ELLNODE *)pNode);
 
   // CREATE PARAMS HERE
-  createParam(PhotronStatusString,           asynParamInt32, &PhotronStatus);
-  createParam(Photron8BitSelectString,       asynParamInt32, &Photron8BitSel);
-  createParam(PhotronRecordRateString,       asynParamInt32, &PhotronRecRate);
+  createParam(PhotronStatusString,        asynParamInt32, &PhotronStatus);
+  createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
+  createParam(PhotronRecordRateString,    asynParamInt32, &PhotronRecRate);
+  createParam(PhotronAfterFramesString,   asynParamInt32, &PhotronAfterFrames);
+  createParam(PhotronRandomFramesString,  asynParamInt32, &PhotronRandomFrames);
+  createParam(PhotronRecCountString,      asynParamInt32, &PhotronRecCount);
   
   if (!PDCLibInitialized) {
     /* Initialize the Photron PDC library */
@@ -651,7 +654,6 @@ asynStatus Photron::getCameraInfo() {
 
 asynStatus Photron::readImage() {
   int status = asynSuccess;
-  int index, jndex;
   //
   int sizeX, sizeY;
   size_t dims[2];
@@ -663,7 +665,6 @@ asynStatus Photron::readImage() {
   //
   unsigned long nRet;
   unsigned long nErrorCode;
-  int numBytes;
   void *pBuf;  /* Memory sequence pointer for storing a live image */
   //
   NDDataType_t dataType;
@@ -1235,17 +1236,17 @@ asynStatus Photron::readParameters() {
   if (nRet == PDC_FAILED) {
     printf("PDC_GetTriggerMode failed %d\n", nErrorCode);
     return asynError;
-  } /* else {
-    printf("PDC_GetTriggerMode succeeded\n");
-    printf("\tMode = %d\n", this->triggerMode);
-    printf("\tAFrames = %d\n", this->trigAFrames);
-    printf("\tRFrames = %d\n", this->trigRFrames);
-    printf("\tRCount = %d\n", this->trigRCount);
-  } */
+  }
+  
+  status |= setIntegerParam(ADTriggerMode, (this->triggerMode >> 24));
+  status |= setIntegerParam(PhotronAfterFrames, this->trigAFrames);
+  status |= setIntegerParam(PhotronRandomFrames, this->trigRFrames);
+  status |= setIntegerParam(PhotronRecCount, this->trigRCount);
   
   // Does this ever change?
   nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 
-                               &(this->RateListSize), this->RateList, &nErrorCode);
+                               &(this->RateListSize), 
+                               this->RateList, &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetRecordRateList failed %d\n", nErrorCode);
     return asynError;
@@ -1257,6 +1258,14 @@ asynStatus Photron::readParameters() {
                                this->ResolutionList, &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetResolutionList failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  // Does this ever change?
+  nRet = PDC_GetTriggerModeList(this->nDeviceNo, &(this->TriggerModeListSize),
+                                this->TriggerModeList, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetTriggerModeList failed %d\n", nErrorCode);
     return asynError;
   }
   
@@ -1311,6 +1320,24 @@ void Photron::printResOptions() {
   printf("\n  Valid widths for rate=%d and height=%d\n", this->nRate, this->height);
   for (index=0; index<this->ValidWidthListSize; index++) {
     printf("\t%d\n", this->ValidWidthList[index]);
+  }
+}
+
+
+void Photron::printTrigModes() {
+  int index;
+  int mode;
+  
+  printf("\n  Trigger Modes:\n");
+  for (index=0; index<this->TriggerModeListSize; index++) {
+    mode = this->TriggerModeList[index] >> 24;
+    if (mode == 8) {
+      printf("\t%d:\t%d", index, mode);
+      printf("\t%d\n", (this->TriggerModeList[index] & 0xF));
+    } else {
+      printf("\t%d:\t%d\n", index, mode);
+    }
+    
   }
 }
 
@@ -1376,6 +1403,9 @@ void Photron::report(FILE *fp, int details) {
     
     // 
     printResOptions();
+    
+    //
+    printTrigModes();
   }
   
   if (details > 8) {
