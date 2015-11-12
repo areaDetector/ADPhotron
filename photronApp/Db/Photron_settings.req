@@ -1,5 +1,10 @@
 file "ADBase_settings.req", P=$(P), R=$(R)
 
 #
+$(P)$(R)Status
 $(P)$(R)8BitSel
 $(P)$(R)RecordRate
+$(P)$(R)AfterFrames
+$(P)$(R)RandomFrames
+$(P)$(R)RecCount
+
