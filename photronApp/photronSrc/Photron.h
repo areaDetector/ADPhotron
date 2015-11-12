@@ -48,6 +48,7 @@ private:
   asynStatus setStatus(epicsInt32 value);
   asynStatus parseResolutionList();
   void printResOptions();
+  asynStatus setPixelFormat();
 
   /* These items are specific to the Photron driver */
   // constructor
@@ -83,6 +84,7 @@ private:
   unsigned long ValidWidthList[PDC_MAX_LIST_NUMBER];
   unsigned long ValidHeightListSize;
   unsigned long ValidHeightList[PDC_MAX_LIST_NUMBER];
+  unsigned long pixelBits;
   // readParameters
   unsigned long nStatus; // replace with PV?
   unsigned long nRate; // units = frames per second

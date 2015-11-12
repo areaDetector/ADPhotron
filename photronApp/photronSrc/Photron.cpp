@@ -664,8 +664,11 @@ asynStatus Photron::readImage() {
   unsigned long nRet;
   unsigned long nErrorCode;
   int numBytes;
-  epicsUInt8 *pBuf;  /* Memory sequence pointer for storing a live image */
+  void *pBuf;  /* Memory sequence pointer for storing a live image */
   //
+  NDDataType_t dataType;
+  int pixelSize;
+  size_t dataSize;
   static const char *functionName = "readImage";
 
   getIntegerParam(ADSizeX,  &sizeX);
@@ -683,24 +686,29 @@ asynStatus Photron::readImage() {
   }*/
   //-------
   
-  numBytes = sizeX * sizeY * sizeof(epicsUInt8);
-  pBuf = (epicsUInt8*) malloc(numBytes);
+  if (this->pixelBits == 8) {
+    // 8 bits
+    dataType = NDUInt8;
+    pixelSize = 1;
+  } else {
+    // 12 bits (stored in 2 bytes)
+    dataType = NDUInt16;
+    pixelSize = 2;
+  }
+  
+  //printf("sizeof(epicsUInt8) = %d\n", sizeof(epicsUInt8));
+  //printf("sizeof(epicsUInt16) = %d\n", sizeof(epicsUInt16));
+  
+  dataSize = sizeX * sizeY * pixelSize;
+  pBuf = malloc(dataSize);
   
   nRet = PDC_GetLiveImageData(this->nDeviceNo, this->nChildNo,
-                              8, /* 8 bits */
+                              this->pixelBits,
                               pBuf, &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetLiveImageData Failed. Error %d\n", nErrorCode);
     free(pBuf);
     return asynError;
-  }
-
-  printf("\n");
-  for (index=0; index<10; index++) {
-    for (jndex=0; jndex<10; jndex++) {
-      printf("%d ", pBuf[(sizeX * index) + jndex]);
-    }
-    printf("\n");
   }
 
   /* We save the most recent image buffer so it can be used in the read() 
@@ -711,14 +719,14 @@ asynStatus Photron::readImage() {
   /* Allocate the raw buffer we use to compute images. */
   dims[0] = sizeX;
   dims[1] = sizeY;
-  pImage = this->pNDArrayPool->alloc(2, dims, NDUInt8, 0, NULL);
+  pImage = this->pNDArrayPool->alloc(2, dims, dataType, 0, NULL);
   if (!pImage) {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
               "%s:%s: error allocating buffer\n", driverName, functionName);
     return(asynError);
   }
   
-  memcpy(pImage->pData, pBuf, numBytes);
+  memcpy(pImage->pData, pBuf, dataSize);
   
   this->pArrays[0] = pImage;
   pImage->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, 
@@ -772,6 +780,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       /* Send the stop event */
       epicsEventSignal(this->stopEventId);
     }
+  } else if (function == NDDataType) {
+    status = setPixelFormat();
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -1051,6 +1061,29 @@ asynStatus Photron::setGeometry() {
               "%s:%s: error, status=%d\n", driverName, functionName, status);
 
   return((asynStatus)status);
+}
+
+
+asynStatus Photron::setPixelFormat() {
+  int status = asynSuccess;
+  int dataType;
+  static const char *functionName = "setPixelFormat";
+  
+  status |= getIntegerParam(NDDataType, &dataType);
+  
+  if (dataType == NDUInt8) {
+    this->pixelBits = 8;
+  } else if (dataType == NDUInt16) {
+    // The SA1.1 only has a 12-bit sensor
+    this->pixelBits = 16;
+  } else {
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+              "%s:%s: error unsupported data type %d\n", 
+              driverName, functionName, dataType);
+    return asynError;
+  }
+  
+  return asynSuccess;
 }
 
 
