@@ -53,6 +53,8 @@ private:
   void printResOptions();
   void printTrigModes();
   asynStatus setPixelFormat();
+  asynStatus setTriggerMode();
+
 
   /* These items are specific to the Photron driver */
   // constructor

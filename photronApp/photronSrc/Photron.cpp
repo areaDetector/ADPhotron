@@ -791,6 +791,9 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setRecordRate(value);
   } else if (function == PhotronStatus) {
     setStatus(value);
+  } else if ((function = ADTriggerMode) || (function == PhotronAfterFrames) ||
+            (function == PhotronRandomFrames) || (function == PhotronRecCount)) {
+    setTriggerMode();
   } else {
     /* If this is not a parameter we have handled call the base class */
     status = ADDriver::writeInt32(pasynUser, value);
@@ -1057,6 +1060,37 @@ asynStatus Photron::setGeometry() {
     return asynError;
   }
 
+  if (status)
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
+              "%s:%s: error, status=%d\n", driverName, functionName, status);
+
+  return((asynStatus)status);
+}
+
+
+asynStatus Photron::setTriggerMode() {
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  int status = asynSuccess;
+  int mode, AFrames, RFrames, RCount;
+  static const char *functionName = "setTriggerMode";
+  
+  status |= getIntegerParam(ADTriggerMode, &mode);
+  status |= getIntegerParam(PhotronAfterFrames, &AFrames);
+  status |= getIntegerParam(PhotronRandomFrames, &RFrames);
+  status |= getIntegerParam(PhotronRecCount, &RCount);
+  
+  // The mode isn't in the right format for the PDC_SetTriggerMode call
+  // TODO: handle the variations of mode #8
+  mode = mode << 24;
+  
+  nRet = PDC_SetTriggerMode(this->nDeviceNo, mode, AFrames, RFrames, RCount, 
+                            &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetTriggerMode failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
   if (status)
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
               "%s:%s: error, status=%d\n", driverName, functionName, status);
