@@ -26,6 +26,7 @@ public:
   
 protected:
     int PhotronStatus;
+    int PhotronMaxFrames;
     int Photron8BitSel;
     int PhotronRecRate;
     int PhotronAfterFrames;
@@ -89,6 +90,8 @@ private:
   unsigned long ValidHeightList[PDC_MAX_LIST_NUMBER];
   // readParameters
   unsigned long nStatus; // replace with PV?
+  unsigned long nMaxFrames;
+  unsigned long nBlocks; // total number of current partition blocks
   unsigned long nRate; // units = frames per second
   unsigned long triggerMode;
   unsigned long trigAFrames;
@@ -117,11 +120,12 @@ typedef struct {
 
 // Define param strings here
  /*                             String                  interface  access   */
-#define PhotronStatusString     "PHOTRON_STATUS"    /* (asynInt32,    rw)   */
-#define Photron8BitSelectString "PHOTRON_8_BIT_SEL" /* (asynInt32,    rw)   */
-#define PhotronRecordRateString "PHOTRON_REC_RATE"  /* (asynInt32,    rw)   */
+#define PhotronStatusString     "PHOTRON_STATUS"     /* (asynInt32,    rw)   */
+#define PhotronMaxFramesString  "PHOTRON_MAX_FRAMES" /* (asynInt32,    r)   */
+#define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
+#define PhotronRecordRateString "PHOTRON_REC_RATE"   /* (asynInt32,    rw)   */
 #define PhotronAfterFramesString "PHOTRON_AFTER_FRAMES" /* (asynInt32,    rw) */
 #define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
-#define PhotronRecCountString   "PHOTRON_REC_COUNT" /* (asynInt32,    rw)   */
+#define PhotronRecCountString   "PHOTRON_REC_COUNT"  /* (asynInt32,    rw)   */
 
 #define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM-&FIRST_PHOTRON_PARAM+1))

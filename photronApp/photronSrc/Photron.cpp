@@ -81,6 +81,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
 
   // CREATE PARAMS HERE
   createParam(PhotronStatusString,        asynParamInt32, &PhotronStatus);
+  createParam(PhotronMaxFramesString,     asynParamInt32, &PhotronMaxFrames);
   createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
   createParam(PhotronRecordRateString,    asynParamInt32, &PhotronRecRate);
   createParam(PhotronAfterFramesString,   asynParamInt32, &PhotronAfterFrames);
@@ -1072,19 +1073,75 @@ asynStatus Photron::setTriggerMode() {
   unsigned long nRet;
   unsigned long nErrorCode;
   int status = asynSuccess;
-  int mode, AFrames, RFrames, RCount;
+  int mode, apiMode, AFrames, RFrames, RCount, maxFrames;
   static const char *functionName = "setTriggerMode";
   
   status |= getIntegerParam(ADTriggerMode, &mode);
   status |= getIntegerParam(PhotronAfterFrames, &AFrames);
   status |= getIntegerParam(PhotronRandomFrames, &RFrames);
   status |= getIntegerParam(PhotronRecCount, &RCount);
+  status |= getIntegerParam(PhotronMaxFrames, &maxFrames);
   
   // The mode isn't in the right format for the PDC_SetTriggerMode call
   // TODO: handle the variations of mode #8
-  mode = mode << 24;
+  apiMode = mode << 24;
   
-  nRet = PDC_SetTriggerMode(this->nDeviceNo, mode, AFrames, RFrames, RCount, 
+  // Set num random frames
+  switch (apiMode) {
+    case PDC_TRIGGER_RANDOM:
+    case PDC_TRIGGER_RANDOM_RESET:
+    case PDC_TRIGGER_RANDOM_CENTER:
+    case PDC_TRIGGER_RANDOM_MANUAL:
+      if (RFrames < 1) {
+        RFrames = 1;
+      } else if (RFrames > maxFrames) {
+        RFrames = maxFrames;
+      }
+      break;
+    default:
+      RFrames = 0;
+      break;
+  }
+  
+  // Set num after frames
+  switch (apiMode) {
+    case PDC_TRIGGER_MANUAL:
+      if (AFrames < 1) {
+        AFrames = 1;
+      } else if (AFrames > maxFrames) {
+        AFrames = maxFrames;
+      }
+      break;
+    case PDC_TRIGGER_RANDOM_MANUAL:
+      if (AFrames < 1) {
+        AFrames = 1;
+      } else if (AFrames > RFrames) {
+        AFrames = RFrames;
+      }
+      break;
+    default:
+      AFrames = 0;
+      break;
+  }
+  
+  // TODO calculate actual limits on RCount
+  // Set num recordings (1-10)
+  switch (apiMode) {
+    case PDC_TRIGGER_RANDOM_CENTER:
+    case PDC_TRIGGER_RANDOM_MANUAL:
+      if (RCount < 1) {
+        RCount = 1;
+      } else if (RCount > 10) {
+        RCount = 10;
+      }
+      break;
+      
+    default:
+      RCount = 0;
+      break;
+  }
+  
+  nRet = PDC_SetTriggerMode(this->nDeviceNo, apiMode, AFrames, RFrames, RCount, 
                             &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_SetTriggerMode failed %d\n", nErrorCode);
@@ -1256,6 +1313,14 @@ asynStatus Photron::readParameters() {
   }
   status |= setIntegerParam(PhotronRecRate, this->nRate);
   
+  nRet = PDC_GetMaxFrames(this->nDeviceNo, this->nChildNo, &(this->nMaxFrames),
+                          &(this->nBlocks), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetMaxFrames failed %d\n", nErrorCode);
+    return asynError;
+  }
+  status |= setIntegerParam(PhotronMaxFrames, this->nMaxFrames);
+  
   /*
   PDC_GetTriggerMode succeeded
         Mode = 0
@@ -1408,7 +1473,9 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "  Width:             %d\n",  (int)this->width);
     fprintf(fp, "  Height:            %d\n",  (int)this->height);
     fprintf(fp, "  Camera Status:     %d\n",  (int)this->nStatus);
+    fprintf(fp, "  Max Frames:        %d\n",  (int)this->nMaxFrames);
     fprintf(fp, "  Record Rate:       %d\n",  (int)this->nRate);
+    fprintf(fp, "\n");
     fprintf(fp, "  Trigger mode:      %d\n",  (int)this->triggerMode);
     fprintf(fp, "    A Frames:        %d\n",  (int)this->trigAFrames);
     fprintf(fp, "    R Frames:        %d\n",  (int)this->trigRFrames);
