@@ -1489,7 +1489,7 @@ void Photron::report(FILE *fp, int details) {
     }
   }
   
-  if (details = 1) {
+  if (details > 2) {
     fprintf(fp, "\n  Available recording rates:\n");
     for (index=0; index<this->RateListSize; index++) {
       printf("\t%d:\t%d FPS\n", (index + 1), this->RateList[index]);
