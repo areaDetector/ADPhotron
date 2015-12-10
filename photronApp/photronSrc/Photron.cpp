@@ -1124,8 +1124,8 @@ asynStatus Photron::setTriggerMode() {
       break;
   }
   
-  // TODO calculate actual limits on RCount
-  // Set num recordings (1-10)
+  // TODO determine actual limits on RCount
+  // PFV software limits num recordings to the following range: 1-10
   switch (apiMode) {
     case PDC_TRIGGER_RANDOM_CENTER:
     case PDC_TRIGGER_RANDOM_MANUAL:
