@@ -1083,8 +1083,20 @@ asynStatus Photron::setTriggerMode() {
   status |= getIntegerParam(PhotronMaxFrames, &maxFrames);
   
   // The mode isn't in the right format for the PDC_SetTriggerMode call
-  // TODO: handle the variations of mode #8
-  apiMode = mode << 24;
+  switch (mode) {
+    case 8:
+      apiMode = PDC_TRIGGER_TWOSTAGE_HALF;
+      break;
+    case 9:
+      apiMode = PDC_TRIGGER_TWOSTAGE_QUARTER;
+      break;
+    case 10:
+      apiMode = PDC_TRIGGER_TWOSTAGE_ONEEIGHTH;
+      break;
+    default:
+      apiMode = mode << 24;
+      break;
+  }
   
   // Set num random frames
   switch (apiMode) {
@@ -1144,7 +1156,7 @@ asynStatus Photron::setTriggerMode() {
   nRet = PDC_SetTriggerMode(this->nDeviceNo, apiMode, AFrames, RFrames, RCount, 
                             &nErrorCode);
   if (nRet == PDC_FAILED) {
-    printf("PDC_SetTriggerMode failed %d\n", nErrorCode);
+    printf("PDC_SetTriggerMode failed %d; apiMode = %x\n", nErrorCode, apiMode);
     return asynError;
   }
   
@@ -1293,6 +1305,7 @@ asynStatus Photron::readParameters() {
   unsigned long nRet;
   unsigned long nErrorCode;
   int status = asynSuccess;
+  int tmode;
   static const char *functionName = "readParameters";    
   
   //printf("Reading parameters...\n");
@@ -1337,7 +1350,27 @@ asynStatus Photron::readParameters() {
     return asynError;
   }
   
-  status |= setIntegerParam(ADTriggerMode, (this->triggerMode >> 24));
+  // The raw trigger mode needs to be converted to the index of the mbbo/mbbi
+  switch (this->triggerMode) {
+    case PDC_TRIGGER_TWOSTAGE_HALF:
+        tmode = 8;
+      break;
+      
+    case PDC_TRIGGER_TWOSTAGE_QUARTER:
+        tmode = 9;
+      break;
+      
+    case PDC_TRIGGER_TWOSTAGE_ONEEIGHTH:
+        tmode = 10;
+      break;
+    
+    default:
+        // this won't work for recon cmd and random loop modes
+        tmode = this->triggerMode >> 24;
+      break;
+  }
+  
+  status |= setIntegerParam(ADTriggerMode, tmode);
   status |= setIntegerParam(PhotronAfterFrames, this->trigAFrames);
   status |= setIntegerParam(PhotronRandomFrames, this->trigRFrames);
   status |= setIntegerParam(PhotronRecCount, this->trigRCount);
@@ -1476,7 +1509,7 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "  Max Frames:        %d\n",  (int)this->nMaxFrames);
     fprintf(fp, "  Record Rate:       %d\n",  (int)this->nRate);
     fprintf(fp, "\n");
-    fprintf(fp, "  Trigger mode:      %d\n",  (int)this->triggerMode);
+    fprintf(fp, "  Trigger mode:      %x\n",  (int)this->triggerMode);
     fprintf(fp, "    A Frames:        %d\n",  (int)this->trigAFrames);
     fprintf(fp, "    R Frames:        %d\n",  (int)this->trigRFrames);
     fprintf(fp, "    R Count:         %d\n",  (int)this->trigRCount);
