@@ -80,8 +80,8 @@ private:
   unsigned long childDevCount;
   unsigned long sensorWidth;
   unsigned long sensorHeight;
-  char *sensorBits;
-  char *bitDepth;
+  unsigned long sensorBits;
+  char          bitDepth[PDC_MAX_STRING_LENGTH];
   // updateResolution
   unsigned long width;
   unsigned long height;

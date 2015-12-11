@@ -81,7 +81,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
 
   // CREATE PARAMS HERE
   createParam(PhotronStatusString,        asynParamInt32, &PhotronStatus);
-  createParam(PhotronAcquireMode,         asynParamInt32, &PhotronAcquireMode);
+  createParam(PhotronAcquireModeString,   asynParamInt32, &PhotronAcquireMode);
   createParam(PhotronMaxFramesString,     asynParamInt32, &PhotronMaxFrames);
   createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
   createParam(PhotronRecordRateString,    asynParamInt32, &PhotronRecRate);
@@ -521,6 +521,7 @@ asynStatus Photron::getCameraInfo() {
   unsigned long nRet;
   unsigned long nErrorCode;
   int status = asynSuccess;
+  char sensorBitChar;
   static const char *functionName = "getCameraInfo";
   //
   int index;
@@ -610,27 +611,32 @@ asynStatus Photron::getCameraInfo() {
     return asynError;
   }  
   
+  /* This gets the dynamic range of the camera. The third argument is an 
+     unsigned long in the SDK documentation but a char * in PDCFUNC.h.
+     It appears that only a single char is returned. */
+  nRet = PDC_GetMaxBitDepth(this->nDeviceNo, this->nChildNo, &sensorBitChar,
+                            &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetMaxBitDepth failed %d\n", nErrorCode);
+    return asynError;
+  } else {
+    this->sensorBits = (unsigned long) sensorBitChar;
+  }
+  
   if (this->functionList[PDC_EXIST_BITDEPTH] == PDC_EXIST_SUPPORTED) {
-    nRet = PDC_GetMaxBitDepth(this->nDeviceNo, this->nChildNo, this->sensorBits,
-                              &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_GetMaxBitDepth failed %d\n", nErrorCode);
-      return asynError;
-    } else {
-      printf("PDC_GetMaxBitDepth succeeded. maxBitDepth = %s\n", 
-             this->sensorBits);
-    }
-    
     nRet = PDC_GetBitDepth(this->nDeviceNo, this->nChildNo, this->bitDepth,
                            &nErrorCode);
     if (nRet == PDC_FAILED) {
       printf("PDC_GetBitDepth failed %d\n", nErrorCode);
       return asynError;
     } else {
-      printf("PDC_GetBitDepth succeeded. bitDepth = %s\n", this->bitDepth);
+      if (strlen(this->bitDepth) > 0) {
+        // Assume only one char is returned and the string needs termination
+        this->bitDepth[1] = 0;
+      }
     }
   } else {
-      this->sensorBits = "N/A";
+      strcpy(this->bitDepth, "N/A");
   }
   
   // Is this always the same or should it be moved to readParameters?
@@ -1502,7 +1508,7 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "  Version:           %0.2f\n",  (float)(this->version/100.0));
     fprintf(fp, "  Sensor width:      %d\n",  (int)this->sensorWidth);
     fprintf(fp, "  Sensor height:     %d\n",  (int)this->sensorHeight);
-    fprintf(fp, "  Sensor bits:       %s\n",  this->sensorBits);
+    fprintf(fp, "  Sensor bits:       %d\n",  (int)this->sensorBits);
     fprintf(fp, "  Max Child Dev #:   %d\n",  (int)this->maxChildDevCount);
     fprintf(fp, "  Child Dev #:       %d\n",  (int)this->childDevCount);
     fprintf(fp, "\n");
@@ -1511,6 +1517,7 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "  Camera Status:     %d\n",  (int)this->nStatus);
     fprintf(fp, "  Max Frames:        %d\n",  (int)this->nMaxFrames);
     fprintf(fp, "  Record Rate:       %d\n",  (int)this->nRate);
+    fprintf(fp, "  Bit Depth:         %s\n",  this->bitDepth);
     fprintf(fp, "\n");
     fprintf(fp, "  Trigger mode:      %x\n",  (int)this->triggerMode);
     fprintf(fp, "    A Frames:        %d\n",  (int)this->trigAFrames);
