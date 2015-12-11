@@ -70,6 +70,8 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
  
   this->cameraId = epicsStrDup(ipAddress);
   this->autoDetect = autoDetect;
+  // Initialize the bitDepth for asynReport in case the feature isn't supported
+  this->bitDepth = 0;
 
   // If this is the first camera we need to initialize the camera list
   if (!cameraList) {
@@ -621,22 +623,6 @@ asynStatus Photron::getCameraInfo() {
     return asynError;
   } else {
     this->sensorBits = (unsigned long) sensorBitChar;
-  }
-  
-  if (this->functionList[PDC_EXIST_BITDEPTH] == PDC_EXIST_SUPPORTED) {
-    nRet = PDC_GetBitDepth(this->nDeviceNo, this->nChildNo, this->bitDepth,
-                           &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_GetBitDepth failed %d\n", nErrorCode);
-      return asynError;
-    } else {
-      if (strlen(this->bitDepth) > 0) {
-        // Assume only one char is returned and the string needs termination
-        this->bitDepth[1] = 0;
-      }
-    }
-  } else {
-      strcpy(this->bitDepth, "N/A");
   }
   
   // Is this always the same or should it be moved to readParameters?
@@ -1315,6 +1301,7 @@ asynStatus Photron::readParameters() {
   unsigned long nErrorCode;
   int status = asynSuccess;
   int tmode;
+  char bitDepthChar;
   static const char *functionName = "readParameters";    
   
   //printf("Reading parameters...\n");
@@ -1383,6 +1370,17 @@ asynStatus Photron::readParameters() {
   status |= setIntegerParam(PhotronAfterFrames, this->trigAFrames);
   status |= setIntegerParam(PhotronRandomFrames, this->trigRFrames);
   status |= setIntegerParam(PhotronRecCount, this->trigRCount);
+  
+  if (this->functionList[PDC_EXIST_BITDEPTH] == PDC_EXIST_SUPPORTED) {
+    nRet = PDC_GetBitDepth(this->nDeviceNo, this->nChildNo, &bitDepthChar,
+                           &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetBitDepth failed %d\n", nErrorCode);
+      return asynError;
+    } else {
+      this->bitDepth = (unsigned long) bitDepthChar;
+    }
+  }
   
   // Does this ever change?
   nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 
@@ -1517,7 +1515,7 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "  Camera Status:     %d\n",  (int)this->nStatus);
     fprintf(fp, "  Max Frames:        %d\n",  (int)this->nMaxFrames);
     fprintf(fp, "  Record Rate:       %d\n",  (int)this->nRate);
-    fprintf(fp, "  Bit Depth:         %s\n",  this->bitDepth);
+    fprintf(fp, "  Bit Depth:         %d\n",  (int)this->bitDepth);
     fprintf(fp, "\n");
     fprintf(fp, "  Trigger mode:      %x\n",  (int)this->triggerMode);
     fprintf(fp, "    A Frames:        %d\n",  (int)this->trigAFrames);

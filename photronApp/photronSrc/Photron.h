@@ -81,7 +81,8 @@ private:
   unsigned long sensorWidth;
   unsigned long sensorHeight;
   unsigned long sensorBits;
-  char          bitDepth[PDC_MAX_STRING_LENGTH];
+  /* bitDepth should move to readParameters in the future */
+  unsigned long bitDepth;
   // updateResolution
   unsigned long width;
   unsigned long height;
