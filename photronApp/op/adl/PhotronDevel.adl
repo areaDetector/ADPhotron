@@ -5,8 +5,8 @@ file {
 }
 display {
 	object {
-		x=131
-		y=516
+		x=303
+		y=64
 		width=400
 		height=400
 	}
@@ -90,7 +90,7 @@ display {
 "related display" {
 	object {
 		x=126
-		y=340
+		y=350
 		width=134
 		height=39
 	}
@@ -102,134 +102,10 @@ display {
 	clr=14
 	bclr=4
 }
-"text entry" {
-	object {
-		x=140
-		y=40
-		width=100
-		height=25
-	}
-	control {
-		chan="$(P)$(R)RecordRate"
-		clr=14
-		bclr=51
-	}
-	limits {
-	}
-}
-"text update" {
-	object {
-		x=245
-		y=40
-		width=100
-		height=25
-	}
-	monitor {
-		chan="$(P)$(R)RecordRate_RBV"
-		clr=14
-		bclr=4
-	}
-	limits {
-	}
-}
-"text update" {
-	object {
-		x=245
-		y=70
-		width=100
-		height=25
-	}
-	monitor {
-		chan="$(P)$(R)Status_RBV"
-		clr=14
-		bclr=4
-	}
-	format="hexadecimal"
-	limits {
-	}
-}
-menu {
-	object {
-		x=140
-		y=70
-		width=100
-		height=25
-	}
-	control {
-		chan="$(P)$(R)Status"
-		clr=14
-		bclr=4
-	}
-}
-text {
-	object {
-		x=10
-		y=40
-		width=125
-		height=25
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="Record Rate (Hz)"
-}
-text {
-	object {
-		x=10
-		y=70
-		width=125
-		height=25
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="Status"
-}
-text {
-	object {
-		x=10
-		y=130
-		width=125
-		height=25
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="Trigger Mode"
-}
-menu {
-	object {
-		x=140
-		y=130
-		width=100
-		height=25
-	}
-	control {
-		chan="$(P)$(R)TriggerMode"
-		clr=14
-		bclr=4
-	}
-}
-"text update" {
-	object {
-		x=245
-		y=130
-		width=100
-		height=25
-	}
-	monitor {
-		chan="$(P)$(R)TriggerMode_RBV"
-		clr=14
-		bclr=4
-	}
-	format="hexadecimal"
-	limits {
-	}
-}
 composite {
 	object {
 		x=10
-		y=100
+		y=130
 		width=335
 		height=25
 	}
@@ -238,7 +114,7 @@ composite {
 		"text update" {
 			object {
 				x=245
-				y=100
+				y=130
 				width=100
 				height=25
 			}
@@ -253,7 +129,7 @@ composite {
 		text {
 			object {
 				x=10
-				y=100
+				y=130
 				width=125
 				height=25
 			}
@@ -264,46 +140,284 @@ composite {
 		}
 	}
 }
-menu {
-	object {
-		x=140
-		y=10
-		width=100
-		height=25
-	}
-	control {
-		chan="$(P)$(R)8BitSel"
-		clr=14
-		bclr=4
-	}
-}
-"text update" {
-	object {
-		x=245
-		y=10
-		width=100
-		height=25
-	}
-	monitor {
-		chan="$(P)$(R)8BitSel_RBV"
-		clr=14
-		bclr=4
-	}
-	format="string"
-	limits {
-	}
-}
-text {
+composite {
 	object {
 		x=10
-		y=10
-		width=125
+		y=220
+		width=335
+		height=115
+	}
+	"composite name"=""
+	children {
+		text {
+			object {
+				x=10
+				y=220
+				width=125
+				height=25
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="Trigger Mode"
+		}
+		menu {
+			object {
+				x=140
+				y=220
+				width=100
+				height=25
+			}
+			control {
+				chan="$(P)$(R)TriggerMode"
+				clr=14
+				bclr=4
+			}
+		}
+		"text update" {
+			object {
+				x=245
+				y=220
+				width=100
+				height=25
+			}
+			monitor {
+				chan="$(P)$(R)TriggerMode_RBV"
+				clr=14
+				bclr=4
+			}
+			format="hexadecimal"
+			limits {
+			}
+		}
+		composite {
+			object {
+				x=10
+				y=250
+				width=335
+				height=25
+			}
+			"composite name"=""
+			children {
+				"text entry" {
+					object {
+						x=140
+						y=250
+						width=100
+						height=25
+					}
+					control {
+						chan="$(P)$(R)RandomFrames"
+						clr=14
+						bclr=51
+					}
+					limits {
+					}
+				}
+				"text update" {
+					object {
+						x=245
+						y=250
+						width=100
+						height=25
+					}
+					monitor {
+						chan="$(P)$(R)RandomFrames_RBV"
+						clr=14
+						bclr=4
+					}
+					limits {
+					}
+				}
+				text {
+					object {
+						x=10
+						y=250
+						width=125
+						height=25
+					}
+					"basic attribute" {
+						clr=14
+					}
+					textix="Random Frames"
+				}
+			}
+			"dynamic attribute" {
+				vis="calc"
+				calc="A=3||A=5||A=6||A=7"
+				chan="$(P)$(R)TriggerMode_RBV"
+			}
+		}
+		composite {
+			object {
+				x=10
+				y=280
+				width=335
+				height=25
+			}
+			"composite name"=""
+			children {
+				"text entry" {
+					object {
+						x=140
+						y=280
+						width=100
+						height=25
+					}
+					control {
+						chan="$(P)$(R)RecCount"
+						clr=14
+						bclr=51
+					}
+					limits {
+					}
+				}
+				"text update" {
+					object {
+						x=245
+						y=280
+						width=100
+						height=25
+					}
+					monitor {
+						chan="$(P)$(R)RecCount_RBV"
+						clr=14
+						bclr=4
+					}
+					limits {
+					}
+				}
+				text {
+					object {
+						x=10
+						y=280
+						width=125
+						height=25
+					}
+					"basic attribute" {
+						clr=14
+					}
+					textix="Number of Recordings"
+				}
+			}
+			"dynamic attribute" {
+				vis="calc"
+				calc="A=6||A=7"
+				chan="$(P)$(R)TriggerMode_RBV"
+			}
+		}
+		composite {
+			object {
+				x=10
+				y=310
+				width=335
+				height=25
+			}
+			"composite name"=""
+			children {
+				"text entry" {
+					object {
+						x=140
+						y=310
+						width=100
+						height=25
+					}
+					control {
+						chan="$(P)$(R)AfterFrames"
+						clr=14
+						bclr=51
+					}
+					limits {
+					}
+				}
+				"text update" {
+					object {
+						x=245
+						y=310
+						width=100
+						height=25
+					}
+					monitor {
+						chan="$(P)$(R)AfterFrames_RBV"
+						clr=14
+						bclr=4
+					}
+					limits {
+					}
+				}
+				text {
+					object {
+						x=10
+						y=310
+						width=125
+						height=25
+					}
+					"basic attribute" {
+						clr=14
+					}
+					textix="After Frames"
+				}
+			}
+			"dynamic attribute" {
+				vis="calc"
+				calc="A=4||A=7"
+				chan="$(P)$(R)TriggerMode_RBV"
+			}
+		}
+	}
+}
+composite {
+	object {
+		x=10
+		y=100
+		width=335
 		height=25
 	}
-	"basic attribute" {
-		clr=14
+	"composite name"=""
+	children {
+		"text entry" {
+			object {
+				x=140
+				y=100
+				width=100
+				height=25
+			}
+			control {
+				chan="$(P)$(R)RecordRate"
+				clr=14
+				bclr=51
+			}
+			limits {
+			}
+		}
+		"text update" {
+			object {
+				x=245
+				y=100
+				width=100
+				height=25
+			}
+			monitor {
+				chan="$(P)$(R)RecordRate_RBV"
+				clr=14
+				bclr=4
+			}
+			limits {
+			}
+		}
+		text {
+			object {
+				x=10
+				y=100
+				width=125
+				height=25
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="Record Rate (Hz)"
+		}
 	}
-	textix="8-Bit offset"
 }
 composite {
 	object {
@@ -314,7 +428,7 @@ composite {
 	}
 	"composite name"=""
 	children {
-		"text entry" {
+		menu {
 			object {
 				x=140
 				y=160
@@ -322,11 +436,9 @@ composite {
 				height=25
 			}
 			control {
-				chan="$(P)$(R)RandomFrames"
+				chan="$(P)$(R)8BitSel"
 				clr=14
-				bclr=51
-			}
-			limits {
+				bclr=4
 			}
 		}
 		"text update" {
@@ -337,10 +449,11 @@ composite {
 				height=25
 			}
 			monitor {
-				chan="$(P)$(R)RandomFrames_RBV"
+				chan="$(P)$(R)8BitSel_RBV"
 				clr=14
 				bclr=4
 			}
+			format="string"
 			limits {
 			}
 		}
@@ -354,128 +467,82 @@ composite {
 			"basic attribute" {
 				clr=14
 			}
-			textix="Random Frames"
+			textix="8-Bit offset"
 		}
-	}
-	"dynamic attribute" {
-		vis="calc"
-		calc="A=3||A=5||A=6||A=7"
-		chan="$(P)$(R)TriggerMode_RBV"
 	}
 }
 composite {
 	object {
 		x=10
-		y=190
+		y=70
 		width=335
 		height=25
 	}
 	"composite name"=""
 	children {
-		"text entry" {
-			object {
-				x=140
-				y=190
-				width=100
-				height=25
-			}
-			control {
-				chan="$(P)$(R)RecCount"
-				clr=14
-				bclr=51
-			}
-			limits {
-			}
-		}
 		"text update" {
 			object {
 				x=245
-				y=190
+				y=70
 				width=100
 				height=25
 			}
 			monitor {
-				chan="$(P)$(R)RecCount_RBV"
+				chan="$(P)$(R)Status_RBV"
 				clr=14
 				bclr=4
 			}
+			format="hexadecimal"
 			limits {
 			}
 		}
 		text {
 			object {
 				x=10
-				y=190
+				y=70
 				width=125
 				height=25
 			}
 			"basic attribute" {
 				clr=14
 			}
-			textix="Number of Recordings"
+			textix="Status"
 		}
-	}
-	"dynamic attribute" {
-		vis="calc"
-		calc="A=6||A=7"
-		chan="$(P)$(R)TriggerMode_RBV"
 	}
 }
 composite {
 	object {
 		x=10
-		y=220
-		width=335
+		y=40
+		width=230
 		height=25
 	}
 	"composite name"=""
 	children {
-		"text entry" {
+		menu {
 			object {
 				x=140
-				y=220
+				y=40
 				width=100
 				height=25
 			}
 			control {
-				chan="$(P)$(R)AfterFrames"
-				clr=14
-				bclr=51
-			}
-			limits {
-			}
-		}
-		"text update" {
-			object {
-				x=245
-				y=220
-				width=100
-				height=25
-			}
-			monitor {
-				chan="$(P)$(R)AfterFrames_RBV"
+				chan="$(P)$(R)AcquireMode"
 				clr=14
 				bclr=4
-			}
-			limits {
 			}
 		}
 		text {
 			object {
 				x=10
-				y=220
+				y=40
 				width=125
 				height=25
 			}
 			"basic attribute" {
 				clr=14
 			}
-			textix="After Frames"
+			textix="Acquire Mode"
 		}
-	}
-	"dynamic attribute" {
-		vis="calc"
-		calc="A=4||A=7"
-		chan="$(P)$(R)TriggerMode_RBV"
 	}
 }
