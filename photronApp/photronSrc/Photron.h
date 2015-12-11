@@ -33,8 +33,9 @@ protected:
     int PhotronAfterFrames;
     int PhotronRandomFrames;
     int PhotronRecCount;
+    int PhotronSoftTrig;
     #define FIRST_PHOTRON_PARAM PhotronStatus
-    #define LAST_PHOTRON_PARAM PhotronRecCount
+    #define LAST_PHOTRON_PARAM PhotronSoftTrig
 
 private:
   /* These are the methods that are new to this class */
@@ -130,5 +131,6 @@ typedef struct {
 #define PhotronAfterFramesString "PHOTRON_AFTER_FRAMES" /* (asynInt32,    rw) */
 #define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
 #define PhotronRecCountString   "PHOTRON_REC_COUNT"  /* (asynInt32,    rw)   */
+#define PhotronSoftTrigString   "PHOTRON_SOFT_TRIG"  /* (asynInt32,    w) */
 
 #define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM-&FIRST_PHOTRON_PARAM+1))

@@ -90,6 +90,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronAfterFramesString,   asynParamInt32, &PhotronAfterFrames);
   createParam(PhotronRandomFramesString,  asynParamInt32, &PhotronRandomFrames);
   createParam(PhotronRecCountString,      asynParamInt32, &PhotronRecCount);
+  createParam(PhotronSoftTrigString,      asynParamInt32, &PhotronSoftTrig);
   
   if (!PDCLibInitialized) {
     /* Initialize the Photron PDC library */
@@ -762,8 +763,6 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status |= setValidWidth(value);
   } else if (function == ADSizeY) {
     status |= setValidHeight(value);
-  } else if (function == PhotronAcquireMode) {
-    printf("Acquire mode changed. value = %d\n", value);
   } else if (function == ADAcquire) {
     getIntegerParam(ADStatus, &adstatus);
     if (value && (adstatus == ADStatusIdle)) {
@@ -779,6 +778,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     }
   } else if (function == NDDataType) {
     status = setPixelFormat();
+  } else if (function == PhotronAcquireMode) {
+    printf("Acquire mode changed. value = %d\n", value);
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -787,6 +788,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setRecordRate(value);
   } else if (function == PhotronStatus) {
     setStatus(value);
+  } else if (function == PhotronSoftTrig) {
+    printf("Soft Trigger changed. value = %d\n", value);
   } else if ((function = ADTriggerMode) || (function == PhotronAfterFrames) ||
             (function == PhotronRandomFrames) || (function == PhotronRecCount)) {
     setTriggerMode();

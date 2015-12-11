@@ -159,7 +159,7 @@ record(mbbi, "$(P)$(R)ColorMode_RBV")
 # that don't return errors.
 record(mbbo, "$(P)$(R)AcquireMode")
 {
-   field(DTYP, "Soft Channel")
+   field(DTYP, "asynInt32")
    field(PINI, "YES")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_ACQUIRE_MODE")
    field(ZRST, "Live")
@@ -293,4 +293,13 @@ record(mbbi, "$(P)$(R)TwoStageMode_RBV")
    field(TWVL, "2")
    field(THST, "One-eighth")
    field(THVL, "3")
+}
+
+## Software trigger
+record(bo, "$(P)$(R)SoftwareTrigger") {
+  field(PINI, "NO")
+  field(DTYP, "asynInt32")
+  field(ZNAM, "Done")
+  field(ONAM, "Trigger")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SOFT_TRIG")
 }
