@@ -157,14 +157,14 @@ record(mbbi, "$(P)$(R)ColorMode_RBV")
 
 # This could probably be replaced with a bo, since there are only two values
 # that don't return errors.
-record(mbbo, "$(P)$(R)Status")
+record(mbbo, "$(P)$(R)AcquireMode")
 {
-   field(DTYP, "asynInt32")
+   field(DTYP, "Soft Channel")
    field(PINI, "YES")
-   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_STATUS")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_ACQUIRE_MODE")
    field(ZRST, "Live")
    field(ZRVL, "0")
-   field(ONST, "Playback")
+   field(ONST, "Record")
    field(ONVL, "1")
    field(VAL,  "0")
 }

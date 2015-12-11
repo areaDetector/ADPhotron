@@ -81,6 +81,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
 
   // CREATE PARAMS HERE
   createParam(PhotronStatusString,        asynParamInt32, &PhotronStatus);
+  createParam(PhotronAcquireMode,         asynParamInt32, &PhotronAcquireMode);
   createParam(PhotronMaxFramesString,     asynParamInt32, &PhotronMaxFrames);
   createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
   createParam(PhotronRecordRateString,    asynParamInt32, &PhotronRecRate);
@@ -769,6 +770,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status |= setValidWidth(value);
   } else if (function == ADSizeY) {
     status |= setValidHeight(value);
+  } else if (function == PhotronAcquireMode) {
+    printf("Acquire mode changed. value = %d\n", value);
   } else if (function == ADAcquire) {
     getIntegerParam(ADStatus, &adstatus);
     if (value && (adstatus == ADStatusIdle)) {

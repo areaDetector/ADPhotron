@@ -26,6 +26,7 @@ public:
   
 protected:
     int PhotronStatus;
+    int PhotronAcquireMode;
     int PhotronMaxFrames;
     int Photron8BitSel;
     int PhotronRecRate;
@@ -121,6 +122,7 @@ typedef struct {
 // Define param strings here
  /*                             String                  interface  access   */
 #define PhotronStatusString     "PHOTRON_STATUS"     /* (asynInt32,    rw)   */
+#define PhotronAcquireModeString "PHOTRON_ACQUIRE_MODE" /* (asynInt32,    w) */
 #define PhotronMaxFramesString  "PHOTRON_MAX_FRAMES" /* (asynInt32,    r)   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
 #define PhotronRecordRateString "PHOTRON_REC_RATE"   /* (asynInt32,    rw)   */
