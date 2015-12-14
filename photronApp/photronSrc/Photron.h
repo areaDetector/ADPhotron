@@ -140,7 +140,7 @@ typedef struct {
 #define PhotronMaxFramesString  "PHOTRON_MAX_FRAMES" /* (asynInt32,    r)   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
 #define PhotronRecordRateString "PHOTRON_REC_RATE"   /* (asynInt32,    rw)   */
-#define PhotronAfterFramesString "PHOTRON_AFTE R_FRAMES" /* (asynInt32,    rw) */
+#define PhotronAfterFramesString "PHOTRON_AFTER_FRAMES" /* (asynInt32,    rw) */
 #define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
 #define PhotronRecCountString   "PHOTRON_REC_COUNT"  /* (asynInt32,    rw)   */
 #define PhotronSoftTrigString   "PHOTRON_SOFT_TRIG"   /* (asynInt32,    w) */
