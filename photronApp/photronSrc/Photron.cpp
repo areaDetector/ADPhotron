@@ -1004,8 +1004,9 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronReadMem) {
     readMem();
     
-  } else if ((function = ADTriggerMode) || (function == PhotronAfterFrames) ||
+  } else if ((function == ADTriggerMode) || (function == PhotronAfterFrames) ||
             (function == PhotronRandomFrames) || (function == PhotronRecCount)) {
+    printf("asyn reason = %d\n", function);
     setTriggerMode();
   } else {
     /* If this is not a parameter we have handled call the base class */
