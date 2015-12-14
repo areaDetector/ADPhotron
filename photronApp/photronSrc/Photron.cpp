@@ -91,6 +91,11 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronRandomFramesString,  asynParamInt32, &PhotronRandomFrames);
   createParam(PhotronRecCountString,      asynParamInt32, &PhotronRecCount);
   createParam(PhotronSoftTrigString,      asynParamInt32, &PhotronSoftTrig);
+  createParam(PhotronRecReadyString,      asynParamInt32, &PhotronRecReady);
+  createParam(PhotronPlaybackString,      asynParamInt32, &PhotronPlayback);
+  createParam(PhotronEndlessString,       asynParamInt32, &PhotronEndless);
+  createParam(PhotronReadMemString,       asynParamInt32, &PhotronReadMem);
+
   
   if (!PDCLibInitialized) {
     /* Initialize the Photron PDC library */
@@ -219,22 +224,22 @@ static void PhotronRecTaskC(void *drvPvt) {
   * from the camera after recording is done.
   */
 void Photron::PhotronRecTask() {
-  asynStatus imageStatus;
+  /*asynStatus imageStatus;
   int imageCounter;
   int numImages, numImagesCounter;
   int imageMode;
   int arrayCallbacks;
-  int acqMode;
   NDArray *pImage;
   double acquirePeriod, delay;
   epicsTimeStamp startTime, endTime;
-  double elapsedTime;
+  double elapsedTime;*/
   
-  int recFlag;
   unsigned long status;
   unsigned long nRet;
   unsigned long nErrorCode;
-  PDC_FRAME_INFO FrameInfo;
+  int acqMode;
+  //int recFlag;
+  //PDC_FRAME_INFO FrameInfo;
   
   const char *functionName = "PhotronRecTask";
 
@@ -263,15 +268,15 @@ void Photron::PhotronRecTask() {
     // We're in record mode
     
     // Set Rec Ready
-    nRet = PDC_SetRecReady(nDeviceNo, &nErrorCode);
+    /*nRet = PDC_SetRecReady(nDeviceNo, &nErrorCode);
     if (nRet == PDC_FAILED) {
       printf("PDC_SetRecready Error %d\n", nErrorCode);
     }
     
     // Reset the recording flag
-    recFlag = 0;
+    recFlag = 0;*/
     
-    /* Wait for triggered recording */
+    // Wait for triggered recording
     while (1) {
       // Get camera status
       nRet = PDC_GetStatus(this->nDeviceNo, &status, &nErrorCode);
@@ -280,6 +285,8 @@ void Photron::PhotronRecTask() {
       }
       setIntegerParam(PhotronStatus, status);
       callParamCallbacks();
+      
+      /*
       
       if (status == PDC_STATUS_REC) {
         // A trigger was received; camera is recording
@@ -295,7 +302,7 @@ void Photron::PhotronRecTask() {
           printf("PDC_SetStatus failed. error = %d\n", nErrorCode);
         }
         
-        /* Retrieves frame information */
+        // Retrieves frame information 
         nRet = PDC_GetMemFrameInfo(nDeviceNo, this->nChildNo, &FrameInfo,
                                    &nErrorCode);
         if (nRet == PDC_FAILED) {
@@ -315,16 +322,16 @@ void Photron::PhotronRecTask() {
         // PDC_GetMemRecordRate
         // PDC_GetMemTriggerMode
         
-        /* Retrieves a trigger frame */
-        /*nRet = PDC_GetMemImageData(nDeviceNo, nChildNo, FrameInfo.m_nTrigger,
+        // Retrieves a trigger frame 
+        nRet = PDC_GetMemImageData(nDeviceNo, nChildNo, FrameInfo.m_nTrigger,
                                    8, pBuf, &nErrorCode);
         if (nRet == PDC_FAILED) {
           printf("PDC_GetMemImageData Error %d\n", nErrorCode);
           free(pBuf); 
-        }*/
+        }
         
         // Put the camera in recready mode
-        /*nRet = PDC_SetStatus(this->nDeviceNo, PDC_STATUS_LIVE, &nErrorCode);
+        nRet = PDC_SetStatus(this->nDeviceNo, PDC_STATUS_LIVE, &nErrorCode);
         if (nRet == PDC_FAILED) {
           printf("PDC_SetStatus failed. error = %d\n", nErrorCode);
         }
@@ -332,12 +339,14 @@ void Photron::PhotronRecTask() {
         nRet = PDC_SetRecReady(nDeviceNo, &nErrorCode);
         if (nRet == PDC_FAILED) {
           printf("PDC_SetRecready Error %d\n", nErrorCode);
-        }*/
+        }
         
         // Reset the rec flag
         recFlag = 0;
         
       }
+      
+      */
       
       // release the lock so the trigger PV can be used
       this->unlock();
@@ -983,6 +992,18 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     printf("Soft Trigger changed. value = %d\n", value);
     softwareTrigger();
     
+  } else if (function == PhotronRecReady) {
+    setRecReady();
+    
+  } else if (function == PhotronEndless) {
+    setEndless();
+    
+  } else if (function == PhotronPlayback) {
+    setPlayback();
+    
+  } else if (function == PhotronReadMem) {
+    readMem();
+    
   } else if ((function = ADTriggerMode) || (function == PhotronAfterFrames) ||
             (function == PhotronRandomFrames) || (function == PhotronRecCount)) {
     setTriggerMode();
@@ -1017,12 +1038,143 @@ asynStatus Photron::softwareTrigger() {
   // Only send a software trigger if in Record mode
   if (acqMode == 1) {
     nRet = PDC_TriggerIn(nDeviceNo, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_TriggerIn failed. error = %d\n", nErrorCode);
+      return asynError;
+    }
   } else {
     printf("Ignoring software trigger\n");
   }
   
   return status;
 }
+
+
+asynStatus Photron::setRecReady() {
+  asynStatus status = asynSuccess;
+  int acqMode;
+  unsigned long nRet, nErrorCode;
+  static const char *functionName = "setRecReady";
+  
+  status = getIntegerParam(PhotronAcquireMode, &acqMode);
+  
+  // Only set rec ready if in record mode
+  if (acqMode == 1) {
+    nRet = PDC_SetRecReady(nDeviceNo, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetRecReady failed. error = %d\n", nErrorCode);
+      return asynError;
+    }
+  } else {
+    printf("Ignoring set rec ready\n");
+  }
+  
+  return status;
+}
+
+
+asynStatus Photron::setEndless() {
+  asynStatus status = asynSuccess;
+  int acqMode;
+  unsigned long nRet, nErrorCode;
+  static const char *functionName = "setEndless";
+  
+  status = getIntegerParam(PhotronAcquireMode, &acqMode);
+  
+  // Only set endless trigger if in record mode
+  // TODO: add test for relevent trigger modes
+  if (acqMode == 1) {
+    nRet = PDC_SetEndless(nDeviceNo, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetEndless failed. error = %d\n", nErrorCode);
+      return asynError;
+    }
+  } else {
+    printf("Ignoring endless trigger\n");
+  }
+  
+  return status;
+}
+
+
+asynStatus Photron::setPlayback() {
+  asynStatus status = asynSuccess;
+  int acqMode;
+  unsigned long nRet, nErrorCode;
+  static const char *functionName = "setPlayback";
+  
+  status = getIntegerParam(PhotronAcquireMode, &acqMode);
+  
+  // Only set playback if in record mode
+  if (acqMode == 1) {
+    // Put the camera in playback mode
+    nRet = PDC_SetStatus(this->nDeviceNo, PDC_STATUS_PLAYBACK, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetStatus failed. error = %d\n", nErrorCode);
+      return asynError;
+    }
+  } else {
+    printf("Ignoring playback\n");
+  }
+  
+  return status;
+}
+
+
+asynStatus Photron::readMem() {
+  asynStatus status = asynSuccess;
+  int acqMode, phostat;
+  unsigned long nRet, nErrorCode;
+  PDC_FRAME_INFO FrameInfo;
+  static const char *functionName = "readMem";
+  
+  status = getIntegerParam(PhotronAcquireMode, &acqMode);
+  status = getIntegerParam(PhotronStatus, &phostat);
+  
+  // Only read memory if in record mode
+  // AND status is playback
+  if (acqMode == 1) {
+    if (phostat == PDC_STATUS_PLAYBACK) {
+      // Retrieves frame information 
+      nRet = PDC_GetMemFrameInfo(nDeviceNo, this->nChildNo, &FrameInfo,
+                                 &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetMemFrameInfo Error %d\n", nErrorCode);
+        return asynError;
+      }
+        
+      // display frame info
+      printf("Frame Info:\n");
+      printf("\tFrame Start:\t%d\n", FrameInfo.m_nStart);
+      printf("\tFrame End:\t%d\n", FrameInfo.m_nEnd);
+      printf("\tFrame Trigger:\t%d\n", FrameInfo.m_nTrigger);
+      printf("\tFrame Start:\t%d\n", FrameInfo.m_nStart);
+      printf("\tEvent count:\t%d\n", FrameInfo.m_nEventCount);
+      printf("\tRecorded Frames:\t%d\n", FrameInfo.m_nRecordedFrames);
+        
+      // PDC_GetMemResolution
+      // PDC_GetMemRecordRate
+      // PDC_GetMemTriggerMode
+      
+      // Retrieves a trigger frame 
+      /*nRet = PDC_GetMemImageData(nDeviceNo, nChildNo, FrameInfo.m_nTrigger,
+                                 8, pBuf, &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetMemImageData Error %d\n", nErrorCode);
+        free(pBuf); 
+      }*/
+      
+    } else {
+      printf("status != playback; Ignoring read mem\n");
+    }
+  } else {
+    printf("Mode != record; Ignoring read mem\n");
+  }
+  
+  return status;
+}
+
+// IAMHERE
 
 
 asynStatus Photron::getGeometry() {

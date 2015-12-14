@@ -35,8 +35,12 @@ protected:
     int PhotronRandomFrames;
     int PhotronRecCount;
     int PhotronSoftTrig;
+    int PhotronRecReady;
+    int PhotronEndless;
+    int PhotronPlayback;
+    int PhotronReadMem;
     #define FIRST_PHOTRON_PARAM PhotronStatus
-    #define LAST_PHOTRON_PARAM PhotronSoftTrig
+    #define LAST_PHOTRON_PARAM PhotronReadMem
 
 private:
   /* These are the methods that are new to this class */
@@ -59,7 +63,11 @@ private:
   asynStatus setPixelFormat();
   asynStatus setTriggerMode();
   asynStatus softwareTrigger();
-
+  asynStatus setRecReady();
+  asynStatus setEndless();
+  asynStatus setPlayback();
+  asynStatus readMem();
+  
   /* These items are specific to the Photron driver */
   // constructor
   char *cameraId;                /* This can be an IP name, or IP address */
@@ -132,9 +140,13 @@ typedef struct {
 #define PhotronMaxFramesString  "PHOTRON_MAX_FRAMES" /* (asynInt32,    r)   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
 #define PhotronRecordRateString "PHOTRON_REC_RATE"   /* (asynInt32,    rw)   */
-#define PhotronAfterFramesString "PHOTRON_AFTER_FRAMES" /* (asynInt32,    rw) */
+#define PhotronAfterFramesString "PHOTRON_AFTE R_FRAMES" /* (asynInt32,    rw) */
 #define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
 #define PhotronRecCountString   "PHOTRON_REC_COUNT"  /* (asynInt32,    rw)   */
-#define PhotronSoftTrigString   "PHOTRON_SOFT_TRIG"  /* (asynInt32,    w) */
+#define PhotronSoftTrigString   "PHOTRON_SOFT_TRIG"   /* (asynInt32,    w) */
+#define PhotronRecReadyString   "PHOTRON_REC_READY"  /* (asynInt32,    w) */
+#define PhotronEndlessString    "PHOTRON_ENDLESS"  /* (asynInt32,    w) */
+#define PhotronPlaybackString   "PHOTRON_PLAYBACK"  /* (asynInt32,    w) */
+#define PhotronReadMemString    "PHOTRON_READ_MEM"   /* (asynInt32,    w) */
 
 #define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM-&FIRST_PHOTRON_PARAM+1))
