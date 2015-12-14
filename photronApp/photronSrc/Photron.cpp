@@ -119,6 +119,21 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
     return;
   }
   
+  /* Create the epicsEvents for signaling to the recording task when 
+     to start watching the camera status */
+  this->startRecEventId = epicsEventCreate(epicsEventEmpty);
+  if (!this->startRecEventId) {
+    printf("%s:%s epicsEventCreate failure for start rec event\n",
+           driverName, functionName);
+    return;
+  }
+  this->stopRecEventId = epicsEventCreate(epicsEventEmpty);
+  if (!this->stopRecEventId) {
+    printf("%s:%s epicsEventCreate failure for stop rec event\n",
+           driverName, functionName);
+    return;
+  }
+  
   /* Register the shutdown function for epicsAtExit */
   epicsAtExit(shutdown, (void*)this);
 
@@ -131,7 +146,18 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
            driverName, functionName);
     return;
   }
-
+  
+  /* Create the thread that retrieves triggered recordings */
+  status = (epicsThreadCreate("PhotronRecTask", epicsThreadPriorityMedium,
+                epicsThreadGetStackSize(epicsThreadStackMedium),
+                (EPICSTHREADFUNC)PhotronRecTaskC, this) == NULL);
+  if (status) {
+    printf("%s:%s epicsThreadCreate failure for record task\n",
+           driverName, functionName);
+    return;
+  }
+  
+  
   /* Try to connect to the camera.  
    * It is not a fatal error if we cannot now, the camera may be off or owned by
    * someone else. It may connect later. */
@@ -150,6 +176,9 @@ Photron::~Photron() {
   cameraNode *pNode = (cameraNode *)ellFirst(cameraList);
   static const char *functionName = "~Photron";
 
+  // Attempt to stop the recording thread
+  epicsEventSignal(this->stopRecEventId);
+  
   this->lock();
   printf("Disconnecting camera %s\n", this->portName);
   disconnectCamera();
@@ -180,11 +209,152 @@ void Photron::shutdown (void* arg) {
 }
 
 
+static void PhotronRecTaskC(void *drvPvt) {
+  Photron *pPvt = (Photron *)drvPvt;
+  pPvt->PhotronRecTask();
+}
+
+
+/** This thread puts the camera in playback mode and reads recorded image data
+  * from the camera after recording is done.
+  */
+void Photron::PhotronRecTask() {
+  asynStatus imageStatus;
+  int imageCounter;
+  int numImages, numImagesCounter;
+  int imageMode;
+  int arrayCallbacks;
+  int acqMode;
+  NDArray *pImage;
+  double acquirePeriod, delay;
+  epicsTimeStamp startTime, endTime;
+  double elapsedTime;
+  
+  int recFlag;
+  unsigned long status;
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  PDC_FRAME_INFO FrameInfo;
+  
+  const char *functionName = "PhotronRecTask";
+
+  
+  this->lock();
+  /* Loop forever */
+  while (1) {
+    /* Are we in record mode? */
+    getIntegerParam(PhotronAcquireMode, &acqMode);
+    //printf("is acquisition active?\n");
+
+    /* If we are not in record mode then wait for a semaphore that is given when 
+       record mode is requested */
+    if (acqMode != 1) {
+      /* Release the lock while we wait for an event that says acquire has 
+         started, then lock again */
+      asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+                "%s:%s: waiting for acquire to start\n", driverName, 
+                functionName);
+      this->unlock();
+      epicsEventWait(this->startRecEventId);
+      this->lock();
+      
+    }
+    
+    // We're in record mode
+    
+    // Set Rec Ready
+    nRet = PDC_SetRecReady(nDeviceNo, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetRecready Error %d\n", nErrorCode);
+    }
+    
+    // Reset the recording flag
+    recFlag = 0;
+    
+    /* Wait for triggered recording */
+    while (1) {
+      // Get camera status
+      nRet = PDC_GetStatus(this->nDeviceNo, &status, &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetStatus failed %d\n", nErrorCode);
+      }
+      setIntegerParam(PhotronStatus, status);
+      callParamCallbacks();
+      
+      if (status == PDC_STATUS_REC) {
+        // A trigger was received; camera is recording
+        recFlag = 1;
+      }
+      
+      if ((status == PDC_STATUS_RECREADY) && (recFlag == 1)) {
+        // A recording is done; readback the images and clear the rec flag
+        
+        // Put the camera in playback mode
+        nRet = PDC_SetStatus(this->nDeviceNo, PDC_STATUS_PLAYBACK, &nErrorCode);
+        if (nRet == PDC_FAILED) {
+          printf("PDC_SetStatus failed. error = %d\n", nErrorCode);
+        }
+        
+        /* Retrieves frame information */
+        nRet = PDC_GetMemFrameInfo(nDeviceNo, this->nChildNo, &FrameInfo,
+                                   &nErrorCode);
+        if (nRet == PDC_FAILED) {
+          printf("PDC_GetMemFrameInfo Error %d\n", nErrorCode);
+        }
+        
+        // display frame info
+        printf("Frame Info:\n");
+        printf("\tFrame Start:\t%d\n", FrameInfo.m_nStart);
+        printf("\tFrame End:\t%d\n", FrameInfo.m_nEnd);
+        printf("\tFrame Trigger:\t%d\n", FrameInfo.m_nTrigger);
+        printf("\tFrame Start:\t%d\n", FrameInfo.m_nStart);
+        printf("\tEvent count:\t%d\n", FrameInfo.m_nEventCount);
+        printf("\tRecorded Frames:\t%d\n", FrameInfo.m_nRecordedFrames);
+        
+        // PDC_GetMemResolution
+        // PDC_GetMemRecordRate
+        // PDC_GetMemTriggerMode
+        
+        /* Retrieves a trigger frame */
+        /*nRet = PDC_GetMemImageData(nDeviceNo, nChildNo, FrameInfo.m_nTrigger,
+                                   8, pBuf, &nErrorCode);
+        if (nRet == PDC_FAILED) {
+          printf("PDC_GetMemImageData Error %d\n", nErrorCode);
+          free(pBuf); 
+        }*/
+        
+        // Put the camera in recready mode
+        /*nRet = PDC_SetStatus(this->nDeviceNo, PDC_STATUS_LIVE, &nErrorCode);
+        if (nRet == PDC_FAILED) {
+          printf("PDC_SetStatus failed. error = %d\n", nErrorCode);
+        }
+        
+        nRet = PDC_SetRecReady(nDeviceNo, &nErrorCode);
+        if (nRet == PDC_FAILED) {
+          printf("PDC_SetRecready Error %d\n", nErrorCode);
+        }*/
+        
+        // Reset the rec flag
+        recFlag = 0;
+        
+      }
+      
+      // release the lock so the trigger PV can be used
+      this->unlock();
+      epicsThreadSleep(0.001);
+      this->lock();
+      
+      
+      
+      
+    }
+  }
+}
+  
 static void PhotronTaskC(void *drvPvt) {
   Photron *pPvt = (Photron *)drvPvt;
   pPvt->PhotronTask();
 }
-
 
 /** This thread calls readImage to retrieve new image data from the camera and 
   * does the callbacks to send it to higher layers. It implements the logic for 
@@ -712,7 +882,7 @@ asynStatus Photron::readImage() {
   if (this->pArrays[0]) 
     this->pArrays[0]->release();
   
-  /* Allocate the raw buffer we use to compute images. */
+  /* Allocate the raw buffer */
   dims[0] = sizeX;
   dims[1] = sizeY;
   pImage = this->pNDArrayPool->alloc(2, dims, dataType, 0, NULL);
@@ -746,7 +916,7 @@ asynStatus Photron::readImage() {
 asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int function = pasynUser->reason;
   int status = asynSuccess;
-  int adstatus;
+  int adstatus, acqMode;
   static const char *functionName = "writeInt32";
 
   /* Set the parameter and readback in the parameter library.  This may be 
@@ -764,22 +934,43 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == ADSizeY) {
     status |= setValidHeight(value);
   } else if (function == ADAcquire) {
-    getIntegerParam(ADStatus, &adstatus);
-    if (value && (adstatus == ADStatusIdle)) {
-      /* Send an event to wake up the acquisition task.
-       * It won't actually start generating new images until we release the lock
-       * below */
-      epicsEventSignal(this->startEventId);
-    }
-    if (!value && (adstatus != ADStatusIdle)) {
-      /* This was a command to stop acquisition */
-      /* Send the stop event */
-      epicsEventSignal(this->stopEventId);
+    getIntegerParam(PhotronAcquireMode, &acqMode);
+    if (acqMode == 0) {
+      // For Live mode, signal the PhotronTask
+      getIntegerParam(ADStatus, &adstatus);
+      if (value && (adstatus == ADStatusIdle)) {
+        /* Send an event to wake up the acquisition task.
+        * It won't actually start generating new images until we release the lock
+        * below */
+        epicsEventSignal(this->startEventId);
+      }
+      if (!value && (adstatus != ADStatusIdle)) {
+        /* This was a command to stop acquisition */
+        /* Send the stop event */
+        epicsEventSignal(this->stopEventId);
+      }
+    } else {
+      // For Rec mode, ignore and reset the acquire button
+      setIntegerParam(ADAcquire, 0);
     }
   } else if (function == NDDataType) {
     status = setPixelFormat();
   } else if (function == PhotronAcquireMode) {
-    printf("Acquire mode changed. value = %d\n", value);
+    // should the acquire state be checked?
+    if (value == 0) {
+      printf("Settings for returning to live mode should go here\n");
+      
+      // TODO: Add code to return to live mode here
+      
+      
+      epicsEventSignal(this->stopRecEventId);
+    } else {
+      printf("Settings for entering recording mode should go here\n");
+      // Wake up the PhotronRecTask
+      epicsEventSignal(this->startRecEventId);
+      
+      // apply the trigger settings?
+    }
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -790,6 +981,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setStatus(value);
   } else if (function == PhotronSoftTrig) {
     printf("Soft Trigger changed. value = %d\n", value);
+    softwareTrigger();
+    
   } else if ((function = ADTriggerMode) || (function == PhotronAfterFrames) ||
             (function == PhotronRandomFrames) || (function == PhotronRecCount)) {
     setTriggerMode();
@@ -810,6 +1003,25 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
               "%s:%s: function=%d, value=%d\n",
               driverName, functionName, function, value);
   return((asynStatus)status);
+}
+
+
+asynStatus Photron::softwareTrigger() {
+  asynStatus status = asynSuccess;
+  int acqMode;
+  unsigned long nRet, nErrorCode;
+  static const char *functionName = "softwareTrigger";
+  
+  status = getIntegerParam(PhotronAcquireMode, &acqMode);
+  
+  // Only send a software trigger if in Record mode
+  if (acqMode == 1) {
+    nRet = PDC_TriggerIn(nDeviceNo, &nErrorCode);
+  } else {
+    printf("Ignoring software trigger\n");
+  }
+  
+  return status;
 }
 
 

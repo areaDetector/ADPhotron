@@ -20,7 +20,8 @@ public:
   virtual void report(FILE *fp, int details);
   /* PhotronTask should be private, but gets called from C, so must be public */
   void PhotronTask(); 
- 
+  void PhotronRecTask(); 
+  
   /* These are called from C and so must be public */
   static void shutdown(void *arg);
   
@@ -57,7 +58,7 @@ private:
   void printTrigModes();
   asynStatus setPixelFormat();
   asynStatus setTriggerMode();
-
+  asynStatus softwareTrigger();
 
   /* These items are specific to the Photron driver */
   // constructor
@@ -65,6 +66,8 @@ private:
   int autoDetect;
   epicsEventId startEventId;
   epicsEventId stopEventId;
+  epicsEventId startRecEventId;
+  epicsEventId stopRecEventId;
   // connectCamera
   unsigned long nDeviceNo;
   unsigned long nChildNo;   // hard-coded to 1 in connectCamera
@@ -115,6 +118,7 @@ private:
 /* Declare this function here so that its implementation can appear below
    the contructor in the source file */ 
 static void PhotronTaskC(void *drvPvt);
+static void PhotronRecTaskC(void *drvPvt);
 
 typedef struct {
   ELLNODE node;
