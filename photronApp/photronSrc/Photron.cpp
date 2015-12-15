@@ -1506,6 +1506,7 @@ asynStatus Photron::setTriggerMode() {
       }
       break;
     default:
+      // Non-random modes don't need random frames
       RFrames = 0;
       break;
   }
@@ -1553,6 +1554,8 @@ asynStatus Photron::setTriggerMode() {
   if (nRet == PDC_FAILED) {
     printf("PDC_SetTriggerMode failed %d; apiMode = %x\n", nErrorCode, apiMode);
     return asynError;
+  } else {
+    printf("PDC_SetTriggerMode(-, %x, %d, %d, %d, -)\n", apiMode, AFrames, RFrames, RCount);
   }
   
   if (status)
