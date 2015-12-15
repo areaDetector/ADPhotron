@@ -1155,6 +1155,8 @@ asynStatus Photron::readMem() {
   int acqMode, phostat, index;
   unsigned long nRet, nErrorCode;
   PDC_FRAME_INFO FrameInfo;
+  unsigned long memRate, memWidth, memHeight;
+  unsigned long memTrigMode, memAFrames, memRFrames, memRCount;
   static const char *functionName = "readMem";
   
   status = getIntegerParam(PhotronAcquireMode, &acqMode);
@@ -1165,13 +1167,12 @@ asynStatus Photron::readMem() {
   if (acqMode == 1) {
     if (phostat == PDC_STATUS_PLAYBACK) {
       // Retrieves frame information 
-      nRet = PDC_GetMemFrameInfo(nDeviceNo, this->nChildNo, &FrameInfo,
+      nRet = PDC_GetMemFrameInfo(this->nDeviceNo, this->nChildNo, &FrameInfo,
                                  &nErrorCode);
       if (nRet == PDC_FAILED) {
         printf("PDC_GetMemFrameInfo Error %d\n", nErrorCode);
         return asynError;
       }
-        
       // display frame info
       printf("Frame Info:\n");
       printf("\tFrame Start:\t%d\n", FrameInfo.m_nStart);
@@ -1187,8 +1188,35 @@ asynStatus Photron::readMem() {
       printf("\tRecorded Frames:\t%d\n", FrameInfo.m_nRecordedFrames);
         
       // PDC_GetMemResolution
+      nRet = PDC_GetMemResolution(this->nDeviceNo, this->nChildNo, &memWidth,
+                                  &memHeight, &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetMemResolution Error %d\n", nErrorCode);
+        return asynError;
+      }
+      printf("Memory Resolution: %d x %d\n", memWidth, memHeight);
+      
       // PDC_GetMemRecordRate
+      nRet = PDC_GetMemRecordRate(this->nDeviceNo, this->nChildNo, &memRate,
+                                  &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetMemRecordRate Error %d\n", nErrorCode);
+        return asynError;
+      }
+      printf("Memory Record Rate = %d Hz\n", memRate);
+      
       // PDC_GetMemTriggerMode
+      nRet = PDC_GetMemTriggerMode(this->nDeviceNo, this->nChildNo, 
+                                   &memTrigMode, &memAFrames, &memRFrames, 
+                                   &memRCount, &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetMemTriggerMode Error %d\n", nErrorCode);
+        return asynError;
+      }
+      printf("Memory Trigger Mode = %d\n", memTrigMode);
+      printf("Memory After Frames = %d\n", memAFrames);
+      printf("Memory Random Frames = %d\n", memRFrames);
+      printf("Memory Record Count = %d\n", memRCount);
       
       // Retrieves a trigger frame 
       /*nRet = PDC_GetMemImageData(nDeviceNo, nChildNo, FrameInfo.m_nTrigger,
