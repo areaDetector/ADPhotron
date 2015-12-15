@@ -320,6 +320,14 @@ record(bo, "$(P)$(R)Endless") {
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_ENDLESS")
 }
 
+record(bo, "$(P)$(R)Live") {
+  field(PINI, "NO")
+  field(DTYP, "asynInt32")
+  field(ZNAM, "Done")
+  field(ONAM, "Apply")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_LIVE")
+}
+
 record(bo, "$(P)$(R)Playback") {
   field(PINI, "NO")
   field(DTYP, "asynInt32")

@@ -37,6 +37,7 @@ protected:
     int PhotronSoftTrig;
     int PhotronRecReady;
     int PhotronEndless;
+    int PhotronLive;
     int PhotronPlayback;
     int PhotronReadMem;
     #define FIRST_PHOTRON_PARAM PhotronStatus
@@ -65,6 +66,7 @@ private:
   asynStatus softwareTrigger();
   asynStatus setRecReady();
   asynStatus setEndless();
+  asynStatus setLive();
   asynStatus setPlayback();
   asynStatus readMem();
   
@@ -146,6 +148,7 @@ typedef struct {
 #define PhotronSoftTrigString   "PHOTRON_SOFT_TRIG"   /* (asynInt32,    w) */
 #define PhotronRecReadyString   "PHOTRON_REC_READY"  /* (asynInt32,    w) */
 #define PhotronEndlessString    "PHOTRON_ENDLESS"  /* (asynInt32,    w) */
+#define PhotronLiveString       "PHOTRON_LIVE"  /* (asynInt32,    w) */
 #define PhotronPlaybackString   "PHOTRON_PLAYBACK"  /* (asynInt32,    w) */
 #define PhotronReadMemString    "PHOTRON_READ_MEM"   /* (asynInt32,    w) */
 

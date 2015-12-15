@@ -92,6 +92,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronRecCountString,      asynParamInt32, &PhotronRecCount);
   createParam(PhotronSoftTrigString,      asynParamInt32, &PhotronSoftTrig);
   createParam(PhotronRecReadyString,      asynParamInt32, &PhotronRecReady);
+  createParam(PhotronLiveString,          asynParamInt32, &PhotronLive);
   createParam(PhotronPlaybackString,      asynParamInt32, &PhotronPlayback);
   createParam(PhotronEndlessString,       asynParamInt32, &PhotronEndless);
   createParam(PhotronReadMemString,       asynParamInt32, &PhotronReadMem);
@@ -998,6 +999,9 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronEndless) {
     setEndless();
     
+  } else if (function == PhotronLive) {
+    setLive();
+    
   } else if (function == PhotronPlayback) {
     setPlayback();
     
@@ -1097,6 +1101,30 @@ asynStatus Photron::setEndless() {
 }
 
 
+asynStatus Photron::setLive() {
+  asynStatus status = asynSuccess;
+  int acqMode;
+  unsigned long nRet, nErrorCode;
+  static const char *functionName = "setPlayback";
+  
+  status = getIntegerParam(PhotronAcquireMode, &acqMode);
+  
+  // Only set live if in record mode
+  if (acqMode == 1) {
+    // Put the camera in live mode
+    nRet = PDC_SetStatus(this->nDeviceNo, PDC_STATUS_LIVE, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetStatus failed. error = %d\n", nErrorCode);
+      return asynError;
+    }
+  } else {
+    printf("Ignoring live\n");
+  }
+  
+  return status;
+}
+
+
 asynStatus Photron::setPlayback() {
   asynStatus status = asynSuccess;
   int acqMode;
@@ -1123,7 +1151,7 @@ asynStatus Photron::setPlayback() {
 
 asynStatus Photron::readMem() {
   asynStatus status = asynSuccess;
-  int acqMode, phostat;
+  int acqMode, phostat, index;
   unsigned long nRet, nErrorCode;
   PDC_FRAME_INFO FrameInfo;
   static const char *functionName = "readMem";
@@ -1146,9 +1174,14 @@ asynStatus Photron::readMem() {
       // display frame info
       printf("Frame Info:\n");
       printf("\tFrame Start:\t%d\n", FrameInfo.m_nStart);
-      printf("\tFrame End:\t%d\n", FrameInfo.m_nEnd);
       printf("\tFrame Trigger:\t%d\n", FrameInfo.m_nTrigger);
-      printf("\tFrame Start:\t%d\n", FrameInfo.m_nStart);
+      printf("\tFrame End:\t%d\n", FrameInfo.m_nEnd);
+      printf("\t2S Low->High:\t%d\n", FrameInfo.m_nTwoStageLowToHigh);
+      printf("\t2S High->Low:\t%d\n", FrameInfo.m_nTwoStageHighToLow);
+      printf("\tEvent frame numbers:\n");
+      for (index=0; index<10; index++) {
+        printf("\t\ti=%d\tframe: %d\n", index, FrameInfo.m_nEvent[index]);
+      }
       printf("\tEvent count:\t%d\n", FrameInfo.m_nEventCount);
       printf("\tRecorded Frames:\t%d\n", FrameInfo.m_nRecordedFrames);
         
