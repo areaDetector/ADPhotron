@@ -970,16 +970,21 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     if (value == 0) {
       printf("Settings for returning to live mode should go here\n");
       
-      // TODO: Add code to return to live mode here
+      // code to return to live mode goes here
+      setLive();
       
-      
+      // Stop the PhotronRecTask (will it do one last read after returning to live?
       epicsEventSignal(this->stopRecEventId);
     } else {
       printf("Settings for entering recording mode should go here\n");
-      // Wake up the PhotronRecTask
-      epicsEventSignal(this->startRecEventId);
       
       // apply the trigger settings?
+      
+      // code to enter recording mode
+      setRecReady();
+      
+      // Wake up the PhotronRecTask
+      epicsEventSignal(this->startRecEventId);
     }
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
@@ -1010,6 +1015,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     
   } else if ((function == ADTriggerMode) || (function == PhotronAfterFrames) ||
             (function == PhotronRandomFrames) || (function == PhotronRecCount)) {
+    printf("function = %d\n", function);
     setTriggerMode();
   } else {
     /* If this is not a parameter we have handled call the base class */
@@ -1109,16 +1115,11 @@ asynStatus Photron::setLive() {
   
   status = getIntegerParam(PhotronAcquireMode, &acqMode);
   
-  // Only set live if in record mode
-  if (acqMode == 1) {
-    // Put the camera in live mode
-    nRet = PDC_SetStatus(this->nDeviceNo, PDC_STATUS_LIVE, &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_SetStatus failed. error = %d\n", nErrorCode);
-      return asynError;
-    }
-  } else {
-    printf("Ignoring live\n");
+  // Put the camera in live mode
+  nRet = PDC_SetStatus(this->nDeviceNo, PDC_STATUS_LIVE, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetStatus failed. error = %d\n", nErrorCode);
+    return asynError;
   }
   
   return status;
@@ -1555,7 +1556,7 @@ asynStatus Photron::setTriggerMode() {
     printf("PDC_SetTriggerMode failed %d; apiMode = %x\n", nErrorCode, apiMode);
     return asynError;
   } else {
-    printf("PDC_SetTriggerMode(-, %x, %d, %d, %d, -)\n", apiMode, AFrames, RFrames, RCount);
+    printf("\tPDC_SetTriggerMode(-, %x, %d, %d, %d, -)\n", apiMode, AFrames, RFrames, RCount);
   }
   
   if (status)
