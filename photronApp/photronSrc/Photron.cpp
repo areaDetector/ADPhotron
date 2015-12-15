@@ -1157,6 +1157,26 @@ asynStatus Photron::readMem() {
   PDC_FRAME_INFO FrameInfo;
   unsigned long memRate, memWidth, memHeight;
   unsigned long memTrigMode, memAFrames, memRFrames, memRCount;
+  //
+  NDArray *pImage;
+  NDArrayInfo_t arrayInfo;
+  int colorMode = NDColorModeMono;
+  //
+  void *pBuf;  /* Memory sequence pointer for storing a live image */
+  //
+  NDDataType_t dataType;
+  int pixelSize;
+  size_t dims[2];
+  size_t dataSize;
+  //
+  int imageCounter;
+  int numImages, numImagesCounter;
+  int imageMode;
+  int arrayCallbacks;
+  //double acquirePeriod, delay;
+  epicsTimeStamp startTime, endTime;
+  //double elapsedTime;
+  //
   static const char *functionName = "readMem";
   
   status = getIntegerParam(PhotronAcquireMode, &acqMode);
@@ -1166,6 +1186,10 @@ asynStatus Photron::readMem() {
   // AND status is playback
   if (acqMode == 1) {
     if (phostat == PDC_STATUS_PLAYBACK) {
+      
+      /* Get the current time */
+      epicsTimeGetCurrent(&startTime);
+      
       // Retrieves frame information 
       nRet = PDC_GetMemFrameInfo(this->nDeviceNo, this->nChildNo, &FrameInfo,
                                  &nErrorCode);
@@ -1218,13 +1242,88 @@ asynStatus Photron::readMem() {
       printf("Memory Random Frames = %d\n", memRFrames);
       printf("Memory Record Count = %d\n", memRCount);
       
-      // Retrieves a trigger frame 
-      /*nRet = PDC_GetMemImageData(nDeviceNo, nChildNo, FrameInfo.m_nTrigger,
+      if (this->pixelBits == 8) {
+        // 8 bits
+        dataType = NDUInt8;
+        pixelSize = 1;
+      } else {
+        // 12 bits (stored in 2 bytes)
+        dataType = NDUInt16;
+        pixelSize = 2;
+      }
+  
+      dataSize = memWidth * memHeight * pixelSize;
+      pBuf = malloc(dataSize);
+      
+      for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
+        
+        // Retrieves a trigger frame (should this obey the 8-bit sel?)
+        nRet = PDC_GetMemImageData(this->nDeviceNo, this->nChildNo, index,
                                  8, pBuf, &nErrorCode);
-      if (nRet == PDC_FAILED) {
-        printf("PDC_GetMemImageData Error %d\n", nErrorCode);
-        free(pBuf); 
-      }*/
+        if (nRet == PDC_FAILED) {
+          printf("PDC_GetMemImageData Error %d\n", nErrorCode);
+        }
+        
+        /* We save the most recent image buffer so it can be used in the read() 
+         * function. Now release it before getting a new version. */
+        if (this->pArrays[0]) 
+          this->pArrays[0]->release();
+  
+        /* Allocate the raw buffer */
+        dims[0] = memWidth;
+        dims[1] = memHeight;
+        pImage = this->pNDArrayPool->alloc(2, dims, dataType, 0, NULL);
+        if (!pImage) {
+          asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                    "%s:%s: error allocating buffer\n", driverName, functionName);
+          return(asynError);
+        }
+  
+        memcpy(pImage->pData, pBuf, dataSize);
+  
+        this->pArrays[0] = pImage;
+        pImage->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, 
+                                    &colorMode);
+        pImage->getInfo(&arrayInfo);
+        setIntegerParam(NDArraySize,  (int)arrayInfo.totalBytes);
+        setIntegerParam(NDArraySizeX, (int)pImage->dims[0].size);
+        setIntegerParam(NDArraySizeY, (int)pImage->dims[1].size);
+        
+        /* Call the callbacks to update any changes */
+        callParamCallbacks();
+      
+        /* Get the current parameters */
+        getIntegerParam(NDArrayCounter, &imageCounter);
+        getIntegerParam(ADNumImages, &numImages);
+        getIntegerParam(ADNumImagesCounter, &numImagesCounter);
+        getIntegerParam(ADImageMode, &imageMode);
+        getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
+        imageCounter++;
+        numImagesCounter++;
+        setIntegerParam(NDArrayCounter, imageCounter);
+        setIntegerParam(ADNumImagesCounter, numImagesCounter);
+
+        /* Put the frame number and time stamp into the buffer */
+        pImage->uniqueId = imageCounter;
+        pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
+        updateTimeStamp(&pImage->epicsTS);
+
+        /* Get any attributes that have been defined for this driver */
+        this->getAttributes(pImage->pAttributeList);
+
+        if (arrayCallbacks) {
+          /* Call the NDArray callback */
+          /* Must release the lock here, or we can get into a deadlock, because we
+          * can block on the plugin lock, and the plugin can be calling us */
+          this->unlock();
+          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+                    "%s:%s: calling imageData callback\n", driverName,
+                    functionName);
+          doCallbacksGenericPointer(pImage, NDArrayData, 0);
+          this->lock();
+        }
+      }
+      free(pBuf);
       
     } else {
       printf("status != playback; Ignoring read mem\n");
