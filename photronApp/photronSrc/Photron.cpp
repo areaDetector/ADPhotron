@@ -266,17 +266,6 @@ void Photron::PhotronRecTask() {
       
     }
     
-    // We're in record mode
-    
-    // Set Rec Ready
-    /*nRet = PDC_SetRecReady(nDeviceNo, &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_SetRecready Error %d\n", nErrorCode);
-    }
-    
-    // Reset the recording flag
-    recFlag = 0;*/
-    
     // Wait for triggered recording
     while (acqMode == 1) {
       // Get camera status
@@ -1062,7 +1051,12 @@ asynStatus Photron::setRecReady() {
         //
         break;
     }
-  } else {
+    
+    //
+    setIntegerParam(ADStatus, ADStatusWaiting);
+    callParamCallbacks();
+    
+    } else {
     printf("Ignoring set rec ready\n");
   }
   
@@ -1109,6 +1103,9 @@ asynStatus Photron::setLive() {
     return asynError;
   }
   
+  setIntegerParam(ADStatus, ADStatusIdle);
+  callParamCallbacks();
+  
   return status;
 }
 
@@ -1139,6 +1136,7 @@ asynStatus Photron::setPlayback() {
     
     if (phostat == PDC_STATUS_PLAYBACK) {
       setIntegerParam(PhotronStatus, phostat);
+      setIntegerParam(ADStatus, ADStatusReadout);
       callParamCallbacks();
     }
     
