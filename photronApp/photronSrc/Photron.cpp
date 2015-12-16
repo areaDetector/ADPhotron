@@ -1152,7 +1152,7 @@ asynStatus Photron::setPlayback() {
 
 asynStatus Photron::readMem() {
   asynStatus status = asynSuccess;
-  int acqMode, phostat, index;
+  int acqMode, phostat, index, transferBitDepth;
   unsigned long nRet, nErrorCode;
   PDC_FRAME_INFO FrameInfo;
   unsigned long memRate, memWidth, memHeight;
@@ -1175,7 +1175,7 @@ asynStatus Photron::readMem() {
   int arrayCallbacks;
   //double acquirePeriod, delay;
   epicsTimeStamp startTime, endTime;
-  //double elapsedTime;
+  double elapsedTime;
   //
   static const char *functionName = "readMem";
   
@@ -1251,15 +1251,18 @@ asynStatus Photron::readMem() {
         dataType = NDUInt16;
         pixelSize = 2;
       }
-  
+      
+      transferBitDepth = 8 * pixelSize;
       dataSize = memWidth * memHeight * pixelSize;
       pBuf = malloc(dataSize);
+      
+      epicsTimeGetCurrent(&startTime);
       
       for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
         
         // Retrieves a trigger frame (should this obey the 8-bit sel?)
         nRet = PDC_GetMemImageData(this->nDeviceNo, this->nChildNo, index,
-                                 8, pBuf, &nErrorCode);
+                                   transferBitDepth, pBuf, &nErrorCode);
         if (nRet == PDC_FAILED) {
           printf("PDC_GetMemImageData Error %d\n", nErrorCode);
         }
@@ -1323,6 +1326,11 @@ asynStatus Photron::readMem() {
           this->lock();
         }
       }
+      
+      epicsTimeGetCurrent(&endTime);
+      elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
+      printf("Elapsed time: %f\n", elapsedTime);
+      
       free(pBuf);
       
     } else {
