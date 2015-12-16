@@ -1000,7 +1000,7 @@ asynStatus Photron::softwareTrigger() {
   
   // Only send a software trigger if in Record mode
   if (acqMode == 1) {
-    nRet = PDC_TriggerIn(nDeviceNo, &nErrorCode);
+    nRet = PDC_TriggerIn(this->nDeviceNo, &nErrorCode);
     if (nRet == PDC_FAILED) {
       printf("PDC_TriggerIn failed. error = %d\n", nErrorCode);
       return asynError;
@@ -1081,7 +1081,7 @@ asynStatus Photron::setEndless() {
   // Only set endless trigger if in record mode
   // TODO: add test for relevent trigger modes
   if (acqMode == 1) {
-    nRet = PDC_SetEndless(nDeviceNo, &nErrorCode);
+    nRet = PDC_SetEndless(this->nDeviceNo, &nErrorCode);
     if (nRet == PDC_FAILED) {
       printf("PDC_SetEndless failed. error = %d\n", nErrorCode);
       return asynError;
@@ -1098,7 +1098,7 @@ asynStatus Photron::setLive() {
   asynStatus status = asynSuccess;
   int acqMode;
   unsigned long nRet, nErrorCode;
-  static const char *functionName = "setPlayback";
+  static const char *functionName = "setLive";
   
   status = getIntegerParam(PhotronAcquireMode, &acqMode);
   
@@ -1130,7 +1130,7 @@ asynStatus Photron::setPlayback() {
       return asynError;
     }
     
-    // Confirm that the camear is in playback mode
+    // Confirm that the camera is in playback mode
     nRet = PDC_GetStatus(this->nDeviceNo, &phostat, &nErrorCode);
     if (nRet == PDC_FAILED) {
       printf("PDC_GetStatus failed. error = %d\n", nErrorCode);
