@@ -40,7 +40,9 @@ asynSetMinTimerPeriod(0.001)
 # Create a Photron driver
 # PhotronConfig(const char *portName, const char *ipAddress, int autoDetect, 
 #                   int maxBuffers, int maxMemory, int priority, int stackSize)
-PhotronConfig("$(PORT)", "192.168.0.10", 0, 2, 0, 0)
+#!PhotronConfig("$(PORT)", "192.168.0.10", 0, 2, 0, 0)
+# If plugins can't keep up and enabling blocking isn't ideal, increase the number of buffers
+PhotronConfig("$(PORT)", "192.168.0.10", 0, 20, 0, 0)
 # To have the rate calculation use a non-zero smoothing factor use the following line
 dbLoadRecords("$(ADPHOTRON)/db/Photron.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 
