@@ -1121,11 +1121,18 @@ asynStatus Photron::setLive() {
 asynStatus Photron::setIRIG(epicsInt32 value) {
   asynStatus status = asynSuccess;
   unsigned long nRet, nErrorCode;
+  epicsUInt32 secDiff, nsecDiff;
   static const char *functionName = "setIRIG";
 
   if (this->functionList[PDC_EXIST_IRIG] == PDC_EXIST_SUPPORTED) {
     if (value) {
+      // Enabling IRIG resets the internal clock
+      epicsTimeGetCurrent(&(this->preIRIGStartTime));
       nRet = PDC_SetIRIG(this->nDeviceNo, PDC_FUNCTION_ON, &nErrorCode);
+      epicsTimeGetCurrent(&(this->postIRIGStartTime));
+      secDiff = (this->postIRIGStartTime).secPastEpoch - (this->preIRIGStartTime).secPastEpoch;
+      nsecDiff = (this->postIRIGStartTime).nsec - (this->preIRIGStartTime).nsec;
+      printf("IRIG clock correlation uncertainty: %d seconds and %d nanoseconds\n", secDiff, nsecDiff);
     } else {
       nRet = PDC_SetIRIG(this->nDeviceNo, PDC_FUNCTION_OFF, &nErrorCode);
     }

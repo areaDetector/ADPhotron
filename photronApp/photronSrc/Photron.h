@@ -130,6 +130,9 @@ private:
   unsigned long TriggerModeList[PDC_MAX_LIST_NUMBER];
   unsigned long pixelBits;
   unsigned long highSpeedMode;
+  //
+  epicsTimeStamp preIRIGStartTime;
+  epicsTimeStamp postIRIGStartTime;
   /* Our data */
   NDArray *pRaw;
 };
