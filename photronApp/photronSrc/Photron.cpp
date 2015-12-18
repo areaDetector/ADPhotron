@@ -1218,6 +1218,7 @@ asynStatus Photron::readMem() {
   //double acquirePeriod, delay;
   epicsTimeStamp startTime, endTime;
   double elapsedTime;
+  epicsUInt32 irigSeconds;
   //
   static const char *functionName = "readMem";
   
@@ -1385,7 +1386,13 @@ asynStatus Photron::readMem() {
 
         /* Put the frame number and time stamp into the buffer */
         pImage->uniqueId = imageCounter;
-        pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
+        if (tMode == 1) {
+          irigSeconds = (((((tData.m_nDayOfYear * 24) + tData.m_nHour) * 60) + tData.m_nMinute) * 60) + tData.m_nSecond;
+          pImage->timeStamp = (this->postIRIGStartTime).secPastEpoch + irigSeconds + (this->postIRIGStartTime).nsec / 1.e9 + tData.m_nMicroSecond / 1.e6;
+        }
+        else {
+          pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
+        }
         updateTimeStamp(&pImage->epicsTS);
 
         /* Get any attributes that have been defined for this driver */
