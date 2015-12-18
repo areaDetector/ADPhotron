@@ -670,6 +670,16 @@ asynStatus Photron::getCameraInfo() {
   }
   //printf("function queries succeeded\n");
   
+  // 
+  //nRet = PDC_SetIRIG(this->nDeviceNo, PDC_FUNCTION_SOFT_ON, &nErrorCode);
+  nRet = PDC_SetIRIG(this->nDeviceNo, PDC_FUNCTION_ON, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("!!!!!!\n");
+    printf("PDC_SetIRIG failed %d\n", nErrorCode);
+    printf("!!!!!!\n");
+    //return asynError;
+  }
+  
   /* query the controller for info */
   
   nRet = PDC_GetDeviceCode(this->nDeviceNo, &(this->deviceCode), &nErrorCode);
@@ -1155,6 +1165,8 @@ asynStatus Photron::readMem() {
   PDC_FRAME_INFO FrameInfo;
   unsigned long memRate, memWidth, memHeight;
   unsigned long memTrigMode, memAFrames, memRFrames, memRCount;
+  PDC_IRIG_INFO tData;
+  unsigned long tMode;
   //
   NDArray *pImage;
   NDArrayInfo_t arrayInfo;
@@ -1256,14 +1268,32 @@ asynStatus Photron::readMem() {
       
       epicsTimeGetCurrent(&startTime);
       
-      for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
+      for (index=FrameInfo.m_nTrigger; index==(FrameInfo.m_nTrigger); index++) {
+      //for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
         
-        // Retrieves a trigger frame (should this obey the 8-bit sel?)
+        // Retrieve a frame
         nRet = PDC_GetMemImageData(this->nDeviceNo, this->nChildNo, index,
                                    transferBitDepth, pBuf, &nErrorCode);
         if (nRet == PDC_FAILED) {
           printf("PDC_GetMemImageData Error %d\n", nErrorCode);
         }
+        
+        // Retreive timing info for the frame
+        nRet = PDC_GetMemIRIG(this->nDeviceNo, this->nChildNo, &tMode, &nErrorCode);
+        if (nRet == PDC_FAILED) {
+          printf("PDC_GetMemIRIG Error %d\n", nErrorCode);
+        }
+        printf("Memory IRIG mode: %d\n", tMode);
+        
+        nRet = PDC_GetMemIRIGData(this->nDeviceNo, this->nChildNo, index,
+                                  &tData, &nErrorCode);
+        if (nRet == PDC_FAILED) {
+          printf("PDC_GetMemIRIGData Error %d\n", nErrorCode);
+        }
+        
+        printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\n", index, tData.m_nDayOfYear,
+               tData.m_nHour, tData.m_nMinute, tData.m_nSecond, 
+               tData.m_nMicroSecond, tData.m_ExistSignal);
         
         /* We save the most recent image buffer so it can be used in the read() 
          * function. Now release it before getting a new version. */
@@ -1684,7 +1714,7 @@ asynStatus Photron::setTriggerMode() {
         RCount = 10;
       }
       break;
-      
+    
     default:
       RCount = 0;
       break;
