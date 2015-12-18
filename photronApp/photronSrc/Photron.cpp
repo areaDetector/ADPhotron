@@ -1132,6 +1132,9 @@ asynStatus Photron::setIRIG(epicsInt32 value) {
       epicsTimeGetCurrent(&(this->postIRIGStartTime));
       secDiff = (this->postIRIGStartTime).secPastEpoch - (this->preIRIGStartTime).secPastEpoch;
       nsecDiff = (this->postIRIGStartTime).nsec - (this->preIRIGStartTime).nsec;
+      // Note: The time spent executing epicsTimeGetCurrent is negligible
+      //   time to execute epicsTimeGetCurrent = 285 nsec
+      //   time to execute PDC_SetIRIG = 40.57 msec
       printf("IRIG clock correlation uncertainty: %d seconds and %d nanoseconds\n", secDiff, nsecDiff);
     } else {
       nRet = PDC_SetIRIG(this->nDeviceNo, PDC_FUNCTION_OFF, &nErrorCode);
