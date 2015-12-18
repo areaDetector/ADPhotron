@@ -40,8 +40,15 @@ protected:
     int PhotronLive;
     int PhotronPlayback;
     int PhotronReadMem;
+    int PhotronIRIG;
+    int PhotronMemIRIGDay;
+    int PhotronMemIRIGHour;
+    int PhotronMemIRIGMin;
+    int PhotronMemIRIGSec;
+    int PhotronMemIRIGUsec;
+    int PhotronMemIRIGSigEx;
     #define FIRST_PHOTRON_PARAM PhotronStatus
-    #define LAST_PHOTRON_PARAM PhotronReadMem
+    #define LAST_PHOTRON_PARAM PhotronMemIRIGSigEx
 
 private:
   /* These are the methods that are new to this class */
@@ -151,5 +158,12 @@ typedef struct {
 #define PhotronLiveString       "PHOTRON_LIVE"  /* (asynInt32,    w) */
 #define PhotronPlaybackString   "PHOTRON_PLAYBACK"  /* (asynInt32,    w) */
 #define PhotronReadMemString    "PHOTRON_READ_MEM"   /* (asynInt32,    w) */
+#define PhotronIRIGString       "PHOTRON_IRIG"   /* (asynInt32,    w) */
+#define PhotronMemIRIGDayString "PHOTRON_MEM_IRIG_DAY" /* (asynInt32,    r) */
+#define PhotronMemIRIGHourString "PHOTRON_MEM_IRIG_HOUR" /* (asynInt32,    r) */
+#define PhotronMemIRIGMinString "PHOTRON_MEM_IRIG_MIN" /* (asynInt32,    r) */
+#define PhotronMemIRIGSecString "PHOTRON_MEM_IRIG_SEC" /* (asynInt32,    r) */
+#define PhotronMemIRIGUsecString "PHOTRON_MEM_IRIG_USEC" /* (asynInt32,    r) */
+#define PhotronMemIRIGSigExString "PHOTRON_MEM_IRIG_SIGEX" /* (asynInt32,  r) */
 
 #define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM-&FIRST_PHOTRON_PARAM+1))

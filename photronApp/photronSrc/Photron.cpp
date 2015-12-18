@@ -96,7 +96,13 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronPlaybackString,      asynParamInt32, &PhotronPlayback);
   createParam(PhotronEndlessString,       asynParamInt32, &PhotronEndless);
   createParam(PhotronReadMemString,       asynParamInt32, &PhotronReadMem);
-
+  createParam(PhotronIRIGString,          asynParamInt32, &PhotronIRIG);
+  createParam(PhotronMemIRIGDayString,    asynParamInt32, &PhotronMemIRIGDay);
+  createParam(PhotronMemIRIGHourString,   asynParamInt32, &PhotronMemIRIGHour);
+  createParam(PhotronMemIRIGMinString,    asynParamInt32, &PhotronMemIRIGMin);
+  createParam(PhotronMemIRIGSecString,    asynParamInt32, &PhotronMemIRIGSec);
+  createParam(PhotronMemIRIGUsecString,   asynParamInt32, &PhotronMemIRIGUsec);
+  createParam(PhotronMemIRIGSigExString,  asynParamInt32, &PhotronMemIRIGSigEx);
   
   if (!PDCLibInitialized) {
     /* Initialize the Photron PDC library */
@@ -1252,6 +1258,21 @@ asynStatus Photron::readMem() {
       printf("Memory Random Frames = %d\n", memRFrames);
       printf("Memory Record Count = %d\n", memRCount);
       
+      // PDC_GetMemIRIG
+      nRet = PDC_GetMemIRIG(this->nDeviceNo, this->nChildNo, &tMode, &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetMemIRIG Error %d\n", nErrorCode);
+      }
+      printf("Memory IRIG mode: %d\n", tMode);
+      if (tMode == 0) {
+        setIntegerParam(PhotronMemIRIGDay, 0);
+        setIntegerParam(PhotronMemIRIGHour, 0);
+        setIntegerParam(PhotronMemIRIGMin, 0);
+        setIntegerParam(PhotronMemIRIGSec, 0);
+        setIntegerParam(PhotronMemIRIGUsec, 0);
+        setIntegerParam(PhotronMemIRIGSigEx, 0);
+      }
+      
       if (this->pixelBits == 8) {
         // 8 bits
         dataType = NDUInt8;
@@ -1268,8 +1289,8 @@ asynStatus Photron::readMem() {
       
       epicsTimeGetCurrent(&startTime);
       
-      for (index=FrameInfo.m_nTrigger; index==(FrameInfo.m_nTrigger); index++) {
-      //for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
+      //for (index=FrameInfo.m_nTrigger; index==(FrameInfo.m_nTrigger); index++) {
+      for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
         
         // Retrieve a frame
         nRet = PDC_GetMemImageData(this->nDeviceNo, this->nChildNo, index,
@@ -1278,22 +1299,21 @@ asynStatus Photron::readMem() {
           printf("PDC_GetMemImageData Error %d\n", nErrorCode);
         }
         
-        // Retreive timing info for the frame
-        nRet = PDC_GetMemIRIG(this->nDeviceNo, this->nChildNo, &tMode, &nErrorCode);
-        if (nRet == PDC_FAILED) {
-          printf("PDC_GetMemIRIG Error %d\n", nErrorCode);
-        }
-        printf("Memory IRIG mode: %d\n", tMode);
-        
+        // Retrieve frame time
         nRet = PDC_GetMemIRIGData(this->nDeviceNo, this->nChildNo, index,
                                   &tData, &nErrorCode);
         if (nRet == PDC_FAILED) {
           printf("PDC_GetMemIRIGData Error %d\n", nErrorCode);
         }
         
-        printf("%d\t%d\t%d\t%d\t%d\t%d\t%d\n", index, tData.m_nDayOfYear,
-               tData.m_nHour, tData.m_nMinute, tData.m_nSecond, 
-               tData.m_nMicroSecond, tData.m_ExistSignal);
+        if (tMode == 1) {
+          setIntegerParam(PhotronMemIRIGDay, tData.m_nDayOfYear);
+          setIntegerParam(PhotronMemIRIGHour, tData.m_nHour);
+          setIntegerParam(PhotronMemIRIGMin, tData.m_nMinute);
+          setIntegerParam(PhotronMemIRIGSec, tData.m_nSecond);
+          setIntegerParam(PhotronMemIRIGUsec, tData.m_nMicroSecond);
+          setIntegerParam(PhotronMemIRIGSigEx, tData.m_ExistSignal);
+        }
         
         /* We save the most recent image buffer so it can be used in the read() 
          * function. Now release it before getting a new version. */

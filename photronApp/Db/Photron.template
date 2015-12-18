@@ -343,3 +343,53 @@ record(bo, "$(P)$(R)ReadMem") {
   field(ONAM, "Apply")
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_READ_MEM")
 }
+
+record(longin, "$(P)$(R)MemIRIGDay_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Mem IRIG Day")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_MEM_IRIG_DAY")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)MemIRIGHour_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Mem IRIG Hour")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_MEM_IRIG_HOUR")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)MemIRIGMin_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Mem IRIG Minute")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_MEM_IRIG_MIN")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)MemIRIGSec_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Mem IRIG Second")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_MEM_IRIG_SEC")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)MemIRIGUsec_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Mem IRIG Microsecond")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_MEM_IRIG_USEC")
+   field(SCAN, "I/O Intr")
+}
+
+record(bi, "$(P)$(R)MemIRIGSigEx_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Mem IRIG Signal Exist")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_MEM_IRIG_SIGEX")
+   field(ZNAM, "Internal")
+   field(ONAM, "External")
+   field(SCAN, "I/O Intr")
+}
