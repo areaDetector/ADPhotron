@@ -133,6 +133,7 @@ private:
   //
   epicsTimeStamp preIRIGStartTime;
   epicsTimeStamp postIRIGStartTime;
+  int abortFlag;
   /* Our data */
   NDArray *pRaw;
 };

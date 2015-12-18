@@ -293,6 +293,11 @@ void Photron::PhotronRecTask() {
         //
         printf("Read info from camera\n");
         readMem();
+        
+        // Reset Acquire
+        setIntegerParam(ADAcquire, 0);
+        callParamCallbacks();
+        
         //
         printf("Return camerea to ready-to-trigger state\n");
         setRecReady();
@@ -908,8 +913,16 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         epicsEventSignal(this->stopEventId);
       }
     } else {
-      // For Rec mode, ignore and reset the acquire button
-      setIntegerParam(ADAcquire, 0);
+      // For Record mode
+      if (value) {
+        // Send a software trigger to start acquisition
+        softwareTrigger();
+        setIntegerParam(ADAcquire, 1);
+      } else {
+        // Stop acquisition
+        this->abortFlag = 1;
+        setIntegerParam(ADAcquire, 0);
+      }
     }
   } else if (function == NDDataType) {
     status = setPixelFormat();
@@ -1225,6 +1238,10 @@ asynStatus Photron::readMem() {
   status = getIntegerParam(PhotronAcquireMode, &acqMode);
   status = getIntegerParam(PhotronStatus, &phostat);
   
+  // Zero image counter
+  setIntegerParam(ADNumImagesCounter, 0);
+  callParamCallbacks();
+  
   // Only read memory if in record mode
   // AND status is playback
   if (acqMode == 1) {
@@ -1320,7 +1337,13 @@ asynStatus Photron::readMem() {
       //for (index=FrameInfo.m_nTrigger; index==(FrameInfo.m_nTrigger); index++) {
       //for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
       for (index=FrameInfo.m_nStart; index<101; index++) {
-
+        // Allow user to abort acquisition
+        if (this->abortFlag == 1) {
+          printf("Aborting data readout!d\n");
+          this->abortFlag = 0;
+          break;
+        }
+        
         // Retrieve a frame
         nRet = PDC_GetMemImageData(this->nDeviceNo, this->nChildNo, index,
                                    transferBitDepth, pBuf, &nErrorCode);
