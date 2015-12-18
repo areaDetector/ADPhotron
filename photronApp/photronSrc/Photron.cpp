@@ -280,6 +280,9 @@ void Photron::PhotronRecTask() {
         printf("PDC_GetStatus failed %d\n", nErrorCode);
       }
       setIntegerParam(PhotronStatus, status);
+      if (status == PDC_STATUS_REC) {
+          setIntegerParam(ADStatus, ADStatusAcquire);
+      }
       callParamCallbacks();
       
       // Triggered acquisition is done when camera status returns to live
