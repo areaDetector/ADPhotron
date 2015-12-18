@@ -748,7 +748,7 @@ asynStatus Photron::getCameraInfo() {
   if (nRet == PDC_FAILED) {
     printf("PDC_GetMaxResolution failed %d\n", nErrorCode);
     return asynError;
-  }  
+  }
   
   /* This gets the dynamic range of the camera. The third argument is an 
      unsigned long in the SDK documentation but a char * in PDCFUNC.h.
@@ -760,6 +760,40 @@ asynStatus Photron::getCameraInfo() {
     return asynError;
   } else {
     this->sensorBits = (unsigned long) sensorBitChar;
+  }
+  
+  nRet = PDC_GetExternalCount(this->nDeviceNo, &(this->inPorts), 
+                              &(this->outPorts), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetExternalCount failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  // Do these mode lists need to be called from readParameters?
+  // If the same mode is available on two ports, can it only be used with one?
+  // MAX_PORTS is defined in Photron.h
+  for (index=0; index<MAX_PORTS; index++) {
+    // Input port
+    if (index < this->inPorts) {
+      // Port exists, query the input list
+      nRet = PDC_GetExternalInModeList(this->nDeviceNo, index+1,
+                                       &(this->ExtInModeListSize[index]),
+                                       this->ExtInModeList[index], &nErrorCode);
+    } else {
+      // Port doesn't exist; zero the list size
+      this->ExtInModeListSize[index] = 0;
+    }
+    
+    // Output port
+    if (index < this->outPorts) {
+      // Port exists, query the input list
+      nRet = PDC_GetExternalOutModeList(this->nDeviceNo, index+1,
+                                       &(this->ExtOutModeListSize[index]),
+                                       this->ExtOutModeList[index], &nErrorCode);
+    } else {
+      // Port doesn't exist; zero the list size
+      this->ExtOutModeListSize[index] = 0;
+    }
   }
   
   // Is this always the same or should it be moved to readParameters?
@@ -2158,7 +2192,7 @@ void Photron::printTrigModes() {
   * \param[in] details If >0 then driver details are printed.
   */
 void Photron::report(FILE *fp, int details) {
-  int index;
+  int index, jndex;
 
   fprintf(fp, "Photron detector %s\n", this->portName);
   if (details > 0) {
@@ -2179,6 +2213,8 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "  Sensor bits:       %d\n",  (int)this->sensorBits);
     fprintf(fp, "  Max Child Dev #:   %d\n",  (int)this->maxChildDevCount);
     fprintf(fp, "  Child Dev #:       %d\n",  (int)this->childDevCount);
+    fprintf(fp, "  In ports:          %d\n",  (int)this->inPorts);
+    fprintf(fp, "  Out ports:         %d\n",  (int)this->outPorts);
     fprintf(fp, "\n");
     fprintf(fp, "  Width:             %d\n",  (int)this->width);
     fprintf(fp, "  Height:            %d\n",  (int)this->height);
@@ -2219,6 +2255,25 @@ void Photron::report(FILE *fp, int details) {
     
     //
     printTrigModes();
+  }
+  
+  if (details > 6) {
+    
+    fprintf(fp, "\n  External Inputs\n");
+    for (index=0; index<this->inPorts; index++) {
+      fprintf(fp, "    Port %d (%d modes)\n", index+1, this->ExtInModeListSize[index]);
+      for (jndex=0; jndex<this->ExtInModeListSize[index]; jndex++) {
+        fprintf(fp, "\t%d:\t0x%02x\n", jndex, this->ExtInModeList[index][jndex]);
+      }
+    }
+    
+    fprintf(fp, "\n  External Outputs\n");
+    for (index=0; index<this->outPorts; index++) {
+      fprintf(fp, "    Port %d (%d modes)\n", index+1, this->ExtOutModeListSize[index]);
+      for (jndex=0; jndex<this->ExtOutModeListSize[index]; jndex++) {
+        fprintf(fp, "\t%d:\t0x%02x\n", jndex, this->ExtOutModeList[index][jndex]);
+      }
+    }
   }
   
   if (details > 8) {

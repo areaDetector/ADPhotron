@@ -103,8 +103,14 @@ private:
   unsigned long sensorWidth;
   unsigned long sensorHeight;
   unsigned long sensorBits;
-  /* bitDepth should move to readParameters in the future */
-  unsigned long bitDepth;
+  unsigned long inPorts;
+  unsigned long outPorts;
+  // Assume no more than 4 I/O ports; increase if necessary
+  #define MAX_PORTS 4
+  unsigned long ExtInModeListSize[MAX_PORTS];
+  unsigned long ExtInModeList[MAX_PORTS][PDC_MAX_LIST_NUMBER];
+  unsigned long ExtOutModeListSize[MAX_PORTS];
+  unsigned long ExtOutModeList[MAX_PORTS][PDC_MAX_LIST_NUMBER];
   // updateResolution
   unsigned long width;
   unsigned long height;
@@ -130,6 +136,8 @@ private:
   unsigned long TriggerModeList[PDC_MAX_LIST_NUMBER];
   unsigned long pixelBits;
   unsigned long highSpeedMode;
+  // where should this reside in the list?
+  unsigned long bitDepth;
   //
   epicsTimeStamp preIRIGStartTime;
   epicsTimeStamp postIRIGStartTime;
