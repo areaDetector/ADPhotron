@@ -76,6 +76,7 @@ private:
   asynStatus setLive();
   asynStatus setPlayback();
   asynStatus readMem();
+  asynStatus setIRIG(epicsInt32 value);
   
   /* These items are specific to the Photron driver */
   // constructor
@@ -120,6 +121,7 @@ private:
   unsigned long trigAFrames;
   unsigned long trigRFrames;
   unsigned long trigRCount;
+  unsigned long IRIG;
   unsigned long RateListSize;
   unsigned long RateList[PDC_MAX_LIST_NUMBER];
   unsigned long ResolutionListSize;

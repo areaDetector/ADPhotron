@@ -393,3 +393,24 @@ record(bi, "$(P)$(R)MemIRIGSigEx_RBV")
    field(ONAM, "External")
    field(SCAN, "I/O Intr")
 }
+
+record(bo, "$(P)$(R)IRIG")
+{
+   field(PINI, "YES")
+   field(DTYP, "asynInt32")
+   field(DESC, "IRIG On/Off")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_IRIG")
+   field(ZNAM, "Off")
+   field(ONAM, "On")
+   field(VAL,  "1")
+}
+
+record(bi, "$(P)$(R)IRIG_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "IRIG On/Off")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_IRIG")
+   field(ZNAM, "Off")
+   field(ONAM, "On")
+   field(SCAN, "I/O Intr")
+}

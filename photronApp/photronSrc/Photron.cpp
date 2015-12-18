@@ -676,16 +676,6 @@ asynStatus Photron::getCameraInfo() {
   }
   //printf("function queries succeeded\n");
   
-  // 
-  //nRet = PDC_SetIRIG(this->nDeviceNo, PDC_FUNCTION_SOFT_ON, &nErrorCode);
-  nRet = PDC_SetIRIG(this->nDeviceNo, PDC_FUNCTION_ON, &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("!!!!!!\n");
-    printf("PDC_SetIRIG failed %d\n", nErrorCode);
-    printf("!!!!!!\n");
-    //return asynError;
-  }
-  
   /* query the controller for info */
   
   nRet = PDC_GetDeviceCode(this->nDeviceNo, &(this->deviceCode), &nErrorCode);
@@ -975,6 +965,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
             (function == PhotronRandomFrames) || (function == PhotronRecCount)) {
     printf("function = %d\n", function);
     setTriggerMode();
+  } else if (function == PhotronIRIG) {
+    setIRIG(value);
   } else {
     /* If this is not a parameter we have handled call the base class */
     status = ADDriver::writeInt32(pasynUser, value);
@@ -1126,6 +1118,30 @@ asynStatus Photron::setLive() {
 }
 
 
+asynStatus Photron::setIRIG(epicsInt32 value) {
+  asynStatus status = asynSuccess;
+  unsigned long nRet, nErrorCode;
+  static const char *functionName = "setIRIG";
+
+  if (this->functionList[PDC_EXIST_IRIG] == PDC_EXIST_SUPPORTED) {
+    if (value) {
+      nRet = PDC_SetIRIG(this->nDeviceNo, PDC_FUNCTION_ON, &nErrorCode);
+    } else {
+      nRet = PDC_SetIRIG(this->nDeviceNo, PDC_FUNCTION_OFF, &nErrorCode);
+    }
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetIRIG failed %d\n", nErrorCode);
+      status = asynError;
+    }
+    else {
+      printf("PDC_SetIRIG succeeded value=%d\n", value);
+    }
+  }
+  
+  return status;
+}
+
+
 asynStatus Photron::setPlayback() {
   asynStatus status = asynSuccess;
   int acqMode;
@@ -1262,7 +1278,8 @@ asynStatus Photron::readMem() {
       nRet = PDC_GetMemIRIG(this->nDeviceNo, this->nChildNo, &tMode, &nErrorCode);
       if (nRet == PDC_FAILED) {
         printf("PDC_GetMemIRIG Error %d\n", nErrorCode);
-      }
+        tMode = 0;
+      } 
       printf("Memory IRIG mode: %d\n", tMode);
       if (tMode == 0) {
         setIntegerParam(PhotronMemIRIGDay, 0);
@@ -1290,8 +1307,9 @@ asynStatus Photron::readMem() {
       epicsTimeGetCurrent(&startTime);
       
       //for (index=FrameInfo.m_nTrigger; index==(FrameInfo.m_nTrigger); index++) {
-      for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
-        
+      //for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
+      for (index=FrameInfo.m_nStart; index<101; index++) {
+
         // Retrieve a frame
         nRet = PDC_GetMemImageData(this->nDeviceNo, this->nChildNo, index,
                                    transferBitDepth, pBuf, &nErrorCode);
@@ -1300,13 +1318,14 @@ asynStatus Photron::readMem() {
         }
         
         // Retrieve frame time
-        nRet = PDC_GetMemIRIGData(this->nDeviceNo, this->nChildNo, index,
-                                  &tData, &nErrorCode);
-        if (nRet == PDC_FAILED) {
-          printf("PDC_GetMemIRIGData Error %d\n", nErrorCode);
-        }
-        
         if (tMode == 1) {
+        
+          nRet = PDC_GetMemIRIGData(this->nDeviceNo, this->nChildNo, index,
+                                    &tData, &nErrorCode);
+          if (nRet == PDC_FAILED) {
+            printf("PDC_GetMemIRIGData Error %d\n", nErrorCode);
+          }
+          
           setIntegerParam(PhotronMemIRIGDay, tData.m_nDayOfYear);
           setIntegerParam(PhotronMemIRIGHour, tData.m_nHour);
           setIntegerParam(PhotronMemIRIGMin, tData.m_nMinute);
@@ -1390,8 +1409,6 @@ asynStatus Photron::readMem() {
   
   return status;
 }
-
-// IAMHERE
 
 
 asynStatus Photron::getGeometry() {
@@ -1981,6 +1998,17 @@ asynStatus Photron::readParameters() {
     }
   }
   
+  if (this->functionList[PDC_EXIST_IRIG] == PDC_EXIST_SUPPORTED) {
+    nRet = PDC_GetIRIG(this->nDeviceNo, &(this->IRIG), &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetIRIG failed %d\n", nErrorCode);
+      return asynError;
+    }
+  } else {
+    this->IRIG = 0;
+  }
+  status |= setIntegerParam(PhotronIRIG, this->IRIG);
+  
   // Does this ever change?
   nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 
                                &(this->RateListSize), 
@@ -2120,6 +2148,7 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "    A Frames:        %d\n",  (int)this->trigAFrames);
     fprintf(fp, "    R Frames:        %d\n",  (int)this->trigRFrames);
     fprintf(fp, "    R Count:         %d\n",  (int)this->trigRCount);
+    fprintf(fp, "  IRIG:              %d\n",  (int)this->IRIG);
   }
   
   if (details > 4) {
