@@ -771,8 +771,8 @@ asynStatus Photron::getCameraInfo() {
   
   // Do these mode lists need to be called from readParameters?
   // If the same mode is available on two ports, can it only be used with one?
-  // MAX_PORTS is defined in Photron.h
-  for (index=0; index<MAX_PORTS; index++) {
+  // PDC_EXTIO_MAX_PORT is defined in PDCVALUE.h
+  for (index=0; index<PDC_EXTIO_MAX_PORT; index++) {
     // Input port
     if (index < this->inPorts) {
       // Port exists, query the input list

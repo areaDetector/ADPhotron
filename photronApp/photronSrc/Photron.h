@@ -105,12 +105,10 @@ private:
   unsigned long sensorBits;
   unsigned long inPorts;
   unsigned long outPorts;
-  // Assume no more than 4 I/O ports; increase if necessary
-  #define MAX_PORTS 4
-  unsigned long ExtInModeListSize[MAX_PORTS];
-  unsigned long ExtInModeList[MAX_PORTS][PDC_MAX_LIST_NUMBER];
-  unsigned long ExtOutModeListSize[MAX_PORTS];
-  unsigned long ExtOutModeList[MAX_PORTS][PDC_MAX_LIST_NUMBER];
+  unsigned long ExtInModeListSize[PDC_EXTIO_MAX_PORT];
+  unsigned long ExtInModeList[PDC_EXTIO_MAX_PORT][PDC_MAX_LIST_NUMBER];
+  unsigned long ExtOutModeListSize[PDC_EXTIO_MAX_PORT];
+  unsigned long ExtOutModeList[PDC_EXTIO_MAX_PORT][PDC_MAX_LIST_NUMBER];
   // updateResolution
   unsigned long width;
   unsigned long height;
