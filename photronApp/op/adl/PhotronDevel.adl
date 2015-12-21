@@ -8,7 +8,7 @@ display {
 		x=303
 		y=64
 		width=400
-		height=500
+		height=800
 	}
 	clr=14
 	bclr=4
@@ -535,15 +535,119 @@ composite {
 	label="Soft Trigger"
 	press_msg="1"
 }
+composite {
+	object {
+		x=10
+		y=393
+		width=335
+		height=25
+	}
+	"composite name"=""
+	children {
+		menu {
+			object {
+				x=140
+				y=393
+				width=100
+				height=25
+			}
+			control {
+				chan="$(P)$(R)SyncPriority"
+				clr=14
+				bclr=4
+			}
+		}
+		"text update" {
+			object {
+				x=245
+				y=393
+				width=100
+				height=25
+			}
+			monitor {
+				chan="$(P)$(R)SyncPriority_RBV"
+				clr=14
+				bclr=4
+			}
+			format="string"
+			limits {
+			}
+		}
+		text {
+			object {
+				x=10
+				y=393
+				width=125
+				height=25
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="Sync Priority"
+		}
+	}
+}
+composite {
+	object {
+		x=10
+		y=461
+		width=335
+		height=25
+	}
+	"composite name"=""
+	children {
+		menu {
+			object {
+				x=140
+				y=461
+				width=100
+				height=25
+			}
+			control {
+				chan="$(P)$(R)ExtIn1"
+				clr=14
+				bclr=4
+			}
+		}
+		"text update" {
+			object {
+				x=245
+				y=461
+				width=100
+				height=25
+			}
+			monitor {
+				chan="$(P)$(R)ExtIn1_RBV"
+				clr=14
+				bclr=4
+			}
+			format="string"
+			limits {
+			}
+		}
+		text {
+			object {
+				x=10
+				y=461
+				width=125
+				height=25
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="In 1 Mode"
+		}
+	}
+}
 menu {
 	object {
 		x=140
-		y=393
+		y=491
 		width=100
 		height=25
 	}
 	control {
-		chan="$(P)$(R)SyncPriority"
+		chan="$(P)$(R)ExtIn2"
 		clr=14
 		bclr=4
 	}
@@ -551,12 +655,12 @@ menu {
 "text update" {
 	object {
 		x=245
-		y=393
+		y=491
 		width=100
 		height=25
 	}
 	monitor {
-		chan="$(P)$(R)SyncPriority_RBV"
+		chan="$(P)$(R)ExtIn2_RBV"
 		clr=14
 		bclr=4
 	}
@@ -567,12 +671,258 @@ menu {
 text {
 	object {
 		x=10
-		y=393
+		y=491
 		width=125
 		height=25
 	}
 	"basic attribute" {
 		clr=14
 	}
-	textix="Sync Priority"
+	textix="In 2 Mode"
+}
+menu {
+	object {
+		x=140
+		y=521
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ExtIn3"
+		clr=14
+		bclr=4
+	}
+}
+"text update" {
+	object {
+		x=245
+		y=521
+		width=100
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)ExtIn3_RBV"
+		clr=14
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=10
+		y=521
+		width=125
+		height=25
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="In 3 Mode"
+}
+menu {
+	object {
+		x=140
+		y=551
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ExtIn4"
+		clr=14
+		bclr=4
+	}
+}
+"text update" {
+	object {
+		x=245
+		y=551
+		width=100
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)ExtIn4_RBV"
+		clr=14
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=10
+		y=551
+		width=125
+		height=25
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="In 4 Mode"
+}
+menu {
+	object {
+		x=140
+		y=609
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ExtOut1"
+		clr=14
+		bclr=4
+	}
+}
+"text update" {
+	object {
+		x=245
+		y=609
+		width=100
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)ExtOut1_RBV"
+		clr=14
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=10
+		y=609
+		width=125
+		height=25
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Out 1 Mode"
+}
+menu {
+	object {
+		x=140
+		y=639
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ExtOut2"
+		clr=14
+		bclr=4
+	}
+}
+"text update" {
+	object {
+		x=245
+		y=639
+		width=100
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)ExtOut2_RBV"
+		clr=14
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=10
+		y=639
+		width=125
+		height=25
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Out 2 Mode"
+}
+menu {
+	object {
+		x=140
+		y=669
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ExtOut3"
+		clr=14
+		bclr=4
+	}
+}
+"text update" {
+	object {
+		x=245
+		y=669
+		width=100
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)ExtOut3_RBV"
+		clr=14
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=10
+		y=669
+		width=125
+		height=25
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Out 3 Mode"
+}
+menu {
+	object {
+		x=140
+		y=699
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ExtOut4"
+		clr=14
+		bclr=4
+	}
+}
+"text update" {
+	object {
+		x=245
+		y=699
+		width=100
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)ExtOut4_RBV"
+		clr=14
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=10
+		y=699
+		width=125
+		height=25
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Out 4 Mode"
 }

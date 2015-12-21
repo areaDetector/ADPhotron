@@ -104,8 +104,14 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronMemIRIGUsecString,   asynParamInt32, &PhotronMemIRIGUsec);
   createParam(PhotronMemIRIGSigExString,  asynParamInt32, &PhotronMemIRIGSigEx);
   createParam(PhotronSyncPriorityString,  asynParamInt32, &PhotronSyncPriority);
-  createParam(PhotronExtInSignalString,   asynParamInt32, &PhotronExtInSignal);
-  createParam(PhotronExtOutSignalString,  asynParamInt32, &PhotronExtOutSignal);
+  createParam(PhotronExtIn1SigString,     asynParamInt32, &PhotronExtIn1Sig);
+  createParam(PhotronExtIn2SigString,     asynParamInt32, &PhotronExtIn2Sig);
+  createParam(PhotronExtIn3SigString,     asynParamInt32, &PhotronExtIn3Sig);
+  createParam(PhotronExtIn4SigString,     asynParamInt32, &PhotronExtIn4Sig);
+  createParam(PhotronExtOut1SigString,    asynParamInt32, &PhotronExtOut1Sig);
+  createParam(PhotronExtOut2SigString,    asynParamInt32, &PhotronExtOut2Sig);
+  createParam(PhotronExtOut3SigString,    asynParamInt32, &PhotronExtOut3Sig);
+  createParam(PhotronExtOut4SigString,    asynParamInt32, &PhotronExtOut4Sig);
     
   if (!PDCLibInitialized) {
     /* Initialize the Photron PDC library */
@@ -1026,10 +1032,22 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setIRIG(value);
   } else if (function == PhotronSyncPriority) {
     setSyncPriority(value);
-  } else if (function == PhotronExtInSignal) {
-    //setExtInSignal(value);
-  } else if (function == PhotronExtOutSignal) {
-    //setExtOutSignal(value);
+  } else if (function == PhotronExtIn1Sig) {
+    setExternalInMode(1, value);
+  } else if (function == PhotronExtIn2Sig) {
+    setExternalInMode(2, value);
+  } else if (function == PhotronExtIn3Sig) {
+    setExternalInMode(3, value);
+  } else if (function == PhotronExtIn4Sig) {
+    setExternalInMode(4, value);
+  } else if (function == PhotronExtOut1Sig) {
+    setExternalOutMode(1, value);
+  } else if (function == PhotronExtOut2Sig) {
+    setExternalOutMode(2, value);
+  } else if (function == PhotronExtOut3Sig) {
+    setExternalOutMode(3, value);
+  } else if (function == PhotronExtOut4Sig) {
+    setExternalOutMode(4, value);
   } else {
     /* If this is not a parameter we have handled call the base class */
     status = ADDriver::writeInt32(pasynUser, value);
@@ -1227,6 +1245,38 @@ asynStatus Photron::setSyncPriority(epicsInt32 value) {
       printf("PDC_SetSyncPriority failed %d\n", nErrorCode);
       status = asynError;
     }
+  }
+  
+  return status;
+}
+
+
+asynStatus Photron::setExternalInMode(epicsInt32 port, epicsInt32 value) {
+  asynStatus status = asynSuccess;
+  unsigned long nRet, nErrorCode;
+  static const char *functionName = "setExternalInMode";
+  
+  //
+  nRet = PDC_SetExternalInMode(this->nDeviceNo, port, value, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetExternalInMode failed %d\n", nErrorCode);
+    status = asynError;
+  }
+  
+  return status;
+}
+
+
+asynStatus Photron::setExternalOutMode(epicsInt32 port, epicsInt32 value) {
+  asynStatus status = asynSuccess;
+  unsigned long nRet, nErrorCode;
+  static const char *functionName = "setExternalOutMode";
+  
+  //
+  nRet = PDC_SetExternalOutMode(this->nDeviceNo, port, value, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetExternalOutMode failed %d\n", nErrorCode);
+    status = asynError;
   }
   
   return status;
@@ -2025,6 +2075,7 @@ asynStatus Photron::readParameters() {
   unsigned long nErrorCode;
   int status = asynSuccess;
   int tmode;
+  int index;
   char bitDepthChar;
   static const char *functionName = "readParameters";    
   
@@ -2128,6 +2179,32 @@ asynStatus Photron::readParameters() {
     this->syncPriority = 0;
   }
   status |= setIntegerParam(PhotronSyncPriority, this->syncPriority);
+  
+  for (index=0; index<this->inPorts; index++) {
+    nRet = PDC_GetExternalInMode(this->nDeviceNo, index+1, 
+                                  &(this->ExtInMode[index]), &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetExternalInMode failed %d; index=%d\n", nErrorCode, index);
+      return asynError;
+    }
+  }
+  setIntegerParam(PhotronExtIn1Sig, this->ExtInMode[0]);
+  setIntegerParam(PhotronExtIn2Sig, this->ExtInMode[1]);
+  setIntegerParam(PhotronExtIn3Sig, this->ExtInMode[2]);
+  setIntegerParam(PhotronExtIn4Sig, this->ExtInMode[3]);
+
+  for (index=0; index<this->outPorts; index++) {
+    nRet = PDC_GetExternalOutMode(this->nDeviceNo, index+1, 
+                                  &(this->ExtOutMode[index]), &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetExternalOutMode failed %d; index=%d\n", nErrorCode, index);
+      return asynError;
+    }
+  }
+  setIntegerParam(PhotronExtOut1Sig, this->ExtOutMode[0]);
+  setIntegerParam(PhotronExtOut2Sig, this->ExtOutMode[1]);
+  setIntegerParam(PhotronExtOut3Sig, this->ExtOutMode[2]);
+  setIntegerParam(PhotronExtOut4Sig, this->ExtOutMode[3]);
   
   // Does this ever change?
   nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 

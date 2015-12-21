@@ -1,0 +1,9 @@
+file "$(ADPHOTRON)/photronApp/Db/PhotronExtIOPort.db"
+{
+pattern
+{P,		R,		N,	PORT,	ADDR,	TIMEOUT}
+{kmp5:,	cam1:,	1,	PHO1,	0,		1}
+{kmp5:,	cam1:,	2,	PHO1,	0,		1}
+{kmp5:,	cam1:,	3,	PHO1,	0,		1}
+{kmp5:,	cam1:,	4,	PHO1,	0,		1}
+}

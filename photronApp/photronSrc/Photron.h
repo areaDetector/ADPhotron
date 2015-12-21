@@ -48,10 +48,16 @@ protected:
     int PhotronMemIRIGUsec;
     int PhotronMemIRIGSigEx;
     int PhotronSyncPriority;
-    int PhotronExtInSignal;
-    int PhotronExtOutSignal;
+    int PhotronExtIn1Sig;
+    int PhotronExtIn2Sig;
+    int PhotronExtIn3Sig;
+    int PhotronExtIn4Sig;
+    int PhotronExtOut1Sig;
+    int PhotronExtOut2Sig;
+    int PhotronExtOut3Sig;
+    int PhotronExtOut4Sig;
     #define FIRST_PHOTRON_PARAM PhotronStatus
-    #define LAST_PHOTRON_PARAM PhotronExtOutSignal
+    #define LAST_PHOTRON_PARAM PhotronExtOut4Sig
 
 private:
   /* These are the methods that are new to this class */
@@ -81,7 +87,9 @@ private:
   asynStatus readMem();
   asynStatus setIRIG(epicsInt32 value);
   asynStatus setSyncPriority(epicsInt32 value);
-  
+  asynStatus setExternalInMode(epicsInt32 port, epicsInt32 value);
+  asynStatus setExternalOutMode(epicsInt32 port, epicsInt32 value);
+
   /* These items are specific to the Photron driver */
   // constructor
   char *cameraId;                /* This can be an IP name, or IP address */
@@ -109,8 +117,10 @@ private:
   unsigned long sensorBits;
   unsigned long inPorts;
   unsigned long outPorts;
+  unsigned long ExtInMode[PDC_EXTIO_MAX_PORT];
   unsigned long ExtInModeListSize[PDC_EXTIO_MAX_PORT];
   unsigned long ExtInModeList[PDC_EXTIO_MAX_PORT][PDC_MAX_LIST_NUMBER];
+  unsigned long ExtOutMode[PDC_EXTIO_MAX_PORT];
   unsigned long ExtOutModeListSize[PDC_EXTIO_MAX_PORT];
   unsigned long ExtOutModeList[PDC_EXTIO_MAX_PORT][PDC_MAX_LIST_NUMBER];
   unsigned long SyncPriorityListSize;
@@ -185,7 +195,13 @@ typedef struct {
 #define PhotronMemIRIGUsecString "PHOTRON_MEM_IRIG_USEC" /* (asynInt32,    r) */
 #define PhotronMemIRIGSigExString "PHOTRON_MEM_IRIG_SIGEX" /* (asynInt32,  r) */
 #define PhotronSyncPriorityString "PHOTRON_SYNC_PRIORITY" /* (asynInt32, rw)  */
-#define PhotronExtInSignalString  "PHOTRON_EXT_IN_SIGNAL" /* (asynInt32, rw)  */
-#define PhotronExtOutSignalString  "PHOTRON_EXT_OUT_SIGNAL" /* (asynInt32, rw)  */
+#define PhotronExtIn1SigString  "PHOTRON_EXT_IN_1_SIG" /* (asynInt32, rw)  */
+#define PhotronExtIn2SigString  "PHOTRON_EXT_IN_2_SIG" /* (asynInt32, rw)  */
+#define PhotronExtIn3SigString  "PHOTRON_EXT_IN_3_SIG" /* (asynInt32, rw)  */
+#define PhotronExtIn4SigString  "PHOTRON_EXT_IN_4_SIG" /* (asynInt32, rw)  */
+#define PhotronExtOut1SigString  "PHOTRON_EXT_OUT_1_SIG" /* (asynInt32, rw)  */
+#define PhotronExtOut2SigString  "PHOTRON_EXT_OUT_2_SIG" /* (asynInt32, rw)  */
+#define PhotronExtOut3SigString  "PHOTRON_EXT_OUT_3_SIG" /* (asynInt32, rw)  */
+#define PhotronExtOut4SigString  "PHOTRON_EXT_OUT_4_SIG" /* (asynInt32, rw)  */
 
 #define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM-&FIRST_PHOTRON_PARAM+1))
