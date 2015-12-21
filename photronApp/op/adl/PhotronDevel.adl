@@ -1,14 +1,14 @@
 
 file {
-	name="/home/oxygen21/KPETERSN/newPhotron.adl"
-	version=030107
+	name="D:\epics\AD-2-4\areaDetector-R2-4\ADPhotron\photronApp\op\adl\PhotronDevel.adl"
+	version=030109
 }
 display {
 	object {
 		x=303
 		y=64
 		width=400
-		height=400
+		height=500
 	}
 	clr=14
 	bclr=4
@@ -89,8 +89,8 @@ display {
 }
 "related display" {
 	object {
-		x=126
-		y=350
+		x=254
+		y=343
 		width=134
 		height=39
 	}
@@ -140,229 +140,203 @@ composite {
 		}
 	}
 }
-composite {
+text {
 	object {
 		x=10
 		y=220
+		width=125
+		height=25
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Trigger Mode"
+}
+menu {
+	object {
+		x=140
+		y=220
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)TriggerMode"
+		clr=14
+		bclr=4
+	}
+}
+"text update" {
+	object {
+		x=245
+		y=220
+		width=100
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)TriggerMode_RBV"
+		clr=14
+		bclr=4
+	}
+	format="hexadecimal"
+	limits {
+	}
+}
+composite {
+	object {
+		x=10
+		y=250
 		width=335
-		height=115
+		height=25
 	}
 	"composite name"=""
 	children {
+		"text entry" {
+			object {
+				x=140
+				y=250
+				width=100
+				height=25
+			}
+			control {
+				chan="$(P)$(R)RandomFrames"
+				clr=14
+				bclr=51
+			}
+			limits {
+			}
+		}
+		"text update" {
+			object {
+				x=245
+				y=250
+				width=100
+				height=25
+			}
+			monitor {
+				chan="$(P)$(R)RandomFrames_RBV"
+				clr=14
+				bclr=4
+			}
+			limits {
+			}
+		}
 		text {
 			object {
 				x=10
-				y=220
+				y=250
 				width=125
 				height=25
 			}
 			"basic attribute" {
 				clr=14
 			}
-			textix="Trigger Mode"
+			textix="Random Frames"
 		}
-		menu {
+	}
+}
+composite {
+	object {
+		x=10
+		y=280
+		width=335
+		height=25
+	}
+	"composite name"=""
+	children {
+		"text entry" {
 			object {
 				x=140
-				y=220
+				y=280
 				width=100
 				height=25
 			}
 			control {
-				chan="$(P)$(R)TriggerMode"
+				chan="$(P)$(R)RecCount"
 				clr=14
-				bclr=4
+				bclr=51
+			}
+			limits {
 			}
 		}
 		"text update" {
 			object {
 				x=245
-				y=220
+				y=280
 				width=100
 				height=25
 			}
 			monitor {
-				chan="$(P)$(R)TriggerMode_RBV"
+				chan="$(P)$(R)RecCount_RBV"
 				clr=14
 				bclr=4
 			}
-			format="hexadecimal"
 			limits {
 			}
 		}
-		composite {
-			object {
-				x=10
-				y=250
-				width=335
-				height=25
-			}
-			"composite name"=""
-			children {
-				"text entry" {
-					object {
-						x=140
-						y=250
-						width=100
-						height=25
-					}
-					control {
-						chan="$(P)$(R)RandomFrames"
-						clr=14
-						bclr=51
-					}
-					limits {
-					}
-				}
-				"text update" {
-					object {
-						x=245
-						y=250
-						width=100
-						height=25
-					}
-					monitor {
-						chan="$(P)$(R)RandomFrames_RBV"
-						clr=14
-						bclr=4
-					}
-					limits {
-					}
-				}
-				text {
-					object {
-						x=10
-						y=250
-						width=125
-						height=25
-					}
-					"basic attribute" {
-						clr=14
-					}
-					textix="Random Frames"
-				}
-			}
-			"dynamic attribute" {
-				vis="calc"
-				calc="A=3||A=5||A=6||A=7"
-				chan="$(P)$(R)TriggerMode_RBV"
-			}
-		}
-		composite {
+		text {
 			object {
 				x=10
 				y=280
-				width=335
+				width=125
 				height=25
 			}
-			"composite name"=""
-			children {
-				"text entry" {
-					object {
-						x=140
-						y=280
-						width=100
-						height=25
-					}
-					control {
-						chan="$(P)$(R)RecCount"
-						clr=14
-						bclr=51
-					}
-					limits {
-					}
-				}
-				"text update" {
-					object {
-						x=245
-						y=280
-						width=100
-						height=25
-					}
-					monitor {
-						chan="$(P)$(R)RecCount_RBV"
-						clr=14
-						bclr=4
-					}
-					limits {
-					}
-				}
-				text {
-					object {
-						x=10
-						y=280
-						width=125
-						height=25
-					}
-					"basic attribute" {
-						clr=14
-					}
-					textix="Number of Recordings"
-				}
+			"basic attribute" {
+				clr=14
 			}
-			"dynamic attribute" {
-				vis="calc"
-				calc="A=6||A=7"
-				chan="$(P)$(R)TriggerMode_RBV"
+			textix="Number of Recordings"
+		}
+	}
+}
+composite {
+	object {
+		x=10
+		y=310
+		width=335
+		height=25
+	}
+	"composite name"=""
+	children {
+		"text entry" {
+			object {
+				x=140
+				y=310
+				width=100
+				height=25
+			}
+			control {
+				chan="$(P)$(R)AfterFrames"
+				clr=14
+				bclr=51
+			}
+			limits {
 			}
 		}
-		composite {
+		"text update" {
+			object {
+				x=245
+				y=310
+				width=100
+				height=25
+			}
+			monitor {
+				chan="$(P)$(R)AfterFrames_RBV"
+				clr=14
+				bclr=4
+			}
+			limits {
+			}
+		}
+		text {
 			object {
 				x=10
 				y=310
-				width=335
+				width=125
 				height=25
 			}
-			"composite name"=""
-			children {
-				"text entry" {
-					object {
-						x=140
-						y=310
-						width=100
-						height=25
-					}
-					control {
-						chan="$(P)$(R)AfterFrames"
-						clr=14
-						bclr=51
-					}
-					limits {
-					}
-				}
-				"text update" {
-					object {
-						x=245
-						y=310
-						width=100
-						height=25
-					}
-					monitor {
-						chan="$(P)$(R)AfterFrames_RBV"
-						clr=14
-						bclr=4
-					}
-					limits {
-					}
-				}
-				text {
-					object {
-						x=10
-						y=310
-						width=125
-						height=25
-					}
-					"basic attribute" {
-						clr=14
-					}
-					textix="After Frames"
-				}
+			"basic attribute" {
+				clr=14
 			}
-			"dynamic attribute" {
-				vis="calc"
-				calc="A=4||A=7"
-				chan="$(P)$(R)TriggerMode_RBV"
-			}
+			textix="After Frames"
 		}
 	}
 }
@@ -545,4 +519,60 @@ composite {
 			textix="Acquire Mode"
 		}
 	}
+}
+"message button" {
+	object {
+		x=15
+		y=352
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)SoftwareTrigger.VAL"
+		clr=14
+		bclr=4
+	}
+	label="Soft Trigger"
+	press_msg="1"
+}
+menu {
+	object {
+		x=140
+		y=393
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)SyncPriority"
+		clr=14
+		bclr=4
+	}
+}
+"text update" {
+	object {
+		x=245
+		y=393
+		width=100
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)SyncPriority_RBV"
+		clr=14
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=10
+		y=393
+		width=125
+		height=25
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Sync Priority"
 }

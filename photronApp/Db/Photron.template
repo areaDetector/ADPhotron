@@ -414,3 +414,31 @@ record(bi, "$(P)$(R)IRIG_RBV")
    field(ONAM, "On")
    field(SCAN, "I/O Intr")
 }
+
+record(mbbo, "$(P)$(R)SyncPriority")
+{
+   field(DTYP, "asynInt32")
+   field(PINI, "YES")
+   field(DESC, "Sync Priority")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SYNC_PRIORITY")
+   field(ZRST, "Off")
+   field(ZRVL, "0")
+   field(ONST, "Master")
+   field(ONVL, "1")
+   field(TWST, "Slave")
+   field(TWVL, "2")
+}
+
+record(mbbi, "$(P)$(R)SyncPriority_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Sync Priority")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SYNC_PRIORITY")
+   field(ZRST, "Off")
+   field(ZRVL, "0")
+   field(ONST, "Master")
+   field(ONVL, "1")
+   field(TWST, "Slave")
+   field(TWVL, "2")
+   field(SCAN, "I/O Intr")
+}

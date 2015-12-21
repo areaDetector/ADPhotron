@@ -103,7 +103,10 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronMemIRIGSecString,    asynParamInt32, &PhotronMemIRIGSec);
   createParam(PhotronMemIRIGUsecString,   asynParamInt32, &PhotronMemIRIGUsec);
   createParam(PhotronMemIRIGSigExString,  asynParamInt32, &PhotronMemIRIGSigEx);
-  
+  createParam(PhotronSyncPriorityString,  asynParamInt32, &PhotronSyncPriority);
+  createParam(PhotronExtInSignalString,   asynParamInt32, &PhotronExtInSignal);
+  createParam(PhotronExtOutSignalString,  asynParamInt32, &PhotronExtOutSignal);
+    
   if (!PDCLibInitialized) {
     /* Initialize the Photron PDC library */
     pdcStatus = PDC_Init(&errCode);
@@ -797,6 +800,10 @@ asynStatus Photron::getCameraInfo() {
   }
   
   // Is this always the same or should it be moved to readParameters?
+  nRet = PDC_GetSyncPriorityList(this->nDeviceNo, &(this->SyncPriorityListSize),
+                                 this->SyncPriorityList, &nErrorCode);
+  
+  // Is this always the same or should it be moved to readParameters?
   nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 
                                &(this->RateListSize), this->RateList, &nErrorCode);
   if (nRet == PDC_FAILED) {
@@ -1017,6 +1024,12 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setTriggerMode();
   } else if (function == PhotronIRIG) {
     setIRIG(value);
+  } else if (function == PhotronSyncPriority) {
+    setSyncPriority(value);
+  } else if (function == PhotronExtInSignal) {
+    //setExtInSignal(value);
+  } else if (function == PhotronExtOutSignal) {
+    //setExtOutSignal(value);
   } else {
     /* If this is not a parameter we have handled call the base class */
     status = ADDriver::writeInt32(pasynUser, value);
@@ -1195,6 +1208,24 @@ asynStatus Photron::setIRIG(epicsInt32 value) {
     }
     else {
       printf("PDC_SetIRIG succeeded value=%d\n", value);
+    }
+  }
+  
+  return status;
+}
+
+
+asynStatus Photron::setSyncPriority(epicsInt32 value) {
+  asynStatus status = asynSuccess;
+  unsigned long nRet, nErrorCode;
+  static const char *functionName = "setSyncPriority";
+  
+  // PDC_SetSyncPriorityList
+  if (this->functionList[PDC_EXIST_SYNC_PRIORITY] == PDC_EXIST_SUPPORTED) {
+    nRet = PDC_SetSyncPriority(this->nDeviceNo, value, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetSyncPriority failed %d\n", nErrorCode);
+      status = asynError;
     }
   }
   
@@ -2086,6 +2117,18 @@ asynStatus Photron::readParameters() {
   }
   status |= setIntegerParam(PhotronIRIG, this->IRIG);
   
+  //
+  if (this->functionList[PDC_EXIST_SYNC_PRIORITY] == PDC_EXIST_SUPPORTED) {
+    nRet = PDC_GetSyncPriority(this->nDeviceNo, &(this->syncPriority), &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetSyncPriority failed %d\n", nErrorCode);
+      return asynError;
+    }
+  } else {
+    this->syncPriority = 0;
+  }
+  status |= setIntegerParam(PhotronSyncPriority, this->syncPriority);
+  
   // Does this ever change?
   nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 
                                &(this->RateListSize), 
@@ -2272,6 +2315,13 @@ void Photron::report(FILE *fp, int details) {
       fprintf(fp, "    Port %d (%d modes)\n", index+1, this->ExtOutModeListSize[index]);
       for (jndex=0; jndex<this->ExtOutModeListSize[index]; jndex++) {
         fprintf(fp, "\t%d:\t0x%02x\n", jndex, this->ExtOutModeList[index][jndex]);
+      }
+    }
+    
+    if (this->functionList[PDC_EXIST_SYNC_PRIORITY] == PDC_EXIST_SUPPORTED) {
+      fprintf(fp, "\n  Sync Priority List:\n");
+      for (index=0; index<this->SyncPriorityListSize; index++) {
+        fprintf(fp, "\t%d\t%02x\n", index, this->SyncPriorityList[index]);\
       }
     }
   }

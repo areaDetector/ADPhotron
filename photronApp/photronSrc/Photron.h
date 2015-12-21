@@ -47,8 +47,11 @@ protected:
     int PhotronMemIRIGSec;
     int PhotronMemIRIGUsec;
     int PhotronMemIRIGSigEx;
+    int PhotronSyncPriority;
+    int PhotronExtInSignal;
+    int PhotronExtOutSignal;
     #define FIRST_PHOTRON_PARAM PhotronStatus
-    #define LAST_PHOTRON_PARAM PhotronMemIRIGSigEx
+    #define LAST_PHOTRON_PARAM PhotronExtOutSignal
 
 private:
   /* These are the methods that are new to this class */
@@ -77,6 +80,7 @@ private:
   asynStatus setPlayback();
   asynStatus readMem();
   asynStatus setIRIG(epicsInt32 value);
+  asynStatus setSyncPriority(epicsInt32 value);
   
   /* These items are specific to the Photron driver */
   // constructor
@@ -109,6 +113,8 @@ private:
   unsigned long ExtInModeList[PDC_EXTIO_MAX_PORT][PDC_MAX_LIST_NUMBER];
   unsigned long ExtOutModeListSize[PDC_EXTIO_MAX_PORT];
   unsigned long ExtOutModeList[PDC_EXTIO_MAX_PORT][PDC_MAX_LIST_NUMBER];
+  unsigned long SyncPriorityListSize;
+  unsigned long SyncPriorityList[PDC_MAX_LIST_NUMBER];
   // updateResolution
   unsigned long width;
   unsigned long height;
@@ -126,6 +132,7 @@ private:
   unsigned long trigRFrames;
   unsigned long trigRCount;
   unsigned long IRIG;
+  unsigned long syncPriority;
   unsigned long RateListSize;
   unsigned long RateList[PDC_MAX_LIST_NUMBER];
   unsigned long ResolutionListSize;
@@ -177,5 +184,8 @@ typedef struct {
 #define PhotronMemIRIGSecString "PHOTRON_MEM_IRIG_SEC" /* (asynInt32,    r) */
 #define PhotronMemIRIGUsecString "PHOTRON_MEM_IRIG_USEC" /* (asynInt32,    r) */
 #define PhotronMemIRIGSigExString "PHOTRON_MEM_IRIG_SIGEX" /* (asynInt32,  r) */
+#define PhotronSyncPriorityString "PHOTRON_SYNC_PRIORITY" /* (asynInt32, rw)  */
+#define PhotronExtInSignalString  "PHOTRON_EXT_IN_SIGNAL" /* (asynInt32, rw)  */
+#define PhotronExtOutSignalString  "PHOTRON_EXT_OUT_SIGNAL" /* (asynInt32, rw)  */
 
 #define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM-&FIRST_PHOTRON_PARAM+1))
