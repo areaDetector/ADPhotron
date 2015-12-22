@@ -926,3 +926,19 @@ text {
 	}
 	textix="Out 4 Mode"
 }
+"message button" {
+	object {
+		x=18
+		y=754
+		width=100
+		height=25
+	}
+	control {
+		chan="1608G:Bo1.VAL"
+		clr=14
+		bclr=4
+	}
+	label="Hard Trigger"
+	press_msg="1"
+	release_msg="0"
+}
