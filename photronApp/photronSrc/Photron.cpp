@@ -112,7 +112,16 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronExtOut2SigString,    asynParamInt32, &PhotronExtOut2Sig);
   createParam(PhotronExtOut3SigString,    asynParamInt32, &PhotronExtOut3Sig);
   createParam(PhotronExtOut4SigString,    asynParamInt32, &PhotronExtOut4Sig);
-    
+  
+  PhotronExtInSig[0] = &PhotronExtIn1Sig;
+  PhotronExtInSig[1] = &PhotronExtIn2Sig;
+  PhotronExtInSig[2] = &PhotronExtIn3Sig;
+  PhotronExtInSig[3] = &PhotronExtIn4Sig;
+  PhotronExtOutSig[0] = &PhotronExtOut1Sig;
+  PhotronExtOutSig[1] = &PhotronExtOut2Sig;
+  PhotronExtOutSig[2] = &PhotronExtOut3Sig;
+  PhotronExtOutSig[3] = &PhotronExtOut4Sig;
+  
   if (!PDCLibInitialized) {
     /* Initialize the Photron PDC library */
     pdcStatus = PDC_Init(&errCode);
@@ -1091,9 +1100,30 @@ asynStatus Photron::readEnum(asynUser *pasynUser, char *strings[], int values[],
   int numEnums;
   int i;
   
-  if (function == ADTriggerMode) {
-    pEnum = triggerModeEnums_;
-    numEnums = numValidTriggerModes_;
+  if (function == PhotronExtIn1Sig) {
+    pEnum = inputModeEnums_[0];
+    numEnums = numValidInputModes_[0];
+  } else if (function == PhotronExtIn2Sig) {
+    pEnum = inputModeEnums_[1];
+    numEnums = numValidInputModes_[1];
+  } else if (function == PhotronExtIn3Sig) {
+    pEnum = inputModeEnums_[2];
+    numEnums = numValidInputModes_[2];
+  } else if (function == PhotronExtIn4Sig) {
+    pEnum = inputModeEnums_[3];
+    numEnums = numValidInputModes_[3];
+  } else if (function == PhotronExtOut1Sig) {
+    pEnum = outputModeEnums_[0];
+    numEnums = numValidOutputModes_[0];
+  } else if (function == PhotronExtOut2Sig) {
+    pEnum = outputModeEnums_[1];
+    numEnums = numValidOutputModes_[1];
+  } else if (function == PhotronExtOut3Sig) {
+    pEnum = outputModeEnums_[2];
+    numEnums = numValidOutputModes_[2];
+  } else if (function == PhotronExtOut4Sig) {
+    pEnum = outputModeEnums_[3];
+    numEnums = numValidOutputModes_[3];
   } else {
     *nIn = 0;
     return asynError;
@@ -1157,14 +1187,76 @@ asynStatus Photron::createDynamicEnums() {
 asynStatus Photron::createStaticEnums() {
   /* This function creates enum strings and values for all enums that are fixed
   for a given camera.  It is only called once at startup */
-  int index, mode;
+  int index, input, output, mode;
   enumStruct_t *pEnum;
   unsigned long nRet, nErrorCode;
   static const char *functionName = "createStaticEnums";
   
   //printf("Creating static enums\n");
   
+  // I/O port lists were already acquired when getCameraInfo was called
+  for (input=0; input<PDC_EXTIO_MAX_PORT; input++) {
+    //
+    numValidInputModes_[input] = 0;
+    // ExtInModeList has values in hex; need to convert them to epics index
+    for (index=0; index<this->ExtInModeListSize[input]; index++) {
+      pEnum = inputModeEnums_[input] + numValidInputModes_[input];
+      mode = inputModeToEPICS(this->ExtInModeList[input][index]);
+      strcpy(pEnum->string, inputModeStrings[mode]);
+      pEnum->value = mode;
+      numValidInputModes_[input]++;
+    }
+
+    numValidOutputModes_[input] = 0;
+    // ExtOutModeList has values in hex; need to convert them to epics index
+    for (index=0; index<this->ExtOutModeListSize[input]; index++) {
+      pEnum = outputModeEnums_[input] + numValidOutputModes_[input];
+      mode = outputModeToEPICS(this->ExtOutModeList[input][index]);
+      strcpy(pEnum->string, outputModeStrings[mode]);
+      pEnum->value = mode;
+      numValidOutputModes_[input]++;
+    }
+  }
+  
   return asynSuccess;
+}
+
+
+int Photron::inputModeToEPICS(int apiMode) {
+  int mode;
+  
+  switch (apiMode) {
+    case PDC_EXT_IN_ENCODER_POSI:
+    case PDC_EXT_IN_ENCODER_NEGA:
+      mode = (apiMode & 0xF) + 15;
+      break;
+    default:
+      mode = apiMode - 1;
+      break;
+  }
+  
+  return mode;
+}
+
+
+int Photron::outputModeToEPICS(int apiMode) {
+  int mode;
+  
+  if (apiMode < 0xF) {
+    // 0x01 => 0 ; 0x0E => 13
+    mode = apiMode - 1;
+  } else if (apiMode < 0x4F) {
+    // 0x1D => 14 ; 0x4E => 21
+    mode = ((((apiMode & 0xF0) >> 4) - 1) * 2) + (apiMode & 0xF) + 1;
+  } else if (apiMode < 0xFF) {
+    // 0x50 => 22 ; 0x59 => 31
+    mode = (apiMode & 0xF) + 22;
+  } else {
+    // 0x100 => 32 ; 0x102 => 34
+    mode = (apiMode & 0xF) + 32;
+  }
+  
+  return mode;
 }
 
 

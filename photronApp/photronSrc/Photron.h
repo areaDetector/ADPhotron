@@ -4,6 +4,8 @@
 #include "SDK/Include/PDCLIB.h"
 
 #define NUM_TRIGGER_MODES 14
+#define NUM_INPUT_MODES 17
+#define NUM_OUTPUT_MODES 35
 #define MAX_ENUM_STRING_SIZE 26
 
 typedef struct {
@@ -27,6 +29,66 @@ static const char *triggerModeStrings[NUM_TRIGGER_MODES] = {
   "Recon cmd",
   "Random loop"
 };
+
+static const char *inputModeStrings[NUM_INPUT_MODES] = {
+  "None",
+  "Camsync +",
+  "Camsync -",
+  "Othersync +",
+  "Othersync -",
+  "Event +",
+  "Event -",
+  "Trigger +",
+  "Trigger -",
+  "Ready +",
+  "Ready -",
+  "Sync +",
+  "Sync -",
+  "Camsync",
+  "Othersync",
+  "Encoder +",
+  "Encoder -"
+};
+
+static const char *outputModeStrings[NUM_OUTPUT_MODES] = {
+  "Sync +",
+  "Sync -",
+  "Record +",
+  "Record -",
+  "Trigger +",
+  "Trigger -",
+  "Ready +",
+  "Ready -",
+  "IRIG reset +",
+  "IRIG reset -",
+  "TTLIN thru +",
+  "TTLIN thru -",
+  "Expose +",
+  "Expose -",
+  "Expose H1 +",
+  "Expose H1 -",
+  "Expose H2 +",
+  "Expose H2 -",
+  "Expose H3 +",
+  "Expose H3 -",
+  "Expose H4 +",
+  "Expose H4 -",
+  "Trigger",
+  "Record + & sync +",
+  "Record + & expose +",
+  "Odd record + & sync +",
+  "Even record + & sync +",
+  "Odd record +",
+  "Even record +",
+  "Record start",
+  "Record + and expose -",
+  "Straddling",
+  "Encoder off",
+  "Encoder thru",
+  "Encoder re timing"
+};
+
+
 
 /** Photron driver */
 class epicsShareClass Photron : public ADDriver {
@@ -86,7 +148,10 @@ protected:
     int PhotronExtOut4Sig;
     #define FIRST_PHOTRON_PARAM PhotronStatus
     #define LAST_PHOTRON_PARAM PhotronExtOut4Sig
-
+    
+    int* PhotronExtInSig[PDC_EXTIO_MAX_PORT];
+    int* PhotronExtOutSig[PDC_EXTIO_MAX_PORT];
+    
 private:
   /* These are the methods that are new to this class */
   asynStatus disconnectCamera();
@@ -119,6 +184,8 @@ private:
   asynStatus setExternalOutMode(epicsInt32 port, epicsInt32 value);
   int trigModeToEPICS(int apiMode);
   int trigModeToAPI(int mode);
+  int inputModeToEPICS(int apiMode);
+  int outputModeToEPICS(int apiMode);
   asynStatus createStaticEnums();
   asynStatus createDynamicEnums();
 
@@ -192,7 +259,11 @@ private:
   /* Our data */
   NDArray *pRaw;
   int numValidTriggerModes_;
+  int numValidInputModes_[PDC_EXTIO_MAX_PORT];
+  int numValidOutputModes_[PDC_EXTIO_MAX_PORT];
   enumStruct_t triggerModeEnums_[NUM_TRIGGER_MODES];
+  enumStruct_t inputModeEnums_[PDC_EXTIO_MAX_PORT][NUM_INPUT_MODES];
+  enumStruct_t outputModeEnums_[PDC_EXTIO_MAX_PORT][NUM_OUTPUT_MODES];
 };
 
 /* Declare this function here so that its implementation can appear below
