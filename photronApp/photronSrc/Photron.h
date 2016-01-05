@@ -3,6 +3,31 @@
 
 #include "SDK/Include/PDCLIB.h"
 
+#define NUM_TRIGGER_MODES 14
+#define MAX_ENUM_STRING_SIZE 26
+
+typedef struct {
+  int value;
+  char string[MAX_ENUM_STRING_SIZE];
+} enumStruct_t;
+
+static const char *triggerModeStrings[NUM_TRIGGER_MODES] = {
+  "Start",
+  "Center",
+  "End",
+  "Random",
+  "Manual",
+  "Random reset",
+  "Random center",
+  "Random manual",
+  "Two-stage 1/2",
+  "Two-stage 1/4",
+  "Two-stage 1/8",
+  "Reset",
+  "Recon cmd",
+  "Random loop"
+};
+
 /** Photron driver */
 class epicsShareClass Photron : public ADDriver {
 public:
@@ -17,6 +42,9 @@ public:
 
   /* These are the methods that we override from ADDriver */
   virtual asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
+  virtual asynStatus readEnum(asynUser *pasynUser, char *strings[], 
+                              int values[], int severities[], 
+                              size_t nElements, size_t *nIn);
   virtual void report(FILE *fp, int details);
   /* PhotronTask should be private, but gets called from C, so must be public */
   void PhotronTask(); 
@@ -89,6 +117,9 @@ private:
   asynStatus setSyncPriority(epicsInt32 value);
   asynStatus setExternalInMode(epicsInt32 port, epicsInt32 value);
   asynStatus setExternalOutMode(epicsInt32 port, epicsInt32 value);
+  int trigModeToEPICS(int apiMode);
+  int trigModeToAPI(int mode);
+  asynStatus createStaticEnums();
 
   /* These items are specific to the Photron driver */
   // constructor
@@ -159,6 +190,8 @@ private:
   int abortFlag;
   /* Our data */
   NDArray *pRaw;
+  int numValidTriggerModes_;
+  enumStruct_t triggerModeEnums_[NUM_TRIGGER_MODES];
 };
 
 /* Declare this function here so that its implementation can appear below

@@ -58,7 +58,7 @@ static ELLLIST *cameraList;
 Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
                  int maxBuffers, size_t maxMemory, int priority, int stackSize)
     : ADDriver(portName, 1, NUM_PHOTRON_PARAMS, maxBuffers, maxMemory,
-               0, 0, /* No interfaces beyond those set in ADDriver.cpp */
+               asynEnumMask, asynEnumMask, /* asynEnum interface for dynamic mbbi/o */
                0, 0, /* ASYN_CANBLOCK=0, ASYN_MULTIDEVICE=0, autoConnect=1 */
                priority, stackSize),
       pRaw(NULL) {
@@ -178,7 +178,6 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
     return;
   }
   
-  
   /* Try to connect to the camera.  
    * It is not a fatal error if we cannot now, the camera may be off or owned by
    * someone else. It may connect later. */
@@ -190,6 +189,9 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
            driverName, functionName, cameraId);
     return;
   }
+  
+  // Does this need to be called before readParameters reads the trigger mode?
+  createStaticEnums();
 }
 
 
@@ -827,6 +829,19 @@ asynStatus Photron::getCameraInfo() {
     return asynError;
   }
   
+  // Query the trigger mode list
+  // This is necessary to work around a bug in the SA-Z firmware.  When the SA-Z
+  // is powered on, the first call to PDC_GetTriggerModeList can return trigger
+  // modes that are disabled.  Subsequent calls omit the disabled modes.
+  nRet = PDC_GetTriggerModeList(this->nDeviceNo, &(this->TriggerModeListSize),
+                                this->TriggerModeList, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetTriggerModeList failed %d\n", nErrorCode);
+    return asynError;
+  } else {
+    printf("\t!!! FIRST num trig modes = %d\n", this->TriggerModeListSize);
+  }
+  
   return asynSuccess;
 }
 
@@ -1068,6 +1083,117 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
 }
 
 
+asynStatus Photron::readEnum(asynUser *pasynUser, char *strings[], int values[],
+                             int severities[], size_t nElements, size_t *nIn) {
+  int function = pasynUser->reason;
+  enumStruct_t *pEnum;
+  int numEnums;
+  int i;
+  
+  if (function == ADTriggerMode) {
+    pEnum = triggerModeEnums_;
+    numEnums = numValidTriggerModes_;
+  } else {
+    *nIn = 0;
+    return asynError;
+  }
+  
+  for (i=0; ((i<numEnums) && (i<(int)nElements)); i++) {
+    if (strings[i]) free(strings[i]);
+    strings[i] = epicsStrDup(pEnum->string);
+    values[i] = pEnum->value;
+    severities[i] = 0;
+    pEnum++;
+  }
+  *nIn = i;
+  return asynSuccess;
+}
+
+
+asynStatus Photron::createStaticEnums() {
+  /* This function creates enum strings and values for all enums that are fixed
+  for a given camera.  It is only called once at startup */
+  int index, mode;
+  enumStruct_t *pEnum;
+  unsigned long nRet, nErrorCode;
+  static const char *functionName = "createStaticEnums";
+  
+  printf("Creating static enums\n");
+  
+  /* Trigger mode enums */
+  nRet = PDC_GetTriggerModeList(this->nDeviceNo, &(this->TriggerModeListSize),
+                                this->TriggerModeList, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetTriggerModeList failed %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  printf("\t!!! number of trigger modes detected: %d\n", this->TriggerModeListSize);
+  
+  numValidTriggerModes_ = 0;
+  /* Loop over modes */
+  for (index=0; index<this->TriggerModeListSize; index++) {
+    // get a pointer an element in the triggerModeEnums_ array
+    pEnum = triggerModeEnums_ + numValidTriggerModes_;
+    // convert the trigger mode
+    mode = this->trigModeToEPICS(this->TriggerModeList[index]);
+    strcpy(pEnum->string, triggerModeStrings[mode]);
+    pEnum->value = mode;
+    numValidTriggerModes_++;
+  }
+  
+  return asynSuccess;
+}
+
+
+int Photron::trigModeToEPICS(int apiMode) {
+  int mode;
+  
+  // TODO: add final modes
+  switch (apiMode) {
+    case PDC_TRIGGER_TWOSTAGE_HALF:
+        mode = 8;
+      break;
+      
+    case PDC_TRIGGER_TWOSTAGE_QUARTER:
+        mode = 9;
+      break;
+      
+    case PDC_TRIGGER_TWOSTAGE_ONEEIGHTH:
+        mode = 10;
+      break;
+    
+    default:
+        // this won't work for recon cmd and random loop modes
+        mode = apiMode >> 24;
+      break;
+  }
+  
+  return mode;
+}
+
+int Photron::trigModeToAPI(int mode) {
+  int apiMode;
+  
+  // TODO: add final two modes
+  switch (mode) {
+    case 8:
+      apiMode = PDC_TRIGGER_TWOSTAGE_HALF;
+      break;
+    case 9:
+      apiMode = PDC_TRIGGER_TWOSTAGE_QUARTER;
+      break;
+    case 10:
+      apiMode = PDC_TRIGGER_TWOSTAGE_ONEEIGHTH;
+      break;
+    default:
+      apiMode = mode << 24;
+      break;
+  }
+  
+  return apiMode;
+}
+
 asynStatus Photron::softwareTrigger() {
   asynStatus status = asynSuccess;
   int acqMode;
@@ -1111,20 +1237,7 @@ asynStatus Photron::setRecReady() {
     getIntegerParam(ADTriggerMode, &mode);
     
     // The mode isn't in the right format for the PDC_SetTriggerMode call
-    switch (mode) {
-      case 8:
-        apiMode = PDC_TRIGGER_TWOSTAGE_HALF;
-        break;
-      case 9:
-        apiMode = PDC_TRIGGER_TWOSTAGE_QUARTER;
-        break;
-      case 10:
-        apiMode = PDC_TRIGGER_TWOSTAGE_ONEEIGHTH;
-        break;
-      default:
-        apiMode = mode << 24;
-        break;
-    }
+    apiMode = this->trigModeToAPI(mode);
     
     // Set endless for trigger modes that need it
     switch (apiMode) {
@@ -1844,20 +1957,7 @@ asynStatus Photron::setTriggerMode() {
   }
   
   // The mode isn't in the right format for the PDC_SetTriggerMode call
-  switch (mode) {
-    case 8:
-      apiMode = PDC_TRIGGER_TWOSTAGE_HALF;
-      break;
-    case 9:
-      apiMode = PDC_TRIGGER_TWOSTAGE_QUARTER;
-      break;
-    case 10:
-      apiMode = PDC_TRIGGER_TWOSTAGE_ONEEIGHTH;
-      break;
-    default:
-      apiMode = mode << 24;
-      break;
-  }
+  apiMode = this->trigModeToAPI(mode);
   
   // Set num random frames
   switch (apiMode) {
@@ -2079,7 +2179,7 @@ asynStatus Photron::readParameters() {
   char bitDepthChar;
   static const char *functionName = "readParameters";    
   
-  //printf("Reading parameters...\n");
+  printf("Reading parameters...\n");
   
   //##############################################################################
   
@@ -2122,24 +2222,7 @@ asynStatus Photron::readParameters() {
   }
   
   // The raw trigger mode needs to be converted to the index of the mbbo/mbbi
-  switch (this->triggerMode) {
-    case PDC_TRIGGER_TWOSTAGE_HALF:
-        tmode = 8;
-      break;
-      
-    case PDC_TRIGGER_TWOSTAGE_QUARTER:
-        tmode = 9;
-      break;
-      
-    case PDC_TRIGGER_TWOSTAGE_ONEEIGHTH:
-        tmode = 10;
-      break;
-    
-    default:
-        // this won't work for recon cmd and random loop modes
-        tmode = this->triggerMode >> 24;
-      break;
-  }
+  tmode = this->trigModeToEPICS(this->triggerMode);
   
   status |= setIntegerParam(ADTriggerMode, tmode);
   status |= setIntegerParam(PhotronAfterFrames, this->trigAFrames);
@@ -2224,12 +2307,14 @@ asynStatus Photron::readParameters() {
     return asynError;
   }
   
-  // Does this ever change?
+  /* SA-Z note: if this isn't called here, the number of modes is incorrect */
   nRet = PDC_GetTriggerModeList(this->nDeviceNo, &(this->TriggerModeListSize),
                                 this->TriggerModeList, &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetTriggerModeList failed %d\n", nErrorCode);
     return asynError;
+  } else {
+    printf("\t!!! num trig modes = %d\n", this->TriggerModeListSize);
   }
   
   if (functionList[PDC_EXIST_HIGH_SPEED_MODE] == PDC_EXIST_SUPPORTED) {
