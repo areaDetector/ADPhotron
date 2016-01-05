@@ -191,7 +191,8 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   }
   
   // Does this need to be called before readParameters reads the trigger mode?
-  createStaticEnums();
+  //createStaticEnums();
+  createDynamicEnums();
 }
 
 
@@ -1110,15 +1111,15 @@ asynStatus Photron::readEnum(asynUser *pasynUser, char *strings[], int values[],
 }
 
 
-asynStatus Photron::createStaticEnums() {
-  /* This function creates enum strings and values for all enums that are fixed
-  for a given camera.  It is only called once at startup */
+asynStatus Photron::createDynamicEnums() {
   int index, mode;
   enumStruct_t *pEnum;
   unsigned long nRet, nErrorCode;
-  static const char *functionName = "createStaticEnums";
+  char *enumStrings[NUM_TRIGGER_MODES];
+  int enumValues[NUM_TRIGGER_MODES];
+  int enumSeverities[NUM_TRIGGER_MODES];
   
-  printf("Creating static enums\n");
+  static const char *functionName = "createDynamicEnums";
   
   /* Trigger mode enums */
   nRet = PDC_GetTriggerModeList(this->nDeviceNo, &(this->TriggerModeListSize),
@@ -1141,6 +1142,27 @@ asynStatus Photron::createStaticEnums() {
     pEnum->value = mode;
     numValidTriggerModes_++;
   }
+  for (index=0; index<numValidTriggerModes_; index++) {
+    enumStrings[index] = triggerModeEnums_[index].string;
+    enumValues[index] = triggerModeEnums_[index].value;
+    enumSeverities[index] = 0;
+  }
+  doCallbacksEnum(enumStrings, enumValues, enumSeverities, 
+                  numValidTriggerModes_, ADTriggerMode, 0);
+  
+  return asynSuccess;
+}
+
+
+asynStatus Photron::createStaticEnums() {
+  /* This function creates enum strings and values for all enums that are fixed
+  for a given camera.  It is only called once at startup */
+  int index, mode;
+  enumStruct_t *pEnum;
+  unsigned long nRet, nErrorCode;
+  static const char *functionName = "createStaticEnums";
+  
+  //printf("Creating static enums\n");
   
   return asynSuccess;
 }
@@ -1339,6 +1361,9 @@ asynStatus Photron::setIRIG(epicsInt32 value) {
     }
     else {
       printf("PDC_SetIRIG succeeded value=%d\n", value);
+      
+      // Changing the IRIG state can cause a change in the trigger mode
+      createDynamicEnums();
     }
   }
   
@@ -2308,14 +2333,14 @@ asynStatus Photron::readParameters() {
   }
   
   /* SA-Z note: if this isn't called here, the number of modes is incorrect */
-  nRet = PDC_GetTriggerModeList(this->nDeviceNo, &(this->TriggerModeListSize),
+  /*nRet = PDC_GetTriggerModeList(this->nDeviceNo, &(this->TriggerModeListSize),
                                 this->TriggerModeList, &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetTriggerModeList failed %d\n", nErrorCode);
     return asynError;
   } else {
     printf("\t!!! num trig modes = %d\n", this->TriggerModeListSize);
-  }
+  }*/
   
   if (functionList[PDC_EXIST_HIGH_SPEED_MODE] == PDC_EXIST_SUPPORTED) {
     nRet = PDC_GetHighSpeedMode(this->nDeviceNo, &(this->highSpeedMode),

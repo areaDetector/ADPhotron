@@ -120,6 +120,7 @@ private:
   int trigModeToEPICS(int apiMode);
   int trigModeToAPI(int mode);
   asynStatus createStaticEnums();
+  asynStatus createDynamicEnums();
 
   /* These items are specific to the Photron driver */
   // constructor
