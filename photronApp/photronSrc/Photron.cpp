@@ -948,6 +948,46 @@ asynStatus Photron::readImage() {
 }
 
 
+/** Sets an float64 parameter.
+  * \param[in] pasynUser asynUser structure that contains the function code in pasynUser->reason. 
+  * \param[in] value The value for this parameter 
+  *
+  * Takes action if the function code requires it.  The PGPropertyValueAbs
+  * function code makes calls to the Firewire library from this function. */
+asynStatus Photron::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
+{
+    asynStatus status = asynSuccess;
+    int function = pasynUser->reason;
+    double tempVal;
+    static const char *functionName = "writeFloat64";
+    
+    /* Set the value in the parameter library.  This may change later but that's OK */
+    status = setDoubleParam(function, value);
+    
+    if (function == ADAcquireTime) {
+      // setRecordRate already does what we want
+      if (value == 0.0) {
+        tempVal = 1.0 / 1e-9;
+      }
+      else {
+        tempVal = 1.0 / value;
+      }
+      setRecordRate(tempVal);
+    } else {
+      /* If this parameter belongs to a base class call its method */
+      if (function < FIRST_PHOTRON_PARAM) status = ADDriver::writeFloat64(pasynUser, value);
+    }
+    
+    asynPrint(pasynUser, ASYN_TRACEIO_DRIVER, 
+              "%s::%s function=%d, value=%f, status=%d\n",
+              driverName, functionName, function, value, status);
+    
+    /* Read the camera parameters and do callbacks */
+    readParameters();
+    
+    return status;
+}
+
 /** Called when asyn clients call pasynInt32->write().
   * This function performs actions for some parameters, including ADAcquire, ADBinX, etc.
   * For all parameters it sets the value in the parameter library and calls any registered callbacks..
@@ -2296,6 +2336,7 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
   unsigned long nErrorCode;
   int status = asynSuccess;
   int index;
+  double acqTime;
   epicsInt32 upperDiff, lowerDiff;
   
   static const char *functionName = "setRecordRate";
@@ -2342,8 +2383,12 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
     printf("PDC_SetRecordRate Error %d\n", nErrorCode);
     return asynError;
   } else {
-    printf("PDC_SetRecordRate succeeded. Rate = %d\n", value);
+    //printf("PDC_SetRecordRate succeeded. Rate = %d\n", value);
   }
+  
+  // Keep the exposure time in sync with the record rate
+  acqTime = 1.0 / value;
+  setDoubleParam(ADAcquireTime, acqTime);
   
   // Changing the record rate changes the current and available resolutions
   

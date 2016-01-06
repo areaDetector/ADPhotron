@@ -12,6 +12,17 @@ include "ADBase.template"
 #        Photron                                                              #
 ###############################################################################
 
+# Acquire time needs a higher precision
+record(ao, "$(P)$(R)AcquireTime")
+{
+   field(PREC, "7")
+}
+
+record(ai, "$(P)$(R)AcquireTime_RBV")
+{
+   field(PREC, "7")
+}
+
 # Only 2 data types are supported, unsigned 8 and 16 bit integers
 record(mbbo, "$(P)$(R)DataType")
 {
