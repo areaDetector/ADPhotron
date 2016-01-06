@@ -200,7 +200,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   }
   
   // Does this need to be called before readParameters reads the trigger mode?
-  //createStaticEnums();
+  createStaticEnums();
   createDynamicEnums();
 }
 
@@ -1160,7 +1160,7 @@ asynStatus Photron::createDynamicEnums() {
   }
   
   printf("\t!!! number of trigger modes detected: %d\n", this->TriggerModeListSize);
-  
+  setIntegerParam(ADTriggerMode, this->triggerMode);
   numValidTriggerModes_ = 0;
   /* Loop over modes */
   for (index=0; index<this->TriggerModeListSize; index++) {
@@ -1177,6 +1177,7 @@ asynStatus Photron::createDynamicEnums() {
     enumValues[index] = triggerModeEnums_[index].value;
     enumSeverities[index] = 0;
   }
+  //
   doCallbacksEnum(enumStrings, enumValues, enumSeverities, 
                   numValidTriggerModes_, ADTriggerMode, 0);
   
@@ -2296,7 +2297,7 @@ asynStatus Photron::readParameters() {
   char bitDepthChar;
   static const char *functionName = "readParameters";    
   
-  printf("Reading parameters...\n");
+  //printf("Reading parameters...\n");
   
   //##############################################################################
   
