@@ -1100,7 +1100,6 @@ asynStatus Photron::readEnum(asynUser *pasynUser, char *strings[], int values[],
   int numEnums;
   int i;
   
-  printf("\t\t\tReading enums\n");
   if (function == ADTriggerMode) {
     pEnum = triggerModeEnums_;
     numEnums = numValidTriggerModes_;
@@ -1181,7 +1180,6 @@ asynStatus Photron::createDynamicEnums() {
     enumValues[index] = triggerModeEnums_[index].value;
     enumSeverities[index] = 0;
   }
-  //
   doCallbacksEnum(enumStrings, enumValues, enumSeverities, 
                   numValidTriggerModes_, ADTriggerMode, 0);
   
@@ -1489,15 +1487,23 @@ asynStatus Photron::setSyncPriority(epicsInt32 value) {
 asynStatus Photron::setExternalInMode(epicsInt32 port, epicsInt32 value) {
   asynStatus status = asynSuccess;
   unsigned long nRet, nErrorCode;
+  int apiMode;
   static const char *functionName = "setExternalInMode";
   
-  //
-  nRet = PDC_SetExternalInMode(this->nDeviceNo, port, value, &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_SetExternalInMode failed %d\n", nErrorCode);
-    status = asynError;
-  }
+  // Convert the index to api
+  apiMode = value + 1;
   
+  //
+  if ((port-1) < this->inPorts) {
+    printf("\t\tPDC_SetExternalInMode( port = %d, apiMode = %d\n", port, apiMode);
+    nRet = PDC_SetExternalInMode(this->nDeviceNo, port, apiMode, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetExternalInMode failed %d\n", nErrorCode);
+      status = asynError;
+    }
+  } else {
+    printf("Don't actually call PDC_SetExternalInMode; port %d doesn't exist\n", port);
+  }
   return status;
 }
 
@@ -1508,10 +1514,16 @@ asynStatus Photron::setExternalOutMode(epicsInt32 port, epicsInt32 value) {
   static const char *functionName = "setExternalOutMode";
   
   //
-  nRet = PDC_SetExternalOutMode(this->nDeviceNo, port, value, &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_SetExternalOutMode failed %d\n", nErrorCode);
-    status = asynError;
+  if ((port-1) < this->outPorts) {
+    printf("\t\tPDC_SetExternalOutMode( port = %d, value = %d\n", port, value);
+    nRet = PDC_SetExternalOutMode(this->nDeviceNo, port, value, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetExternalOutMode failed %d\n", nErrorCode);
+      status = asynError;
+    }
+  } else {
+    printf("Don't actually call PDC_SetExternalOutMode; port %d doesn't exist\n", port);
+
   }
   
   return status;
@@ -2270,6 +2282,7 @@ asynStatus Photron::setStatus(epicsInt32 value) {
   unsigned long nErrorCode;
   unsigned long desiredStatus;
   int status = asynSuccess;
+  int temp;
   static const char *functionName = "setStatus";
   
   /* The Status PV is an mbbo with only two valid states
@@ -2298,6 +2311,7 @@ asynStatus Photron::readParameters() {
   int status = asynSuccess;
   int tmode;
   int index;
+  int eVal;
   char bitDepthChar;
   static const char *functionName = "readParameters";    
   
@@ -2393,10 +2407,17 @@ asynStatus Photron::readParameters() {
       return asynError;
     }
   }
-  setIntegerParam(PhotronExtIn1Sig, this->ExtInMode[0]);
-  setIntegerParam(PhotronExtIn2Sig, this->ExtInMode[1]);
-  setIntegerParam(PhotronExtIn3Sig, this->ExtInMode[2]);
-  setIntegerParam(PhotronExtIn4Sig, this->ExtInMode[3]);
+  // This can be combined with the above loop later
+  eVal = this->inputModeToEPICS(this->ExtInMode[0]);
+  for (index=0; index<PDC_EXTIO_MAX_PORT; index++) {
+    if (index < this->inPorts) {
+      eVal = this->inputModeToEPICS(this->ExtInMode[index]);
+    }
+    else {
+      eVal = 0;
+    }
+    setIntegerParam(*PhotronExtInSig[index], eVal);
+  }
 
   for (index=0; index<this->outPorts; index++) {
     nRet = PDC_GetExternalOutMode(this->nDeviceNo, index+1, 
