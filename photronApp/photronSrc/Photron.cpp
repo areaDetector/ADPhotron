@@ -550,6 +550,8 @@ asynStatus Photron::connectCamera() {
     return asynError;
   }
   
+  //printf("Connecting to the camera\n");
+  
   // The Prosilica driver does this, but it isn't obvious why
   /* First disconnect from the camera */
   //disconnectCamera();
@@ -584,7 +586,7 @@ asynStatus Photron::connectCamera() {
   printf("PDC_DetectDevice \"Successful\"\n");
   printf("\tdevice index: %d\n", DetectNumInfo.m_nDeviceNum);
   printf("\tdevice code: %d\n", DetectNumInfo.m_DetectInfo[0].m_nDeviceCode);
-  printf("\tnRet = %d\n", nRet);
+  //printf("\tnRet = %d\n", nRet);
 
   if (DetectNumInfo.m_nDeviceNum == 0) {
     printf("No devices detected\n");
@@ -635,6 +637,7 @@ asynStatus Photron::connectCamera() {
     }
   }
   /* Get information from the camera */
+  //printf("Getting camera info\n");
   status = getCameraInfo();
   if (status) {
     return((asynStatus)status);
@@ -656,6 +659,7 @@ asynStatus Photron::connectCamera() {
   }
   
   /* Read the current camera settings */
+  //printf("Reading camera parameters\n");
   status = readParameters();
   if (status) {
     return((asynStatus)status);
@@ -686,7 +690,7 @@ asynStatus Photron::getCameraInfo() {
   //
   int index;
   char nFlag; /* Existing function flag */
-
+  
   /* Determine which functions are supported by the camera */
   for( index=2; index<98; index++) {
     nRet = PDC_IsFunction(this->nDeviceNo, this->nChildNo, index, &nFlag, 
@@ -795,7 +799,7 @@ asynStatus Photron::getCameraInfo() {
   // PDC_EXTIO_MAX_PORT is defined in PDCVALUE.h
   for (index=0; index<PDC_EXTIO_MAX_PORT; index++) {
     // Input port
-    if (index < this->inPorts) {
+    if (index < (int)this->inPorts) {
       // Port exists, query the input list
       nRet = PDC_GetExternalInModeList(this->nDeviceNo, index+1,
                                        &(this->ExtInModeListSize[index]),
@@ -806,7 +810,7 @@ asynStatus Photron::getCameraInfo() {
     }
     
     // Output port
-    if (index < this->outPorts) {
+    if (index < (int)this->outPorts) {
       // Port exists, query the input list
       nRet = PDC_GetExternalOutModeList(this->nDeviceNo, index+1,
                                        &(this->ExtOutModeListSize[index]),
@@ -840,17 +844,15 @@ asynStatus Photron::getCameraInfo() {
   }
   
   // Query the trigger mode list
-  // This is necessary to work around a bug in the SA-Z firmware.  When the SA-Z
-  // is powered on, the first call to PDC_GetTriggerModeList can return trigger
-  // modes that are disabled.  Subsequent calls omit the disabled modes.
-  nRet = PDC_GetTriggerModeList(this->nDeviceNo, &(this->TriggerModeListSize),
+  // Is this necessary here?
+  /*nRet = PDC_GetTriggerModeList(this->nDeviceNo, &(this->TriggerModeListSize),
                                 this->TriggerModeList, &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetTriggerModeList failed %d\n", nErrorCode);
     return asynError;
   } else {
     printf("\t!!! FIRST num trig modes = %d\n", this->TriggerModeListSize);
-  }
+  }*/
   
   return asynSuccess;
 }
@@ -1004,18 +1006,12 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronAcquireMode) {
     // should the acquire state be checked?
     if (value == 0) {
-      printf("Settings for returning to live mode should go here\n");
-      
       // code to return to live mode goes here
       setLive();
       
       // Stop the PhotronRecTask (will it do one last read after returning to live?
       epicsEventSignal(this->stopRecEventId);
     } else {
-      printf("Settings for entering recording mode should go here\n");
-      
-      // apply the trigger settings?
-      
       // code to enter recording mode
       setRecReady();
       
@@ -1051,7 +1047,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     
   } else if ((function == ADTriggerMode) || (function == PhotronAfterFrames) ||
             (function == PhotronRandomFrames) || (function == PhotronRecCount)) {
-    printf("function = %d\n", function);
+    //printf("function = %d\n", function);
     setTriggerMode();
   } else if (function == PhotronIRIG) {
     setIRIG(value);
@@ -1162,11 +1158,12 @@ asynStatus Photron::createDynamicEnums() {
     return asynError;
   }
   
-  printf("\t!!! number of trigger modes detected: %d\n", this->TriggerModeListSize);
-  setIntegerParam(ADTriggerMode, this->triggerMode);
+  //printf("\t!!! number of trigger modes detected: %d\n", this->TriggerModeListSize);
+  // Is the following line necessary?
+  //setIntegerParam(ADTriggerMode, this->triggerMode);
   numValidTriggerModes_ = 0;
   /* Loop over modes */
-  for (index=0; index<this->TriggerModeListSize; index++) {
+  for (index=0; index<(int)this->TriggerModeListSize; index++) {
     // get a pointer an element in the triggerModeEnums_ array
     pEnum = triggerModeEnums_ + numValidTriggerModes_;
     // convert the trigger mode
@@ -1190,34 +1187,35 @@ asynStatus Photron::createDynamicEnums() {
 asynStatus Photron::createStaticEnums() {
   /* This function creates enum strings and values for all enums that are fixed
   for a given camera.  It is only called once at startup */
-  int index, input, output, mode;
+  int index, port, mode;
   enumStruct_t *pEnum;
-  unsigned long nRet, nErrorCode;
+  //unsigned long nRet, nErrorCode;
   static const char *functionName = "createStaticEnums";
   
   //printf("Creating static enums\n");
   
   // I/O port lists were already acquired when getCameraInfo was called
-  for (input=0; input<PDC_EXTIO_MAX_PORT; input++) {
+  // Assume I/O port lists are static for now
+  for (port=0; port<PDC_EXTIO_MAX_PORT; port++) {
     //
-    numValidInputModes_[input] = 0;
+    numValidInputModes_[port] = 0;
     // ExtInModeList has values in hex; need to convert them to epics index
-    for (index=0; index<this->ExtInModeListSize[input]; index++) {
-      pEnum = inputModeEnums_[input] + numValidInputModes_[input];
-      mode = inputModeToEPICS(this->ExtInModeList[input][index]);
+    for (index=0; index<(int)this->ExtInModeListSize[port]; index++) {
+      pEnum = inputModeEnums_[port] + numValidInputModes_[port];
+      mode = inputModeToEPICS(this->ExtInModeList[port][index]);
       strcpy(pEnum->string, inputModeStrings[mode]);
       pEnum->value = mode;
-      numValidInputModes_[input]++;
+      numValidInputModes_[port]++;
     }
 
-    numValidOutputModes_[input] = 0;
+    numValidOutputModes_[port] = 0;
     // ExtOutModeList has values in hex; need to convert them to epics index
-    for (index=0; index<this->ExtOutModeListSize[input]; index++) {
-      pEnum = outputModeEnums_[input] + numValidOutputModes_[input];
-      mode = outputModeToEPICS(this->ExtOutModeList[input][index]);
+    for (index=0; index<(int)this->ExtOutModeListSize[port]; index++) {
+      pEnum = outputModeEnums_[port] + numValidOutputModes_[port];
+      mode = outputModeToEPICS(this->ExtOutModeList[port][index]);
       strcpy(pEnum->string, outputModeStrings[mode]);
       pEnum->value = mode;
-      numValidOutputModes_[input]++;
+      numValidOutputModes_[port]++;
     }
   }
   
@@ -1518,6 +1516,7 @@ asynStatus Photron::setIRIG(epicsInt32 value) {
       // Note: The time spent executing epicsTimeGetCurrent is negligible
       //   time to execute epicsTimeGetCurrent = 285 nsec
       //   time to execute PDC_SetIRIG = 40.57 msec
+      // TODO: make the following printf an optional asyn trace message
       printf("IRIG clock correlation uncertainty: %d seconds and %d nanoseconds\n", secDiff, nsecDiff);
     } else {
       nRet = PDC_SetIRIG(this->nDeviceNo, PDC_FUNCTION_OFF, &nErrorCode);
@@ -1527,7 +1526,7 @@ asynStatus Photron::setIRIG(epicsInt32 value) {
       status = asynError;
     }
     else {
-      printf("PDC_SetIRIG succeeded value=%d\n", value);
+      //printf("PDC_SetIRIG succeeded. value=%d\n", value);
       
       // Changing the IRIG state can cause a change in the trigger mode
       createDynamicEnums();
@@ -1566,15 +1565,15 @@ asynStatus Photron::setExternalInMode(epicsInt32 port, epicsInt32 value) {
   apiMode = this->inputModeToAPI(value);
   
   //
-  if ((port-1) < this->inPorts) {
-    printf("\t\tPDC_SetExternalInMode( port = %d, apiMode = %d\n", port, apiMode);
+  if ((port-1) < (int)this->inPorts) {
+    //printf("\t\tPDC_SetExternalInMode( port = %d, apiMode = %d\n", port, apiMode);
     nRet = PDC_SetExternalInMode(this->nDeviceNo, port, apiMode, &nErrorCode);
     if (nRet == PDC_FAILED) {
       printf("PDC_SetExternalInMode failed %d\n", nErrorCode);
       status = asynError;
     }
   } else {
-    printf("Don't actually call PDC_SetExternalInMode; port %d doesn't exist\n", port);
+    //printf("Don't actually call PDC_SetExternalInMode; port %d doesn't exist\n", port);
   }
   return status;
 }
@@ -1590,16 +1589,15 @@ asynStatus Photron::setExternalOutMode(epicsInt32 port, epicsInt32 value) {
   apiMode = this->outputModeToAPI(value);
   
   //
-  if ((port-1) < this->outPorts) {
-    printf("\t\tPDC_SetExternalOutMode( port = %d, apiMode = %d\n", port, apiMode);
+  if ((port-1) < (int)this->outPorts) {
+    //printf("\t\tPDC_SetExternalOutMode( port = %d, apiMode = %d\n", port, apiMode);
     nRet = PDC_SetExternalOutMode(this->nDeviceNo, port, apiMode, &nErrorCode);
     if (nRet == PDC_FAILED) {
       printf("PDC_SetExternalOutMode failed %d\n", nErrorCode);
       status = asynError;
     }
   } else {
-    printf("Don't actually call PDC_SetExternalOutMode; port %d doesn't exist\n", port);
-
+    //printf("Don't actually call PDC_SetExternalOutMode; port %d doesn't exist\n", port);
   }
   
   return status;
@@ -1953,7 +1951,7 @@ asynStatus Photron::updateResolution() {
   // for the same recording rate will not change the recording rate.
   // Find valid options for the current X and Y sizes
   numSizesX = numSizesY = 0;
-  for (index=0; index<this->ResolutionListSize; index++) {
+  for (index=0; index<(int)this->ResolutionListSize; index++) {
     value = this->ResolutionList[index];
     // height is the lower 16 bits of value
     height = value & 0xFFFF;
@@ -2000,8 +1998,8 @@ asynStatus Photron::setValidWidth(epicsInt32 value) {
   } else {
     /* Choose the closest allowed width 
        Note: this->ValidWidthList is in decending order */
-    for (index=0; index<(this->ValidWidthListSize-1); index++) {
-      if (value > this->ValidWidthList[index+1]) {
+    for (index=0; index<((int)this->ValidWidthListSize-1); index++) {
+      if (value > (int)this->ValidWidthList[index+1]) {
         upperDiff = (epicsInt32)this->ValidWidthList[index] - value;
         lowerDiff = value - (epicsInt32)this->ValidWidthList[index+1];
         // One of the widths (index or index+1) is the best choice
@@ -2059,8 +2057,8 @@ asynStatus Photron::setValidHeight(epicsInt32 value) {
   } else {
     /* Choose the closest allowed width 
        Note: this->ValidHeightList is in decending order */
-    for (index=0; index<(this->ValidHeightListSize-1); index++) {
-      if (value > this->ValidHeightList[index+1]) {
+    for (index=0; index<((int)this->ValidHeightListSize-1); index++) {
+      if (value > (int)this->ValidHeightList[index+1]) {
         upperDiff = (epicsInt32)this->ValidHeightList[index] - value;
         lowerDiff = value - (epicsInt32)this->ValidHeightList[index+1];
         // One of the widths (index or index+1) is the best choice
@@ -2313,8 +2311,8 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
   } else {
     /* Choose the closest allowed rate 
        NOTE: RateList is in ascending order */
-    for (index=0; index<(this->RateListSize-1); index++) {
-      if (value < this->RateList[index+1]) {
+    for (index=0; index<((int)this->RateListSize-1); index++) {
+      if (value < (int)this->RateList[index+1]) {
         upperDiff = (epicsInt32)this->RateList[index+1] - value;
         lowerDiff = value - (epicsInt32)this->RateList[index];
         // One of the rates (index or index+1) is the best choice
@@ -2358,7 +2356,6 @@ asynStatus Photron::setStatus(epicsInt32 value) {
   unsigned long nErrorCode;
   unsigned long desiredStatus;
   int status = asynSuccess;
-  int temp;
   static const char *functionName = "setStatus";
   
   /* The Status PV is an mbbo with only two valid states
@@ -2476,7 +2473,7 @@ asynStatus Photron::readParameters() {
   status |= setIntegerParam(PhotronSyncPriority, this->syncPriority);
   
   for (index=0; index<PDC_EXTIO_MAX_PORT; index++) {
-    if (index < this->inPorts) {
+    if (index < (int)this->inPorts) {
       nRet = PDC_GetExternalInMode(this->nDeviceNo, index+1, 
                                    &(this->ExtInMode[index]), &nErrorCode);
       if (nRet == PDC_FAILED) {
@@ -2491,8 +2488,8 @@ asynStatus Photron::readParameters() {
     setIntegerParam(*PhotronExtInSig[index], eVal);
   }
 
-  for (index=0; index<this->outPorts; index++) {
-    if (index < this->outPorts) {
+  for (index=0; index<PDC_EXTIO_MAX_PORT; index++) {
+    if (index < (int)this->outPorts) {
       nRet = PDC_GetExternalOutMode(this->nDeviceNo, index+1, 
                                     &(this->ExtOutMode[index]), &nErrorCode);
       if (nRet == PDC_FAILED) {
@@ -2562,7 +2559,7 @@ asynStatus Photron::parseResolutionList() {
   unsigned long width, height, value;
   
   printf("  Available resolutions for rate=%d:\n", this->nRate);
-  for (index=0; index<this->ResolutionListSize; index++) {
+  for (index=0; index<(int)this->ResolutionListSize; index++) {
     value = this->ResolutionList[index];
     // height is the lower 16 bits of value
     height = value & 0xFFFF;
@@ -2579,12 +2576,12 @@ void Photron::printResOptions() {
   int index;
   
   printf("  Valid heights for rate=%d and width=%d\n", this->nRate, this->width);
-  for (index=0; index<this->ValidHeightListSize; index++) {
+  for (index=0; index<(int)this->ValidHeightListSize; index++) {
     printf("\t%d\n", this->ValidHeightList[index]);
   }
   
   printf("\n  Valid widths for rate=%d and height=%d\n", this->nRate, this->height);
-  for (index=0; index<this->ValidWidthListSize; index++) {
+  for (index=0; index<(int)this->ValidWidthListSize; index++) {
     printf("\t%d\n", this->ValidWidthList[index]);
   }
 }
@@ -2595,7 +2592,7 @@ void Photron::printTrigModes() {
   int mode;
   
   printf("\n  Trigger Modes:\n");
-  for (index=0; index<this->TriggerModeListSize; index++) {
+  for (index=0; index<(int)this->TriggerModeListSize; index++) {
     mode = this->TriggerModeList[index] >> 24;
     if (mode == 8) {
       printf("\t%d:\t%d", index, mode);
@@ -2662,7 +2659,7 @@ void Photron::report(FILE *fp, int details) {
   
   if (details > 2) {
     fprintf(fp, "\n  Available recording rates:\n");
-    for (index=0; index<this->RateListSize; index++) {
+    for (index=0; index<(int)this->RateListSize; index++) {
       printf("\t%d:\t%d FPS\n", (index + 1), this->RateList[index]);
     }
     
@@ -2683,24 +2680,24 @@ void Photron::report(FILE *fp, int details) {
   if (details > 6) {
     
     fprintf(fp, "\n  External Inputs\n");
-    for (index=0; index<this->inPorts; index++) {
+    for (index=0; index<(int)this->inPorts; index++) {
       fprintf(fp, "    Port %d (%d modes)\n", index+1, this->ExtInModeListSize[index]);
-      for (jndex=0; jndex<this->ExtInModeListSize[index]; jndex++) {
+      for (jndex=0; jndex<(int)this->ExtInModeListSize[index]; jndex++) {
         fprintf(fp, "\t%d:\t0x%02x\n", jndex, this->ExtInModeList[index][jndex]);
       }
     }
     
     fprintf(fp, "\n  External Outputs\n");
-    for (index=0; index<this->outPorts; index++) {
+    for (index=0; index<(int)this->outPorts; index++) {
       fprintf(fp, "    Port %d (%d modes)\n", index+1, this->ExtOutModeListSize[index]);
-      for (jndex=0; jndex<this->ExtOutModeListSize[index]; jndex++) {
+      for (jndex=0; jndex<(int)this->ExtOutModeListSize[index]; jndex++) {
         fprintf(fp, "\t%d:\t0x%02x\n", jndex, this->ExtOutModeList[index][jndex]);
       }
     }
     
     if (this->functionList[PDC_EXIST_SYNC_PRIORITY] == PDC_EXIST_SUPPORTED) {
       fprintf(fp, "\n  Sync Priority List:\n");
-      for (index=0; index<this->SyncPriorityListSize; index++) {
+      for (index=0; index<(int)this->SyncPriorityListSize; index++) {
         fprintf(fp, "\t%d\t%02x\n", index, this->SyncPriorityList[index]);\
       }
     }
