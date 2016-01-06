@@ -1230,8 +1230,10 @@ int Photron::inputModeToEPICS(int apiMode) {
   
   switch (apiMode) {
     case PDC_EXT_IN_ENCODER_POSI:
+      mode = 15;
+      break;
     case PDC_EXT_IN_ENCODER_NEGA:
-      mode = (apiMode & 0xF) + 15;
+      mode = 16;
       break;
     default:
       mode = apiMode - 1;
@@ -1239,6 +1241,25 @@ int Photron::inputModeToEPICS(int apiMode) {
   }
   
   return mode;
+}
+
+
+int Photron::inputModeToAPI(int mode) {
+  int apiMode;
+  
+  switch (mode) {
+    case 15:
+      apiMode = PDC_EXT_IN_ENCODER_POSI;
+      break;
+    case 16:
+      apiMode = PDC_EXT_IN_ENCODER_NEGA;
+      break;
+    default:
+      apiMode = mode + 1;
+      break;
+  }
+  
+  return apiMode;
 }
 
 
@@ -1260,6 +1281,57 @@ int Photron::outputModeToEPICS(int apiMode) {
   }
   
   return mode;
+}
+
+
+int Photron::outputModeToAPI(int mode) {
+  int apiMode;
+  
+  if (mode <= 13) {
+    apiMode = mode + 1;
+  } else if (mode <= 21) {
+    switch (mode) {
+      case 14:
+        apiMode = PDC_EXT_OUT_EXPOSE_H1_POSI;
+        break;
+      case 15:
+        apiMode = PDC_EXT_OUT_EXPOSE_H1_NEGA;
+        break;
+      case 16:
+        apiMode = PDC_EXT_OUT_EXPOSE_H2_POSI;
+        break;
+      case 17:
+        apiMode = PDC_EXT_OUT_EXPOSE_H2_NEGA;
+        break;
+      case 18:
+        apiMode = PDC_EXT_OUT_EXPOSE_H3_POSI;
+        break;
+      case 19:
+        apiMode = PDC_EXT_OUT_EXPOSE_H3_NEGA;
+        break;
+      case 20:
+        apiMode = PDC_EXT_OUT_EXPOSE_H4_POSI;
+        break;
+      case 21:
+        apiMode = PDC_EXT_OUT_EXPOSE_H3_NEGA;
+        break;
+      default:
+        // This can never happen
+        apiMode = 0;
+        break;
+    }
+  } else if (mode <= 31) {
+    // The following calc could be simplified but it makes more sense in its
+    // unsimplified state (see PDCValue.h)
+    apiMode = mode - 22 + 0x50;
+  } else if (mode <= 34) {
+    apiMode = mode - 32 + 0x100;
+  } else {
+    // This can never happen
+    apiMode = 0;
+  }
+  
+  return apiMode;
 }
 
 
@@ -1490,8 +1562,8 @@ asynStatus Photron::setExternalInMode(epicsInt32 port, epicsInt32 value) {
   int apiMode;
   static const char *functionName = "setExternalInMode";
   
-  // Convert the index to api
-  apiMode = value + 1;
+  // Convert mbbo index to api
+  apiMode = this->inputModeToAPI(value);
   
   //
   if ((port-1) < this->inPorts) {
@@ -1511,12 +1583,16 @@ asynStatus Photron::setExternalInMode(epicsInt32 port, epicsInt32 value) {
 asynStatus Photron::setExternalOutMode(epicsInt32 port, epicsInt32 value) {
   asynStatus status = asynSuccess;
   unsigned long nRet, nErrorCode;
+  int apiMode;
   static const char *functionName = "setExternalOutMode";
+  
+  // Convert mbbo index to api
+  apiMode = this->outputModeToAPI(value);
   
   //
   if ((port-1) < this->outPorts) {
-    printf("\t\tPDC_SetExternalOutMode( port = %d, value = %d\n", port, value);
-    nRet = PDC_SetExternalOutMode(this->nDeviceNo, port, value, &nErrorCode);
+    printf("\t\tPDC_SetExternalOutMode( port = %d, apiMode = %d\n", port, apiMode);
+    nRet = PDC_SetExternalOutMode(this->nDeviceNo, port, apiMode, &nErrorCode);
     if (nRet == PDC_FAILED) {
       printf("PDC_SetExternalOutMode failed %d\n", nErrorCode);
       status = asynError;
@@ -2399,7 +2475,6 @@ asynStatus Photron::readParameters() {
   }
   status |= setIntegerParam(PhotronSyncPriority, this->syncPriority);
   
-  // This can be combined with the above loop later
   for (index=0; index<PDC_EXTIO_MAX_PORT; index++) {
     if (index < this->inPorts) {
       nRet = PDC_GetExternalInMode(this->nDeviceNo, index+1, 
@@ -2409,8 +2484,7 @@ asynStatus Photron::readParameters() {
         return asynError;
       }
       eVal = this->inputModeToEPICS(this->ExtInMode[index]);
-    }
-    else {
+    } else {
       // This is necessary to avoid weird values for uninitialized mbbi records
       eVal = 0;
     }
@@ -2418,17 +2492,20 @@ asynStatus Photron::readParameters() {
   }
 
   for (index=0; index<this->outPorts; index++) {
-    nRet = PDC_GetExternalOutMode(this->nDeviceNo, index+1, 
-                                  &(this->ExtOutMode[index]), &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_GetExternalOutMode failed %d; index=%d\n", nErrorCode, index);
-      return asynError;
+    if (index < this->outPorts) {
+      nRet = PDC_GetExternalOutMode(this->nDeviceNo, index+1, 
+                                    &(this->ExtOutMode[index]), &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetExternalOutMode failed %d; index=%d\n", nErrorCode, index);
+        return asynError;
+      }
+      eVal = this->outputModeToEPICS(this->ExtOutMode[index]);
+    } else {
+      // This is necessary to avoid weird values for uninitialized mbbi records
+      eVal = 0;
     }
+    setIntegerParam(*PhotronExtOutSig[index], eVal);
   }
-  setIntegerParam(PhotronExtOut1Sig, this->ExtOutMode[0]);
-  setIntegerParam(PhotronExtOut2Sig, this->ExtOutMode[1]);
-  setIntegerParam(PhotronExtOut3Sig, this->ExtOutMode[2]);
-  setIntegerParam(PhotronExtOut4Sig, this->ExtOutMode[3]);
   
   // Does this ever change?
   nRet = PDC_GetRecordRateList(this->nDeviceNo, this->nChildNo, 

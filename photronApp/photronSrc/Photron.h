@@ -185,7 +185,9 @@ private:
   int trigModeToEPICS(int apiMode);
   int trigModeToAPI(int mode);
   int inputModeToEPICS(int apiMode);
+  int inputModeToAPI(int mode);
   int outputModeToEPICS(int apiMode);
+  int outputModeToAPI(int mode);
   asynStatus createStaticEnums();
   asynStatus createDynamicEnums();
 
