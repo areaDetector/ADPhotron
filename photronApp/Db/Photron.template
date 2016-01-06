@@ -12,63 +12,6 @@ include "ADBase.template"
 #        Photron                                                              #
 ###############################################################################
 
-#record(mbbo, "$(P)$(R)TriggerMode")
-#{
-#   field(ZRST, "Start")
-#   field(ZRVL, "0")
-#   field(ONST, "Center")
-#   field(ONVL, "1")
-#   field(TWST, "End")
-#   field(TWVL, "2")
-#   field(THST, "Random")
-#   field(THVL, "3")
-#   field(FRST, "Manual")
-#   field(FRVL, "4")
-#   field(FVST, "Random reset")
-#   field(FVVL, "5")
-#   field(SXST, "Random center")
-#   field(SXVL, "6")
-#   field(SVST, "Random manual")
-#   field(SVVL, "7")
-#   field(EIST, "Two-stage half")
-#   field(EIVL, "8")
-#   field(NIST, "Two-stage quarter")
-#   field(NIVL, "9")
-#   field(TEST, "Two-stage one-eigth")
-#   field(TEVL, "10")
-#   #field(ELST, "Random loop")
-#   #field(ELVL, "11")
-#}
-
-#record(mbbi, "$(P)$(R)TriggerMode_RBV")
-#{
-#   field(ZRST, "Start")
-#   field(ZRVL, "0")
-#   field(ONST, "Center")
-#   field(ONVL, "1")
-#   field(TWST, "End")
-#   field(TWVL, "2")
-#   field(THST, "Random")
-#   field(THVL, "3")
-#   field(FRST, "Manual")
-#   field(FRVL, "4")
-#   field(FVST, "Random reset")
-#   field(FVVL, "5")
-#   field(SXST, "Random center")
-#   field(SXVL, "6")
-#   field(SVST, "Random manual")
-#   field(SVVL, "7")
-#   field(EIST, "Two-stage half")
-#   field(EIVL, "8")
-#   field(NIST, "Two-stage quarter")
-#   field(NIVL, "9")
-#   field(TEST, "Two-stage one-eighth")
-#   field(TEVL, "10")
-#   #field(ELST, "Random loop")
-#   #field(ELVL, "11")
-#   field(SCAN, "I/O Intr")
-#}
-
 # Only 2 data types are supported, unsigned 8 and 16 bit integers
 record(mbbo, "$(P)$(R)DataType")
 {
