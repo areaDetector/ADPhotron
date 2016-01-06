@@ -2399,21 +2399,19 @@ asynStatus Photron::readParameters() {
   }
   status |= setIntegerParam(PhotronSyncPriority, this->syncPriority);
   
-  for (index=0; index<this->inPorts; index++) {
-    nRet = PDC_GetExternalInMode(this->nDeviceNo, index+1, 
-                                  &(this->ExtInMode[index]), &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_GetExternalInMode failed %d; index=%d\n", nErrorCode, index);
-      return asynError;
-    }
-  }
   // This can be combined with the above loop later
-  eVal = this->inputModeToEPICS(this->ExtInMode[0]);
   for (index=0; index<PDC_EXTIO_MAX_PORT; index++) {
     if (index < this->inPorts) {
+      nRet = PDC_GetExternalInMode(this->nDeviceNo, index+1, 
+                                   &(this->ExtInMode[index]), &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetExternalInMode failed %d; index=%d\n", nErrorCode, index);
+        return asynError;
+      }
       eVal = this->inputModeToEPICS(this->ExtInMode[index]);
     }
     else {
+      // This is necessary to avoid weird values for uninitialized mbbi records
       eVal = 0;
     }
     setIntegerParam(*PhotronExtInSig[index], eVal);
