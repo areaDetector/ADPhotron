@@ -1100,7 +1100,11 @@ asynStatus Photron::readEnum(asynUser *pasynUser, char *strings[], int values[],
   int numEnums;
   int i;
   
-  if (function == PhotronExtIn1Sig) {
+  printf("\t\t\tReading enums\n");
+  if (function == ADTriggerMode) {
+    pEnum = triggerModeEnums_;
+    numEnums = numValidTriggerModes_;
+  } else if (function == PhotronExtIn1Sig) {
     pEnum = inputModeEnums_[0];
     numEnums = numValidInputModes_[0];
   } else if (function == PhotronExtIn2Sig) {
