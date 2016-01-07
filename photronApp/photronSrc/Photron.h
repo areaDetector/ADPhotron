@@ -123,6 +123,7 @@ protected:
     int Photron8BitSel;
     int PhotronRecRate;
     int PhotronResIndex;
+    int PhotronChangeResIdx;
     int PhotronAfterFrames;
     int PhotronRandomFrames;
     int PhotronRecCount;
@@ -163,6 +164,7 @@ private:
   asynStatus setValidWidth(epicsInt32 value);
   asynStatus setValidHeight(epicsInt32 value);
   asynStatus setResolution(epicsInt32 value);
+  asynStatus changeResIndex(epicsInt32 value);
   asynStatus setGeometry();
   asynStatus getGeometry();
   asynStatus readParameters();
@@ -290,6 +292,7 @@ typedef struct {
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
 #define PhotronRecordRateString "PHOTRON_REC_RATE"   /* (asynInt32,    rw)   */
 #define PhotronResIndexString   "PHOTRON_RES_INDEX"  /* (asynInt32, rw) */
+#define PhotronChangeResIdxString "PHOTRON_CHANGE_RES_IDX" /* (asynInt32, w) */
 #define PhotronAfterFramesString "PHOTRON_AFTER_FRAMES" /* (asynInt32,    rw) */
 #define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
 #define PhotronRecCountString   "PHOTRON_REC_COUNT"  /* (asynInt32,    rw)   */

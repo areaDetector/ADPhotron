@@ -411,3 +411,12 @@ record(longin, "$(P)$(R)ResIdx_RBV")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_RES_INDEX")
    field(SCAN, "I/O Intr")
 }
+
+record(bo, "$(P)$(R)ChangeResIdx")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Change Res Index")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_RES_IDX")
+   field(ZNAM, "Decrement")
+   field(ONAM, "Increment")
+}

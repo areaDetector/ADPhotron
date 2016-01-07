@@ -88,6 +88,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
   createParam(PhotronRecordRateString,    asynParamInt32, &PhotronRecRate);
   createParam(PhotronResIndexString,      asynParamInt32, &PhotronResIndex);
+  createParam(PhotronChangeResIdxString,  asynParamInt32, &PhotronChangeResIdx);
   createParam(PhotronAfterFramesString,   asynParamInt32, &PhotronAfterFrames);
   createParam(PhotronRandomFramesString,  asynParamInt32, &PhotronRandomFrames);
   createParam(PhotronRecCountString,      asynParamInt32, &PhotronRecCount);
@@ -1016,6 +1017,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status |= setValidHeight(value);
   } else if (function == PhotronResIndex) {
     status |= setResolution(value);
+  } else if (function == PhotronChangeResIdx) {
+    status |= changeResIndex(value);
   } else if (function == ADAcquire) {
     getIntegerParam(PhotronAcquireMode, &acqMode);
     if (acqMode == 0) {
@@ -2182,6 +2185,38 @@ asynStatus Photron::setResolution(epicsInt32 value) {
   }
   
   status |= setGeometry();
+  
+  return (asynStatus)status;
+}
+
+
+asynStatus Photron::changeResIndex(epicsInt32 value) {
+  int status = asynSuccess;
+  int resIndex;
+  static const char *functionName = "changeResIndex";
+  
+  // The resolution list is in order of decreasing resolution, so increasing the
+  // index reduces the resolution
+  
+  getIntegerParam(PhotronResIndex, &resIndex);
+  
+  // Only attempt to to change the index if the list has 2 or more elements
+  if (this->ResolutionListSize > 1) {
+    if (value > 0) {
+      // Increase the res index
+      if (resIndex < ((int)this->ResolutionListSize-1)) {
+        resIndex++;
+      }
+    } else {
+      // Decrease the res index
+      if (resIndex > 0) {
+        resIndex--;
+      }
+    }
+    // Is this necessary?
+    //setIntegerParam(PhotronResIndex, resIndex);
+    this->setResolution(resIndex);
+  }
   
   return (asynStatus)status;
 }
