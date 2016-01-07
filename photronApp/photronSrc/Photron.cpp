@@ -1820,8 +1820,8 @@ asynStatus Photron::readMem() {
       epicsTimeGetCurrent(&startTime);
       
       //for (index=FrameInfo.m_nTrigger; index==(FrameInfo.m_nTrigger); index++) {
-      //for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
-      for (index=FrameInfo.m_nStart; index<101; index++) {
+      for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
+      //for (index=FrameInfo.m_nStart; index<101; index++) {
         // Allow user to abort acquisition
         if (this->abortFlag == 1) {
           printf("Aborting data readout!d\n");
