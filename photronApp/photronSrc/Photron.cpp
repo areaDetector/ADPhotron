@@ -973,7 +973,7 @@ asynStatus Photron::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
       else {
         tempVal = 1.0 / value;
       }
-      setRecordRate(tempVal);
+      setRecordRate((int)tempVal);
     } else {
       /* If this parameter belongs to a base class call its method */
       if (function < FIRST_PHOTRON_PARAM) status = ADDriver::writeFloat64(pasynUser, value);
@@ -1014,6 +1014,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status |= setValidWidth(value);
   } else if (function == ADSizeY) {
     status |= setValidHeight(value);
+  } else if (function == PhotronResIndex) {
+    status |= setResolution(value);
   } else if (function == ADAcquire) {
     getIntegerParam(PhotronAcquireMode, &acqMode);
     if (acqMode == 0) {
@@ -2147,6 +2149,44 @@ asynStatus Photron::setValidHeight(epicsInt32 value) {
 }
 
 
+asynStatus Photron::setResolution(epicsInt32 value) {
+  int status = asynSuccess;
+  int res, height, width;
+  static const char *functionName = "setResolution";
+  
+  // Is this necessary? Is it possible that values were changed without
+  // updateResolution already having been called at the end of readParameters?
+  updateResolution();
+  
+  //printf("setResolution: value=%i\n", value);
+  
+  // Currently invalid selections are ignored.  Should the max or min value be 
+  // chosen instead in the event of an invalid selection?
+  if ((value >= 0) && (value < (int)this->ResolutionListSize)) {
+    // Selection is valid
+    
+    res = this->ResolutionList[value];
+    // height is the lower 16 bits of value
+    height = res & 0xFFFF;
+    // width is the upper 16 bits of value
+    width = res >> 16;
+    
+    //printf("setResolution: %dx%d\n", width, height);
+    
+    status |= setIntegerParam(ADSizeX, width);
+    status |= setIntegerParam(ADSizeY, height);
+    
+  } else {
+    // Selection is invalid
+    //printf("!!! Invalid resolution index! %d\n", value);
+  }
+  
+  status |= setGeometry();
+  
+  return (asynStatus)status;
+}
+
+
 asynStatus Photron::setGeometry() {
   unsigned long nRet;
   unsigned long nErrorCode;
@@ -2694,6 +2734,7 @@ void Photron::report(FILE *fp, int details) {
     fprintf(fp, "\n");
     fprintf(fp, "  Width:             %d\n",  (int)this->width);
     fprintf(fp, "  Height:            %d\n",  (int)this->height);
+    fprintf(fp, "  Resolution Index:  %d\n",  this->resolutionIndex);
     fprintf(fp, "  Camera Status:     %d\n",  (int)this->nStatus);
     fprintf(fp, "  Max Frames:        %d\n",  (int)this->nMaxFrames);
     fprintf(fp, "  Record Rate:       %d\n",  (int)this->nRate);

@@ -162,6 +162,7 @@ private:
   asynStatus updateResolution();
   asynStatus setValidWidth(epicsInt32 value);
   asynStatus setValidHeight(epicsInt32 value);
+  asynStatus setResolution(epicsInt32 value);
   asynStatus setGeometry();
   asynStatus getGeometry();
   asynStatus readParameters();
