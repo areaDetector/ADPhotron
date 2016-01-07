@@ -122,6 +122,7 @@ protected:
     int PhotronMaxFrames;
     int Photron8BitSel;
     int PhotronRecRate;
+    int PhotronResIndex;
     int PhotronAfterFrames;
     int PhotronRandomFrames;
     int PhotronRecCount;
@@ -234,6 +235,7 @@ private:
   unsigned long ValidWidthList[PDC_MAX_LIST_NUMBER];
   unsigned long ValidHeightListSize;
   unsigned long ValidHeightList[PDC_MAX_LIST_NUMBER];
+  int resolutionIndex;
   // readParameters
   unsigned long nStatus; // replace with PV?
   unsigned long nMaxFrames;
@@ -286,6 +288,7 @@ typedef struct {
 #define PhotronMaxFramesString  "PHOTRON_MAX_FRAMES" /* (asynInt32,    r)   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
 #define PhotronRecordRateString "PHOTRON_REC_RATE"   /* (asynInt32,    rw)   */
+#define PhotronResIndexString   "PHOTRON_RES_INDEX"  /* (asynInt32, rw) */
 #define PhotronAfterFramesString "PHOTRON_AFTER_FRAMES" /* (asynInt32,    rw) */
 #define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
 #define PhotronRecCountString   "PHOTRON_REC_COUNT"  /* (asynInt32,    rw)   */

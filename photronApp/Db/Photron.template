@@ -396,3 +396,18 @@ record(mbbi, "$(P)$(R)SyncPriority_RBV")
    field(TWVL, "2")
    field(SCAN, "I/O Intr")
 }
+
+record(longout, "$(P)$(R)ResIdx")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Resolution Index")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_RES_INDEX")
+}
+
+record(longin, "$(P)$(R)ResIdx_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Resolution Index")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_RES_INDEX")
+   field(SCAN, "I/O Intr")
+}

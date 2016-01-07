@@ -87,6 +87,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronMaxFramesString,     asynParamInt32, &PhotronMaxFrames);
   createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
   createParam(PhotronRecordRateString,    asynParamInt32, &PhotronRecRate);
+  createParam(PhotronResIndexString,      asynParamInt32, &PhotronResIndex);
   createParam(PhotronAfterFramesString,   asynParamInt32, &PhotronAfterFrames);
   createParam(PhotronRandomFramesString,  asynParamInt32, &PhotronRandomFrames);
   createParam(PhotronRecCountString,      asynParamInt32, &PhotronRecCount);
@@ -1934,6 +1935,7 @@ asynStatus Photron::getGeometry() {
   int status = asynSuccess;
   int binX, binY;
   unsigned long minY, minX, sizeX, sizeY;
+  int resIndex;
   static const char *functionName = "getGeometry";
 
   // Photron cameras don't allow binning
@@ -1945,6 +1947,7 @@ asynStatus Photron::getGeometry() {
   
   sizeX = this->width;
   sizeY = this->height;
+  resIndex = this->resolutionIndex;
   
   status |= setIntegerParam(ADBinX,  binX);
   status |= setIntegerParam(ADBinY,  binY);
@@ -1954,6 +1957,7 @@ asynStatus Photron::getGeometry() {
   status |= setIntegerParam(ADSizeY, sizeY*binY);
   status |= setIntegerParam(NDArraySizeX, sizeX);
   status |= setIntegerParam(NDArraySizeY, sizeY);
+  status |= setIntegerParam(PhotronResIndex, resIndex);
 
   if (status)
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
@@ -1971,6 +1975,7 @@ asynStatus Photron::updateResolution() {
   unsigned long numSizesX, numSizesY;
   unsigned long width, height, value;
   int index;
+  int resIndex;
   static const char *functionName = "updateResolution";
 
   // Is this needed or can we trust the values returned by setIntegerParam?
@@ -1991,6 +1996,7 @@ asynStatus Photron::updateResolution() {
   // for the same recording rate will not change the recording rate.
   // Find valid options for the current X and Y sizes
   numSizesX = numSizesY = 0;
+  resIndex = -1;
   for (index=0; index<(int)this->ResolutionListSize; index++) {
     value = this->ResolutionList[index];
     // height is the lower 16 bits of value
@@ -2009,10 +2015,15 @@ asynStatus Photron::updateResolution() {
       this->ValidWidthList[numSizesX] = width;
       numSizesX++;
     }
+    
+    if (sizeX == width && sizeY == height) {
+      resIndex = index;
+    }
   }
   
   this->ValidWidthListSize = numSizesX;
   this->ValidHeightListSize = numSizesY;
+  this->resolutionIndex = resIndex;
   
   return asynSuccess;
 }
