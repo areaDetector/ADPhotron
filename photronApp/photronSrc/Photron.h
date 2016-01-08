@@ -123,6 +123,7 @@ protected:
     int PhotronMaxFrames;
     int Photron8BitSel;
     int PhotronRecRate;
+    int PhotronChangeRecRate;
     int PhotronResIndex;
     int PhotronChangeResIdx;
     int PhotronAfterFrames;
@@ -172,6 +173,7 @@ private:
   asynStatus readImage();
   asynStatus setTransferOption();
   asynStatus setRecordRate(epicsInt32 value);
+  asynStatus changeRecordRate(epicsInt32 value);
   asynStatus setStatus(epicsInt32 value);
   asynStatus parseResolutionList();
   void printResOptions();
@@ -254,6 +256,7 @@ private:
   unsigned long syncPriority;
   unsigned long RateListSize;
   unsigned long RateList[PDC_MAX_LIST_NUMBER];
+  int recRateIndex;
   unsigned long ResolutionListSize;
   unsigned long ResolutionList[PDC_MAX_LIST_NUMBER];
   unsigned long TriggerModeListSize;
@@ -294,6 +297,7 @@ typedef struct {
 #define PhotronMaxFramesString  "PHOTRON_MAX_FRAMES" /* (asynInt32,    r)   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
 #define PhotronRecordRateString "PHOTRON_REC_RATE"   /* (asynInt32,    rw)   */
+#define PhotronChangeRecRateString "PHOTRON_CHANGE_REC_RATE" /* (asynInt32, rw) */
 #define PhotronResIndexString   "PHOTRON_RES_INDEX"  /* (asynInt32, rw) */
 #define PhotronChangeResIdxString "PHOTRON_CHANGE_RES_IDX" /* (asynInt32, w) */
 #define PhotronAfterFramesString "PHOTRON_AFTER_FRAMES" /* (asynInt32,    rw) */

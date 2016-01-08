@@ -215,6 +215,15 @@ record(longin, "$(P)$(R)RecordRate_RBV")
    field(SCAN, "I/O Intr")
 }
 
+record(bo, "$(P)$(R)ChangeRecRate")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Change Rec Rate")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_REC_RATE")
+   field(ZNAM, "Decrease")
+   field(ONAM, "Increase")
+}
+
 record(longout, "$(P)$(R)AfterFrames")
 {
    field(DTYP, "asynInt32")

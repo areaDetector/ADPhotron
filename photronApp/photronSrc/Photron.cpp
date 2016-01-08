@@ -88,6 +88,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronMaxFramesString,     asynParamInt32, &PhotronMaxFrames);
   createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
   createParam(PhotronRecordRateString,    asynParamInt32, &PhotronRecRate);
+  createParam(PhotronChangeRecRateString, asynParamInt32, &PhotronChangeRecRate);
   createParam(PhotronResIndexString,      asynParamInt32, &PhotronResIndex);
   createParam(PhotronChangeResIdxString,  asynParamInt32, &PhotronChangeResIdx);
   createParam(PhotronAfterFramesString,   asynParamInt32, &PhotronAfterFrames);
@@ -1071,6 +1072,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setTransferOption();
   } else if (function == PhotronRecRate) {
     setRecordRate(value);
+  } else if (function == PhotronChangeRecRate) {
+    changeRecordRate(value);
   } else if (function == PhotronStatus) {
     setStatus(value);
   } else if (function == PhotronSoftTrig) {
@@ -2436,6 +2439,7 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
   if (this->RateListSize == 1) {
     // Don't allow the value to be changed
     value = this->RateList[0];
+    this->recRateIndex = 0;
   } else {
     /* Choose the closest allowed rate 
        NOTE: RateList is in ascending order */
@@ -2446,9 +2450,11 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
         // One of the rates (index or index+1) is the best choice
         if (upperDiff < lowerDiff) {
           value = this->RateList[index+1];
+          this->recRateIndex = index + 1;
           break;
         } else {
           value = this->RateList[index];
+          this->recRateIndex = index;
           break;
         }
       } else {
@@ -2456,6 +2462,7 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
         if (index == this->RateListSize-2) {
           // value is higher than the highest rate
           value = this->RateList[index+1];
+          this->recRateIndex = index + 1;
           break;
         } else {
           // We haven't found the closest rate yet
@@ -2480,6 +2487,39 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
   // Changing the record rate changes the current and available resolutions
   
   return asynSuccess;
+}
+
+
+asynStatus Photron::changeRecordRate(epicsInt32 value) {
+  int status = asynSuccess;
+  int newRecRateIndex;
+  int newRecRate;
+  static const char *functionName = "changeRecRate";
+  
+  // The record rate list is in order of incresting rate
+  // Assumption: this->recRateIndex is up-to-date
+  
+  // By default the rec rate stays the same
+  newRecRateIndex = this->recRateIndex;
+  
+  // Only attempt to to change the index if the list has 2 or more elements
+  if (this->RateListSize > 1) {
+    if (value > 0) {
+      // Increase the record rate
+      if (this->recRateIndex < ((int)this->RateListSize-1)) {
+        newRecRateIndex = this->recRateIndex + 1;
+      }
+    } else {
+      // Decrease the record rate
+      if (this->recRateIndex > 0) {
+        newRecRateIndex = this->recRateIndex - 1;
+      }
+    }
+    newRecRate = this->RateList[newRecRateIndex];
+    this->setRecordRate(newRecRate);
+  }
+  
+  return (asynStatus)status;
 }
 
 

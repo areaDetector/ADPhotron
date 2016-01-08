@@ -944,8 +944,8 @@ text {
 }
 "message button" {
 	object {
-		x=146
-		y=753
+		x=141
+		y=735
 		width=100
 		height=25
 	}
@@ -959,8 +959,8 @@ text {
 }
 "message button" {
 	object {
-		x=255
-		y=754
+		x=253
+		y=735
 		width=100
 		height=25
 	}
@@ -999,4 +999,34 @@ text {
 		clr=14
 	}
 	textix="Cam Mode"
+}
+"message button" {
+	object {
+		x=141
+		y=768
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeRecRate.VAL"
+		clr=14
+		bclr=4
+	}
+	label="Inc Rate"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=253
+		y=768
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeRecRate.VAL"
+		clr=14
+		bclr=4
+	}
+	label="Dec Rate"
+	press_msg="0"
 }
