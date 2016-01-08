@@ -12,6 +12,18 @@ include "ADBase.template"
 #        Photron                                                              #
 ###############################################################################
 
+#
+record(longin, "$(P)$(R)SizeX_RBV")
+{
+   field(FLNK, "$(P)$(R)SyncX")
+}
+
+record(longin, "$(P)$(R)SizeY_RBV")
+{
+   field(FLNK, "$(P)$(R)SyncY")
+}
+
+
 # Acquire time needs a higher precision
 record(ao, "$(P)$(R)AcquireTime")
 {
@@ -433,4 +445,20 @@ record(bo, "$(P)$(R)ChangeResIdx")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_RES_IDX")
    field(ZNAM, "Decrement")
    field(ONAM, "Increment")
+}
+
+record(calcout, "$(P)$(R)SyncX")
+{
+   field(DESC, "Sync res targets")
+   field(INPA, "$(P)$(R)SizeX_RBV")
+   field(CALC, "A")
+   field(OUT,  "$(P)$(R)SizeX PP")
+}
+
+record(calcout, "$(P)$(R)SyncY")
+{
+   field(DESC, "Sync res targets")
+   field(INPA, "$(P)$(R)SizeY_RBV")
+   field(CALC, "A")
+   field(OUT,  "$(P)$(R)SizeY PP")
 }
