@@ -2061,23 +2061,23 @@ asynStatus Photron::setValidWidth(epicsInt32 value) {
         lowerDiff = value - (epicsInt32)this->ValidWidthList[index+1];
         // One of the widths (index or index+1) is the best choice
         if (upperDiff < lowerDiff) {
-          printf("Replaced %d ", value);
+          //printf("Replaced %d ", value);
           value = this->ValidWidthList[index];
-          printf("with %d\n", value);
+          //printf("with %d\n", value);
           break;
         } else {
-          printf("Replaced %d ", value);
+          //printf("Replaced %d ", value);
           value = this->ValidWidthList[index+1];
-          printf("with %d\n", value);
+          //printf("with %d\n", value);
           break;
         }
       } else {
         // Are we at the end of the list?
         if (index == this->ValidWidthListSize-2) {
           // Value is lower than the lowest rate
-          printf("Replaced %d ", value);
+          //printf("Replaced %d ", value);
           value = this->ValidWidthList[index+1];
-          printf("with %d\n", value);
+          //printf("with %d\n", value);
           break;
         } else {
           // We haven't found the closest width yet
@@ -2120,23 +2120,23 @@ asynStatus Photron::setValidHeight(epicsInt32 value) {
         lowerDiff = value - (epicsInt32)this->ValidHeightList[index+1];
         // One of the widths (index or index+1) is the best choice
         if (upperDiff < lowerDiff) {
-          printf("Replaced %d ", value);
+          //printf("Replaced %d ", value);
           value = this->ValidHeightList[index];
-          printf("with %d\n", value);
+          //printf("with %d\n", value);
           break;
         } else {
-          printf("Replaced %d ", value);
+          //printf("Replaced %d ", value);
           value = this->ValidHeightList[index+1];
-          printf("with %d\n", value);
+          //printf("with %d\n", value);
           break;
         }
       } else {
         // Are we at the end of the list?
         if (index == this->ValidHeightListSize-2) {
           // Value is lower than the lowest rate
-          printf("Replaced %d ", value);
+          //printf("Replaced %d ", value);
           value = this->ValidHeightList[index+1];
-          printf("with %d\n", value);
+          //printf("with %d\n", value);
           break;
         } else {
           // We haven't found the closest width yet
