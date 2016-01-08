@@ -135,6 +135,19 @@ record(mbbo, "$(P)$(R)AcquireMode")
    field(VAL,  "0")
 }
 
+# OpMode has similar values to CamMode_RBV. It isn't called CamMode because 
+# there is no way to directly set the CamMode.
+record(mbbo, "$(P)$(R)OpMode")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Operating Mode")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_OP_MODE")
+   field(ZRST, "Default")
+   field(ZRVL, "0")
+   field(ONST, "Variable")
+   field(ONVL, "1")
+}
+
 record(longin, "$(P)$(R)Status_RBV")
 {
    field(DTYP, "asynInt32")

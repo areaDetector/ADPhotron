@@ -85,6 +85,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronStatusString,        asynParamInt32, &PhotronStatus);
   createParam(PhotronCamModeString,       asynParamInt32, &PhotronCamMode);
   createParam(PhotronAcquireModeString,   asynParamInt32, &PhotronAcquireMode);
+  createParam(PhotronOpModeString,        asynParamInt32, &PhotronOpMode);
   createParam(PhotronMaxFramesString,     asynParamInt32, &PhotronMaxFrames);
   createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
   createParam(PhotronRecordRateString,    asynParamInt32, &PhotronRecRate);
@@ -1060,6 +1061,11 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       
       // Wake up the PhotronRecTask
       epicsEventSignal(this->startRecEventId);
+    }
+  } else if (function == PhotronOpMode) {
+    // What should be done when this mode is changed?
+    if (value == 1) {
+      readVariableInfo();
     }
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
@@ -2710,6 +2716,47 @@ asynStatus Photron::readParameters() {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
               "%s:%s: error, status=%d\n", driverName, functionName, status);
   return((asynStatus)status);
+}
+
+
+asynStatus Photron::readVariableInfo() {
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  int status = asynSuccess;
+  unsigned long wStep, hStep, xPosStep, yPosStep, wMin, hMin, freePos;
+  int channel;
+  unsigned long rate, width, height, xPos, yPos;
+  static const char *functionName = "readVariableInfo";  
+  
+  nRet = PDC_GetVariableRestriction(this->nDeviceNo, &wStep, &hStep, &xPosStep,
+                                    &yPosStep, &wMin, &hMin, &freePos,
+                                    &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetVariableRestriction failed. Error %d\n", nErrorCode);
+    return asynError;
+  } 
+  printf("\nVariable restrictions:\n");
+  printf("\tWidth Step: %d\n", wStep);
+  printf("\tHeight Step: %d\n", hStep);
+  printf("\tX Pos Step: %d\n", xPosStep);
+  printf("\tY Pos Step: %d\n", yPosStep);
+  printf("\tMin Width: %d\n", wMin);
+  printf("\tMin Height: %d\n", hMin);
+  printf("\tFree Pos: %d\n", freePos);
+  
+  printf("\nChannel\tRate\tWidth\tHeight\tXPos\tYPos\n");
+  for (channel = 1; channel <= PDC_VARIABLE_NUM; channel++) {
+    nRet = PDC_GetVariableChannelInfo(this->nDeviceNo, channel, &rate, &width,
+                                      &height, &xPos, &yPos, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetVariableChannelInfo failed. Error %d\n", nErrorCode);
+      return asynError;
+    }
+    
+    printf("%d\t%d\t%d\t%d\t%d\t%d\n", channel, rate, width, height, xPos, yPos);
+  }
+  
+  return asynSuccess;
 }
 
 
