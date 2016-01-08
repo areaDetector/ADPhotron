@@ -83,6 +83,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
 
   // CREATE PARAMS HERE
   createParam(PhotronStatusString,        asynParamInt32, &PhotronStatus);
+  createParam(PhotronCamModeString,       asynParamInt32, &PhotronCamMode);
   createParam(PhotronAcquireModeString,   asynParamInt32, &PhotronAcquireMode);
   createParam(PhotronMaxFramesString,     asynParamInt32, &PhotronMaxFrames);
   createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
@@ -2529,6 +2530,13 @@ asynStatus Photron::readParameters() {
     return asynError;
   }
   status |= setIntegerParam(PhotronStatus, this->nStatus);
+  
+  nRet = PDC_GetCamMode(this->nDeviceNo, this->nChildNo, &(this->camMode), &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetCamMode failed %d\n", nErrorCode);
+    return asynError;
+  }
+  status |= setIntegerParam(PhotronStatus, this->camMode);
   
   nRet = PDC_GetRecordRate(this->nDeviceNo, this->nChildNo, &(this->nRate), &nErrorCode);
   if (nRet == PDC_FAILED) {

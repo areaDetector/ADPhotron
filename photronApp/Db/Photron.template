@@ -130,6 +130,20 @@ record(longin, "$(P)$(R)Status_RBV")
    field(SCAN, "I/O Intr")
 }
 
+record(mbbi, "$(P)$(R)CamMode_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "8 Bit Select")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CAM_MODE")
+   field(ZRST, "Default")
+   field(ZRVL, "0")
+   field(ONST, "Variable")
+   field(ONVL, "1")
+   field(TWST, "External")
+   field(TWVL, "2")
+   field(SCAN, "I/O Intr")
+}
+
 record(longin, "$(P)$(R)MaxFrames_RBV")
 {
    field(DTYP, "asynInt32")
