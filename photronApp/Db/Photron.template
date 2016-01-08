@@ -293,46 +293,6 @@ record(bo, "$(P)$(R)SoftwareTrigger") {
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SOFT_TRIG")
 }
 
-record(bo, "$(P)$(R)RecReady") {
-  field(PINI, "NO")
-  field(DTYP, "asynInt32")
-  field(ZNAM, "Done")
-  field(ONAM, "Apply")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_REC_READY")
-}
-
-record(bo, "$(P)$(R)Endless") {
-  field(PINI, "NO")
-  field(DTYP, "asynInt32")
-  field(ZNAM, "Done")
-  field(ONAM, "Apply")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_ENDLESS")
-}
-
-record(bo, "$(P)$(R)Live") {
-  field(PINI, "NO")
-  field(DTYP, "asynInt32")
-  field(ZNAM, "Done")
-  field(ONAM, "Apply")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_LIVE")
-}
-
-record(bo, "$(P)$(R)Playback") {
-  field(PINI, "NO")
-  field(DTYP, "asynInt32")
-  field(ZNAM, "Done")
-  field(ONAM, "Apply")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PLAYBACK")
-}
-
-record(bo, "$(P)$(R)ReadMem") {
-  field(PINI, "NO")
-  field(DTYP, "asynInt32")
-  field(ZNAM, "Done")
-  field(ONAM, "Apply")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_READ_MEM")
-}
-
 record(longin, "$(P)$(R)MemIRIGDay_RBV")
 {
    field(DTYP, "asynInt32")

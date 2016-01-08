@@ -95,11 +95,6 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronRandomFramesString,  asynParamInt32, &PhotronRandomFrames);
   createParam(PhotronRecCountString,      asynParamInt32, &PhotronRecCount);
   createParam(PhotronSoftTrigString,      asynParamInt32, &PhotronSoftTrig);
-  createParam(PhotronRecReadyString,      asynParamInt32, &PhotronRecReady);
-  createParam(PhotronLiveString,          asynParamInt32, &PhotronLive);
-  createParam(PhotronPlaybackString,      asynParamInt32, &PhotronPlayback);
-  createParam(PhotronEndlessString,       asynParamInt32, &PhotronEndless);
-  createParam(PhotronReadMemString,       asynParamInt32, &PhotronReadMem);
   createParam(PhotronIRIGString,          asynParamInt32, &PhotronIRIG);
   createParam(PhotronMemIRIGDayString,    asynParamInt32, &PhotronMemIRIGDay);
   createParam(PhotronMemIRIGHourString,   asynParamInt32, &PhotronMemIRIGHour);
@@ -1079,21 +1074,6 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronSoftTrig) {
     printf("Soft Trigger changed. value = %d\n", value);
     softwareTrigger();
-    
-  } else if (function == PhotronRecReady) {
-    setRecReady();
-    
-  } else if (function == PhotronEndless) {
-    setEndless();
-    
-  } else if (function == PhotronLive) {
-    setLive();
-    
-  } else if (function == PhotronPlayback) {
-    setPlayback();
-    
-  } else if (function == PhotronReadMem) {
-    readMem();
     
   } else if ((function == ADTriggerMode) || (function == PhotronAfterFrames) ||
             (function == PhotronRandomFrames) || (function == PhotronRecCount)) {

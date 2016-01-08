@@ -130,11 +130,6 @@ protected:
     int PhotronRandomFrames;
     int PhotronRecCount;
     int PhotronSoftTrig;
-    int PhotronRecReady;
-    int PhotronEndless;
-    int PhotronLive;
-    int PhotronPlayback;
-    int PhotronReadMem;
     int PhotronIRIG;
     int PhotronMemIRIGDay;
     int PhotronMemIRIGHour;
@@ -304,11 +299,6 @@ typedef struct {
 #define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
 #define PhotronRecCountString   "PHOTRON_REC_COUNT"  /* (asynInt32,    rw)   */
 #define PhotronSoftTrigString   "PHOTRON_SOFT_TRIG"   /* (asynInt32,    w) */
-#define PhotronRecReadyString   "PHOTRON_REC_READY"  /* (asynInt32,    w) */
-#define PhotronEndlessString    "PHOTRON_ENDLESS"  /* (asynInt32,    w) */
-#define PhotronLiveString       "PHOTRON_LIVE"  /* (asynInt32,    w) */
-#define PhotronPlaybackString   "PHOTRON_PLAYBACK"  /* (asynInt32,    w) */
-#define PhotronReadMemString    "PHOTRON_READ_MEM"   /* (asynInt32,    w) */
 #define PhotronIRIGString       "PHOTRON_IRIG"   /* (asynInt32,    w) */
 #define PhotronMemIRIGDayString "PHOTRON_MEM_IRIG_DAY" /* (asynInt32,    r) */
 #define PhotronMemIRIGHourString "PHOTRON_MEM_IRIG_HOUR" /* (asynInt32,    r) */
