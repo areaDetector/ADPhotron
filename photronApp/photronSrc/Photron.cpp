@@ -2562,7 +2562,7 @@ asynStatus Photron::readParameters() {
     printf("PDC_GetCamMode failed %d\n", nErrorCode);
     return asynError;
   }
-  status |= setIntegerParam(PhotronStatus, this->camMode);
+  status |= setIntegerParam(PhotronCamMode, this->camMode);
   
   nRet = PDC_GetRecordRate(this->nDeviceNo, this->nChildNo, &(this->nRate), &nErrorCode);
   if (nRet == PDC_FAILED) {
@@ -2726,6 +2726,7 @@ asynStatus Photron::readVariableInfo() {
   unsigned long wStep, hStep, xPosStep, yPosStep, wMin, hMin, freePos;
   int channel;
   unsigned long rate, width, height, xPos, yPos;
+  unsigned long ch;
   static const char *functionName = "readVariableInfo";  
   
   nRet = PDC_GetVariableRestriction(this->nDeviceNo, &wStep, &hStep, &xPosStep,
@@ -2756,6 +2757,19 @@ asynStatus Photron::readVariableInfo() {
     printf("%d\t%d\t%d\t%d\t%d\t%d\n", channel, rate, width, height, xPos, yPos);
   }
   
+  nRet = PDC_GetVariableChannel(this->nDeviceNo, this->nChildNo, &ch, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetVariableChannel failed. Error %d\n", nErrorCode);
+  } else {
+    // In Default mode, ch is 0
+    printf("ch = %d\n", ch);
+  }
+  
+  nRet = PDC_SetVariableChannel(this->nDeviceNo, this->nChildNo, 2, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetVariableChannel failed. Error %d\n", nErrorCode);
+  }
+
   return asynSuccess;
 }
 
