@@ -234,6 +234,8 @@ private:
   // updateResolution
   unsigned long width;
   unsigned long height;
+  unsigned long xPos;
+  unsigned long yPos;
   unsigned long ValidWidthListSize;
   unsigned long ValidWidthList[PDC_MAX_LIST_NUMBER];
   unsigned long ValidHeightListSize;

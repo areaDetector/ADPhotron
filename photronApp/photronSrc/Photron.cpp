@@ -1935,11 +1935,11 @@ asynStatus Photron::getGeometry() {
 
   // Photron cameras don't allow binning
   binX = binY = 1;
-  // Assume the reduce resolution images use the upper-left corner of the chip
-  minX = minY = 0;
   
   status |= updateResolution();
   
+  minX = this->xPos;
+  minY = this->yPos;
   sizeX = this->width;
   sizeY = this->height;
   resIndex = this->resolutionIndex;
@@ -1967,6 +1967,7 @@ asynStatus Photron::updateResolution() {
   unsigned long nErrorCode;
   int status = asynSuccess;
   unsigned long sizeX, sizeY;
+  unsigned long xPos, yPos;
   unsigned long numSizesX, numSizesY;
   unsigned long width, height, value;
   int index;
@@ -1983,6 +1984,15 @@ asynStatus Photron::updateResolution() {
   
   this->width = sizeX;
   this->height = sizeY;
+  
+  nRet = PDC_GetSegmentPosition(this->nDeviceNo, this->nChildNo, &xPos, &yPos,
+                                &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetSegmentPosition Error %d\n", nErrorCode);
+  }
+  
+  this->xPos = xPos;
+  this->yPos = yPos;
   
   // We assume the resolution list is up-to-date (it should be updated by 
   // readParameters after the recording rate is modified
