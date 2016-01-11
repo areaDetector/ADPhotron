@@ -75,3 +75,7 @@ iocInit()
 
 # save things every thirty seconds
 create_monitor_set("auto_settings.req", 30, "P=$(PREFIX)")
+
+# A small delay is needed before syncing the resolution targets
+epicsThreadSleep(1.0)
+dbpf "$(PREFIX)cam1:SyncFanout.PROC" "1"

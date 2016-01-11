@@ -1,10 +1,43 @@
 #
 $(P)$(R)AcquireMode
 $(P)$(R)8BitSel
+# Save record rate instead of acquire time
 $(P)$(R)RecordRate
 $(P)$(R)AfterFrames
 $(P)$(R)RandomFrames
 $(P)$(R)RecCount
 $(P)$(R)IRIG
+# Save res index instead of size X and size Y
+$(P)$(R)ResIdx
 
-file "ADBase_settings.req", P=$(P), R=$(R)
+# Settings usually found in ADBase_settings.req
+# Need to omit some of them, so ADBase_settings.req can't be included
+#!$(P)$(R)BinX
+#!$(P)$(R)BinY
+#!$(P)$(R)MinX
+#!$(P)$(R)MinY
+#!$(P)$(R)SizeX
+#!$(P)$(R)SizeY
+$(P)$(R)ReverseX
+$(P)$(R)ReverseY
+#!$(P)$(R)AcquireTime
+$(P)$(R)AcquirePeriod
+$(P)$(R)Gain
+$(P)$(R)FrameType
+$(P)$(R)ImageMode
+$(P)$(R)TriggerMode
+$(P)$(R)NumExposures
+$(P)$(R)NumImages
+$(P)$(R)ShutterMode
+$(P)$(R)ShutterOpenDelay
+$(P)$(R)ShutterCloseDelay
+$(P)$(R)ShutterOpenEPICS.OUT
+$(P)$(R)ShutterCloseEPICS.OUT
+$(P)$(R)ShutterOpenEPICS.OCAL
+$(P)$(R)ShutterCloseEPICS.OCAL
+$(P)$(R)ShutterStatusEPICS_RBV.INP
+$(P)$(R)ShutterStatusEPICS_RBV.ZRVL
+$(P)$(R)ShutterStatusEPICS_RBV.ONVL
+$(P)$(R)Temperature
+$(P)$(R)ReadStatus.SCAN
+file "NDArrayBase_settings.req", P=$(P), R=$(R)

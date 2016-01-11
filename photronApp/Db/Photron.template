@@ -33,7 +33,6 @@ include "ADBase.template"
 #!   field(FLNK, "$(P)$(R)SyncMinY")
 #!}
 
-
 # Acquire time needs a higher precision
 record(ao, "$(P)$(R)AcquireTime")
 {
@@ -44,6 +43,33 @@ record(ai, "$(P)$(R)AcquireTime_RBV")
 {
    field(PREC, "7")
 }
+
+# Don't process records at iocInit that interfere with autosave
+record(longout, "$(P)$(R)BinX")
+{
+   field(PINI, "NO")
+}
+record(longout, "$(P)$(R)BinY")
+{
+   field(PINI, "NO")
+}
+record(longout, "$(P)$(R)MinX")
+{
+   field(PINI, "NO")
+}
+record(longout, "$(P)$(R)MinY")
+{
+   field(PINI, "NO")
+}
+record(longout, "$(P)$(R)SizeX")
+{
+   field(PINI, "NO")
+}
+record(longout, "$(P)$(R)SizeY")
+{
+   field(PINI, "NO")
+}
+
 
 # Only 2 data types are supported, unsigned 8 and 16 bit integers
 record(mbbo, "$(P)$(R)DataType")
@@ -417,6 +443,7 @@ record(mbbi, "$(P)$(R)SyncPriority_RBV")
 
 record(longout, "$(P)$(R)ResIdx")
 {
+   field(PINI, "YES")
    field(DTYP, "asynInt32")
    field(DESC, "Resolution Index")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_RES_INDEX")
@@ -428,6 +455,15 @@ record(longin, "$(P)$(R)ResIdx_RBV")
    field(DESC, "Resolution Index")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_RES_INDEX")
    field(SCAN, "I/O Intr")
+   field(FLNK, "$(P)$(R)ResIdxSync")
+}
+
+record(calcout, "$(P)$(R)ResIdxSync")
+{
+   field(DESC, "Sync res index")
+   field(INPA, "$(P)$(R)ResIdx_RBV")
+   field(CALC, "A")
+   field(OUT,  "$(P)$(R)ResIdx PP")
 }
 
 record(bo, "$(P)$(R)ChangeResIdx")
@@ -437,6 +473,14 @@ record(bo, "$(P)$(R)ChangeResIdx")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_RES_IDX")
    field(ZNAM, "Decrement")
    field(ONAM, "Increment")
+}
+
+record(fanout, "$(P)$(R)SyncFanout")
+{
+   field(LNK1, "$(P)$(R)SyncSizeX")
+   field(LNK2, "$(P)$(R)SyncSizeY")
+   field(LNK3, "$(P)$(R)SyncMinX")
+   field(LNK4, "$(P)$(R)SyncMinY")
 }
 
 record(calcout, "$(P)$(R)SyncSizeX")

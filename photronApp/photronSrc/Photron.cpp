@@ -998,7 +998,9 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int status = asynSuccess;
   int adstatus, acqMode;
   static const char *functionName = "writeInt32";
-
+  
+  //printf("FUNCTION: %d - VALUE: %d\n", function, value);
+  
   /* Set the parameter and readback in the parameter library.  This may be 
    * overwritten when we read back the status at the end, but that's OK */
   status |= setIntegerParam(function, value);
@@ -1985,6 +1987,7 @@ asynStatus Photron::updateResolution() {
     return asynError;
   }
   
+  //printf("RESOLUTION: %d x %d\n", sizeX, sizeY);
   this->width = sizeX;
   this->height = sizeY;
   
@@ -2429,6 +2432,12 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
   epicsInt32 upperDiff, lowerDiff;
   
   static const char *functionName = "setRecordRate";
+  
+  if (this->nRate == value) {
+    // New value is the same as the current value, do nothing so that the
+    // current resolution settings are not lost
+    return asynSuccess;
+  }
   
   if (this->RateListSize == 0) {
     printf("Error: RateListSize is ZERO\n");
