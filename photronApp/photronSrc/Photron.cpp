@@ -92,6 +92,13 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronChangeRecRateString, asynParamInt32, &PhotronChangeRecRate);
   createParam(PhotronResIndexString,      asynParamInt32, &PhotronResIndex);
   createParam(PhotronChangeResIdxString,  asynParamInt32, &PhotronChangeResIdx);
+  createParam(PhotronVarChanString,       asynParamInt32, &PhotronVarChan);
+  createParam(PhotronChangeVarChanString, asynParamInt32, &PhotronChangeVarChan);
+  createParam(PhotronVarChanRateString,   asynParamInt32, &PhotronVarChanRate);
+  createParam(PhotronVarChanXSizeString,  asynParamInt32, &PhotronVarChanXSize);
+  createParam(PhotronVarChanYSizeString,  asynParamInt32, &PhotronVarChanYSize);
+  createParam(PhotronVarChanXPosString,   asynParamInt32, &PhotronVarChanXPos);
+  createParam(PhotronVarChanYPosString,   asynParamInt32, &PhotronVarChanYPos);
   createParam(PhotronAfterFramesString,   asynParamInt32, &PhotronAfterFrames);
   createParam(PhotronRandomFramesString,  asynParamInt32, &PhotronRandomFrames);
   createParam(PhotronRecCountString,      asynParamInt32, &PhotronRecCount);
@@ -650,6 +657,8 @@ asynStatus Photron::connectCamera() {
   status |= setIntegerParam(ADSizeY, this->sensorHeight);
   status |= setIntegerParam(ADMaxSizeX, this->sensorWidth);
   status |= setIntegerParam(ADMaxSizeY, this->sensorHeight);
+  //
+  status |= setIntegerParam(PhotronVarChan, 1);
   
   if (status) {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
@@ -1069,6 +1078,10 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     if (value == 1) {
       readVariableInfo();
     }
+  } else if (function == PhotronVarChan) {
+    setVariableChannel(value);
+  } else if (function == PhotronChangeVarChan) {
+    changeVariableChannel(value);
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -2531,6 +2544,59 @@ asynStatus Photron::changeRecordRate(epicsInt32 value) {
 }
 
 
+asynStatus Photron::changeVariableChannel(epicsInt32 value) {
+  int status = asynSuccess;
+  int chan;
+  static const char *functionName = "changeVariableChannel";
+  
+  status |= getIntegerParam(PhotronVarChan, &chan);
+  
+  // setVeriableChannel corrects invalid channels, so no checking is done here
+  if (value > 0) {
+    // Increase the channel index
+    chan++;
+  } else {
+    // Decrease the channel index
+    chan--;
+  }
+  
+  status |= this->setVariableChannel(chan);
+  
+  return (asynStatus)status;
+}
+
+
+asynStatus Photron::setVariableChannel(epicsInt32 value) {
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  int status = asynSuccess;
+  int chan;
+  static const char *functionName = "setVariableChannel";
+  
+  // What to do if not in variable mode?
+  
+  // Channel = 0 in default mode, but zero isn't a valid arguement to the set call
+  
+  // Channel has a range of 1-20
+  if (value < 1) {
+    chan = 1;
+  } else if (value > NUM_VAR_CHANS) {
+    chan = NUM_VAR_CHANS;
+  } else {
+    chan = value;
+  }
+  
+  nRet = PDC_SetVariableChannel(this->nDeviceNo, this->nChildNo, chan, 
+                                &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetVariableChannel Error %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  return (asynStatus)status;
+}
+
+
 asynStatus Photron::setStatus(epicsInt32 value) {
   unsigned long nRet;
   unsigned long nErrorCode;
@@ -2565,6 +2631,7 @@ asynStatus Photron::readParameters() {
   int tmode;
   int index;
   int eVal;
+  int chan, opMode;
   char bitDepthChar;
   static const char *functionName = "readParameters";    
   
@@ -2709,15 +2776,29 @@ asynStatus Photron::readParameters() {
     return asynError;
   }
   
-  /* SA-Z note: if this isn't called here, the number of modes is incorrect */
-  /*nRet = PDC_GetTriggerModeList(this->nDeviceNo, &(this->TriggerModeListSize),
-                                this->TriggerModeList, &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_GetTriggerModeList failed %d\n", nErrorCode);
-    return asynError;
-  } else {
-    printf("\t!!! num trig modes = %d\n", this->TriggerModeListSize);
-  }*/
+  getIntegerParam(PhotronVarChan, &chan);
+  getIntegerParam(PhotronOpMode, &opMode);
+  
+  if (opMode == 1) {
+    
+    if (chan > 0) {
+      nRet = PDC_GetVariableChannelInfo(this->nDeviceNo, chan, &(this->varRate),
+                                        &(this->varWidth), &(this->varHeight),
+                                        &(this->varXPos), &(this->varYPos),
+                                        &nErrorCode);
+    } else {
+      this->varRate = 0;
+      this->varWidth = 0;
+      this->varHeight = 0;
+      this->varXPos = 0;
+      this->varYPos = 0;
+    }
+    setIntegerParam(PhotronVarChanRate, this->varRate);
+    setIntegerParam(PhotronVarChanXSize, this->varWidth);
+    setIntegerParam(PhotronVarChanYSize, this->varHeight);
+    setIntegerParam(PhotronVarChanXPos, this->varXPos);
+    setIntegerParam(PhotronVarChanYPos, this->varYPos);
+  }
   
   if (functionList[PDC_EXIST_HIGH_SPEED_MODE] == PDC_EXIST_SUPPORTED) {
     nRet = PDC_GetHighSpeedMode(this->nDeviceNo, &(this->highSpeedMode),
@@ -2787,11 +2868,13 @@ asynStatus Photron::readVariableInfo() {
     printf("ch = %d\n", ch);
   }
   
+  /*
   nRet = PDC_SetVariableChannel(this->nDeviceNo, this->nChildNo, 2, &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_SetVariableChannel failed. Error %d\n", nErrorCode);
   }
-
+  */
+  
   return asynSuccess;
 }
 

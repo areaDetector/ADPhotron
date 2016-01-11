@@ -7,6 +7,7 @@
 #define NUM_INPUT_MODES 17
 #define NUM_OUTPUT_MODES 35
 #define MAX_ENUM_STRING_SIZE 26
+#define NUM_VAR_CHANS 20
 
 typedef struct {
   int value;
@@ -127,6 +128,13 @@ protected:
     int PhotronChangeRecRate;
     int PhotronResIndex;
     int PhotronChangeResIdx;
+    int PhotronVarChan;
+    int PhotronChangeVarChan;
+    int PhotronVarChanRate;
+    int PhotronVarChanXSize;
+    int PhotronVarChanYSize;
+    int PhotronVarChanXPos;
+    int PhotronVarChanYPos;
     int PhotronAfterFrames;
     int PhotronRandomFrames;
     int PhotronRecCount;
@@ -171,6 +179,8 @@ private:
   asynStatus setTransferOption();
   asynStatus setRecordRate(epicsInt32 value);
   asynStatus changeRecordRate(epicsInt32 value);
+  asynStatus setVariableChannel(epicsInt32 value);
+  asynStatus changeVariableChannel(epicsInt32 value);
   asynStatus setStatus(epicsInt32 value);
   asynStatus parseResolutionList();
   void printResOptions();
@@ -262,6 +272,11 @@ private:
   unsigned long TriggerModeList[PDC_MAX_LIST_NUMBER];
   unsigned long pixelBits;
   unsigned long highSpeedMode;
+  unsigned long varRate;
+  unsigned long varWidth;
+  unsigned long varHeight;
+  unsigned long varXPos;
+  unsigned long varYPos;
   // where should this reside in the list?
   unsigned long bitDepth;
   //
@@ -297,9 +312,16 @@ typedef struct {
 #define PhotronMaxFramesString  "PHOTRON_MAX_FRAMES" /* (asynInt32,    r)   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
 #define PhotronRecordRateString "PHOTRON_REC_RATE"   /* (asynInt32,    rw)   */
-#define PhotronChangeRecRateString "PHOTRON_CHANGE_REC_RATE" /* (asynInt32, rw) */
+#define PhotronChangeRecRateString "PHOTRON_CHANGE_REC_RATE" /* (asynInt32, w) */
 #define PhotronResIndexString   "PHOTRON_RES_INDEX"  /* (asynInt32, rw) */
 #define PhotronChangeResIdxString "PHOTRON_CHANGE_RES_IDX" /* (asynInt32, w) */
+#define PhotronVarChanString "PHOTRON_VAR_CHAN"   /* (asynInt32,    rw)   */
+#define PhotronChangeVarChanString "PHOTRON_CHANGE_VAR_CHAN" /* (asynInt32, w) */
+#define PhotronVarChanRateString "PHOTRON_VAR_CHAN_RATE" /* (asynInt32,  r) */
+#define PhotronVarChanXSizeString "PHOTRON_VAR_CHAN_X_SIZE" /* (asynInt32,  r) */
+#define PhotronVarChanYSizeString "PHOTRON_VAR_CHAN_Y_SIZE" /* (asynInt32,  r) */
+#define PhotronVarChanXPosString "PHOTRON_VAR_CHAN_X_POS" /* (asynInt32,  r) */
+#define PhotronVarChanYPosString "PHOTRON_VAR_CHAN_Y_POS" /* (asynInt32,  r) */
 #define PhotronAfterFramesString "PHOTRON_AFTER_FRAMES" /* (asynInt32,    rw) */
 #define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
 #define PhotronRecCountString   "PHOTRON_REC_COUNT"  /* (asynInt32,    rw)   */

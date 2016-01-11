@@ -321,18 +321,6 @@ record(longin, "$(P)$(R)RecCount_RBV")
    field(SCAN, "I/O Intr")
 }
 
-record(mbbi, "$(P)$(R)TwoStageMode_RBV")
-{
-   field(ZRST, "Full")
-   field(ZRVL, "0")
-   field(ONST, "Half")
-   field(ONVL, "1")
-   field(TWST, "Quarter")
-   field(TWVL, "2")
-   field(THST, "One-eighth")
-   field(THVL, "3")
-}
-
 ## Software trigger
 record(bo, "$(P)$(R)SoftwareTrigger") {
   field(PINI, "NO")
@@ -473,6 +461,71 @@ record(bo, "$(P)$(R)ChangeResIdx")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_RES_IDX")
    field(ZNAM, "Decrement")
    field(ONAM, "Increment")
+}
+
+record(longout, "$(P)$(R)VarChan")
+{
+   field(DTYP, "asynInt32")
+   #field(PINI, "YES")
+   field(DESC, "Variable Channel")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN")
+}
+
+record(longin, "$(P)$(R)VarChan_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Variable Channel")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN")
+   field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)ChangeVarChan")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Change Var Chan")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_VAR_CHAN")
+   field(ZNAM, "Decrease")
+   field(ONAM, "Increase")
+}
+
+record(longin, "$(P)$(R)VarChanRate_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Variable Chan Rate")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_RATE")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)VarChanXSize_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Variable Chan X Size")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_X_SIZE")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)VarChanYSize_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Variable Chan Y Size")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_Y_SIZE")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)VarChanXPos_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Variable Chan X Pos")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_X_POS")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)VarChanYPos_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Variable Chan Y Pos")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_Y_POS")
+   field(SCAN, "I/O Intr")
 }
 
 record(fanout, "$(P)$(R)SyncFanout")
