@@ -1002,7 +1002,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   /* Set the parameter and readback in the parameter library.  This may be 
    * overwritten when we read back the status at the end, but that's OK */
   status |= setIntegerParam(function, value);
-
+  
   if ((function == ADBinX) || (function == ADBinY) || (function == ADMinX) ||
      (function == ADMinY)) {
     /* These commands change the chip readout geometry.  We need to cache them 
@@ -1973,7 +1973,10 @@ asynStatus Photron::updateResolution() {
   int index;
   int resIndex;
   static const char *functionName = "updateResolution";
-
+  
+  // Get latest resolution list
+  
+  
   // Is this needed or can we trust the values returned by setIntegerParam?
   nRet = PDC_GetResolution(this->nDeviceNo, this->nChildNo, 
                               &sizeX, &sizeY, &nErrorCode);
@@ -2246,12 +2249,12 @@ asynStatus Photron::setGeometry() {
   status = getIntegerParam(ADMaxSizeY, &maxSizeY);
 
   if (minX + sizeX > maxSizeX) {
-    sizeX = maxSizeX - minX;
-    setIntegerParam(ADSizeX, sizeX);
+    minX = maxSizeX - sizeX;
+    setIntegerParam(ADMinX, minX);
   }
   if (minY + sizeY > maxSizeY) {
-    sizeY = maxSizeY - minY;
-    setIntegerParam(ADSizeY, sizeY);
+    minY = maxSizeY - sizeY;
+    setIntegerParam(ADMinY, minY);
   }
   
   // There are fixed resolutions that can be used

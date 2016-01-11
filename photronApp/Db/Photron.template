@@ -12,16 +12,26 @@ include "ADBase.template"
 #        Photron                                                              #
 ###############################################################################
 
-#
-record(longin, "$(P)$(R)SizeX_RBV")
-{
-   field(FLNK, "$(P)$(R)SyncX")
-}
+# This breaks resolution changes
+#!record(longin, "$(P)$(R)SizeX_RBV")
+#!{
+#!   field(FLNK, "$(P)$(R)SyncSizeX")
+#!}
 
-record(longin, "$(P)$(R)SizeY_RBV")
-{
-   field(FLNK, "$(P)$(R)SyncY")
-}
+#!record(longin, "$(P)$(R)SizeY_RBV")
+#!{
+#!   field(FLNK, "$(P)$(R)SyncSizeY")
+#!}
+
+#!record(longin, "$(P)$(R)MinX_RBV")
+#!{
+#!   field(FLNK, "$(P)$(R)SyncMinX")
+#!}
+
+#!record(longin, "$(P)$(R)MinY_RBV")
+#!{
+#!   field(FLNK, "$(P)$(R)SyncMinY")
+#!}
 
 
 # Acquire time needs a higher precision
@@ -429,7 +439,7 @@ record(bo, "$(P)$(R)ChangeResIdx")
    field(ONAM, "Increment")
 }
 
-record(calcout, "$(P)$(R)SyncX")
+record(calcout, "$(P)$(R)SyncSizeX")
 {
    field(DESC, "Sync res targets")
    field(INPA, "$(P)$(R)SizeX_RBV")
@@ -437,10 +447,26 @@ record(calcout, "$(P)$(R)SyncX")
    field(OUT,  "$(P)$(R)SizeX PP")
 }
 
-record(calcout, "$(P)$(R)SyncY")
+record(calcout, "$(P)$(R)SyncSizeY")
 {
    field(DESC, "Sync res targets")
    field(INPA, "$(P)$(R)SizeY_RBV")
    field(CALC, "A")
    field(OUT,  "$(P)$(R)SizeY PP")
+}
+
+record(calcout, "$(P)$(R)SyncMinX")
+{
+   field(DESC, "Sync res targets")
+   field(INPA, "$(P)$(R)MinX_RBV")
+   field(CALC, "A")
+   field(OUT,  "$(P)$(R)MinX PP")
+}
+
+record(calcout, "$(P)$(R)SyncMinY")
+{
+   field(DESC, "Sync res targets")
+   field(INPA, "$(P)$(R)MinY_RBV")
+   field(CALC, "A")
+   field(OUT,  "$(P)$(R)MinY PP")
 }
