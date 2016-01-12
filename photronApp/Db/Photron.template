@@ -469,6 +469,8 @@ record(longout, "$(P)$(R)VarChan")
    #field(PINI, "YES")
    field(DESC, "Variable Channel")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN")
+   field(DRVH, "20")
+   field(DRVL, "1")
 }
 
 record(longin, "$(P)$(R)VarChan_RBV")

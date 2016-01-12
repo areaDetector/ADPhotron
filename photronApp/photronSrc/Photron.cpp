@@ -2574,7 +2574,7 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
   static const char *functionName = "setVariableChannel";
   
   // What to do if not in variable mode?
-  
+  printf("setVariableChannel: value = %d\n", value);
   // Channel = 0 in default mode, but zero isn't a valid arguement to the set call
   
   // Channel has a range of 1-20
