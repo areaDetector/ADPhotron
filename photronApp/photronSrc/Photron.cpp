@@ -2537,10 +2537,18 @@ asynStatus Photron::changeRecordRate(epicsInt32 value) {
   int status = asynSuccess;
   int newRecRateIndex;
   int newRecRate;
+  int opMode;
   static const char *functionName = "changeRecordRate";
   
   // The record rate list is in order of incresting rate
   // Assumption: this->recRateIndex is up-to-date
+  
+  // If in variable mode, don't do anything, since there is no good way to
+  // provide the user feedback they're changing the desired record rate
+  getIntegerParam(PhotronOpMode, &opMode);
+  if (opMode == 1) {
+    return asynSuccess;
+  }
   
   // By default the rec rate stays the same
   newRecRateIndex = this->recRateIndex;
