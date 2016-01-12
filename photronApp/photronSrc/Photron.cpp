@@ -2537,7 +2537,7 @@ asynStatus Photron::changeRecordRate(epicsInt32 value) {
   int status = asynSuccess;
   int newRecRateIndex;
   int newRecRate;
-  static const char *functionName = "changeRecRate";
+  static const char *functionName = "changeRecordRate";
   
   // The record rate list is in order of incresting rate
   // Assumption: this->recRateIndex is up-to-date
