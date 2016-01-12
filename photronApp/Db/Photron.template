@@ -479,6 +479,15 @@ record(longin, "$(P)$(R)VarChan_RBV")
    field(DESC, "Variable Channel")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN")
    field(SCAN, "I/O Intr")
+   field(FLNK, "$(P)$(R)VarChanSync")
+}
+
+record(calcout, "$(P)$(R)VarChanSync")
+{
+   field(DESC, "Sync variable chan")
+   field(INPA, "$(P)$(R)VarChan_RBV")
+   field(CALC, "A")
+   field(OUT,  "$(P)$(R)VarChan PP")
 }
 
 record(bo, "$(P)$(R)ChangeVarChan")

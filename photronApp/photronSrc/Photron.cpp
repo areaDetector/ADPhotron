@@ -2596,25 +2596,25 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
   int opMode;
   static const char *functionName = "setVariableChannel";
   
-  // What to do if not in variable mode?
-  printf("setVariableChannel: value = %d\n", value);
+  //printf("setVariableChannel: value = %d\n", value);
+  
   // Channel = 0 in default mode, but zero isn't a valid arguement to the set call
   
   getIntegerParam(PhotronOpMode, &opMode);
+  
+  // Channel has a range of 1-20
+  if (value < 1) {
+    chan = 1;
+  } else if (value > NUM_VAR_CHANS) {
+    chan = NUM_VAR_CHANS;
+  } else {
+    chan = value;
+  }
   
   // Only apply the channel selection if the user is in variable mode
   // This allows the user to examine the settings while in default mode
   if (opMode == 1)
   {
-    // Channel has a range of 1-20
-    if (value < 1) {
-      chan = 1;
-    } else if (value > NUM_VAR_CHANS) {
-      chan = NUM_VAR_CHANS;
-    } else {
-      chan = value;
-    }
-  
     nRet = PDC_SetVariableChannel(this->nDeviceNo, this->nChildNo, chan, 
                                   &nErrorCode);
     if (nRet == PDC_FAILED) {
@@ -2622,6 +2622,10 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
       return asynError;
     }
   }
+  
+  // This is unecessary if the var change was changed directly, but the channel
+  // can also be incremented/decremented
+  setIntegerParam(PhotronVarChan, chan);
   
   return (asynStatus)status;
 }
