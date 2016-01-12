@@ -1,4 +1,5 @@
-#
+# The order in which these PVs appear in this file is VERY IMPORTANT
+$(P)$(R)OpMode
 $(P)$(R)AcquireMode
 $(P)$(R)8BitSel
 # Save record rate instead of acquire time
@@ -7,7 +8,8 @@ $(P)$(R)AfterFrames
 $(P)$(R)RandomFrames
 $(P)$(R)RecCount
 $(P)$(R)IRIG
-# Save res index instead of size X and size Y
+$(P)$(R)VarChan
+# Save res index instead of size X and size Y -- this may not work for variable mode
 $(P)$(R)ResIdx
 
 # Settings usually found in ADBase_settings.req
