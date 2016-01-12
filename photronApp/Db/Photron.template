@@ -263,6 +263,7 @@ record(longin, "$(P)$(R)RecordRate_RBV")
    field(DESC, "Record Rate (FPS)")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_REC_RATE")
    field(SCAN, "I/O Intr")
+   field(FLNK, "$(P)$(R)RecordRateSync")
 }
 
 record(bo, "$(P)$(R)ChangeRecRate")
@@ -274,7 +275,18 @@ record(bo, "$(P)$(R)ChangeRecRate")
    field(ONAM, "Increase")
 }
 
-# TODO: Sync rec rate, but only in Default mode
+record(calcout, "$(P)$(R)RecordRateSync")
+{
+   field(DESC, "Sync record rate")
+   field(INPA, "$(P)$(R)OpMode")
+   field(INPB, "$(P)$(R)CamMode_RBV")
+   field(INPC, "$(P)$(R)RecordRate_RBV")
+   field(CALC, "A=0&&B=0")
+   field(DOPT, "Use OCAL")
+   field(OOPT, "When Non-zero")
+   field(OCAL, "C")
+   field(OUT,  "$(P)$(R)RecordRate PP")
+}
 
 record(longout, "$(P)$(R)AfterFrames")
 {
