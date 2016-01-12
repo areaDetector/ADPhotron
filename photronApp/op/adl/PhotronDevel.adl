@@ -389,8 +389,8 @@ composite {
 }
 "message button" {
 	object {
-		x=135
-		y=224
+		x=272
+		y=225
 		width=100
 		height=25
 	}
@@ -404,8 +404,8 @@ composite {
 }
 "message button" {
 	object {
-		x=247
-		y=224
+		x=167
+		y=225
 		width=100
 		height=25
 	}
@@ -447,9 +447,9 @@ text {
 }
 "message button" {
 	object {
-		x=135
-		y=257
-		width=100
+		x=397
+		y=154
+		width=25
 		height=25
 	}
 	control {
@@ -457,14 +457,14 @@ text {
 		clr=14
 		bclr=4
 	}
-	label="Inc Rate"
+	label="+"
 	press_msg="1"
 }
 "message button" {
 	object {
-		x=247
-		y=257
-		width=100
+		x=367
+		y=154
+		width=25
 		height=25
 	}
 	control {
@@ -472,7 +472,7 @@ text {
 		clr=14
 		bclr=4
 	}
-	label="Dec Rate"
+	label="-"
 	press_msg="0"
 }
 composite {
@@ -1063,8 +1063,8 @@ text {
 }
 "message button" {
 	object {
-		x=462
-		y=559
+		x=22
+		y=253
 		width=100
 		height=25
 	}
@@ -1079,8 +1079,8 @@ text {
 }
 "message button" {
 	object {
-		x=22
-		y=255
+		x=220
+		y=256
 		width=100
 		height=25
 	}
@@ -1268,4 +1268,34 @@ text {
 		clr=14
 	}
 	textix="Var Chan Y Pos"
+}
+"message button" {
+	object {
+		x=399
+		y=306
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarChan.VAL"
+		clr=14
+		bclr=4
+	}
+	label="+"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=369
+		y=306
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarChan.VAL"
+		clr=14
+		bclr=4
+	}
+	label="-"
+	press_msg="0"
 }
