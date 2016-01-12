@@ -1005,7 +1005,7 @@ asynStatus Photron::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int function = pasynUser->reason;
   int status = asynSuccess;
-  int adstatus, acqMode;
+  int adstatus, acqMode, chan;
   static const char *functionName = "writeInt32";
   
   //printf("FUNCTION: %d - VALUE: %d\n", function, value);
@@ -1076,7 +1076,16 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronOpMode) {
     // What should be done when this mode is changed?
     if (value == 1) {
+      // Switch to Variable mode
       readVariableInfo();
+      
+      // Apply the currently selected variable channel
+      getIntegerParam(PhotronVarChan, &chan);
+      setVariableChannel(chan);
+    } else {
+      // Switch to Default mode
+      // TODO: remember desired rec rate
+      setRecordRate(this->desiredRate);
     }
   } else if (function == PhotronVarChan) {
     setVariableChannel(value);
@@ -2441,10 +2450,23 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
   unsigned long nErrorCode;
   int status = asynSuccess;
   int index;
+  int opMode;
   double acqTime;
   epicsInt32 upperDiff, lowerDiff;
   
   static const char *functionName = "setRecordRate";
+  
+  // Remember the desired rate
+  this->desiredRate = value;
+  
+  getIntegerParam(PhotronOpMode, &opMode);
+  
+  // Only allow the record rate to be set in Default mode
+  // Setting the record rate in Variable mode exits Variable mode, but the
+  // OpMode PV can't be easily kept in sync.
+  if (opMode == 1) {
+    return asynSuccess;
+  }
   
   if (this->nRate == value) {
     // New value is the same as the current value, do nothing so that the
@@ -2571,26 +2593,34 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
   unsigned long nErrorCode;
   int status = asynSuccess;
   int chan;
+  int opMode;
   static const char *functionName = "setVariableChannel";
   
   // What to do if not in variable mode?
   printf("setVariableChannel: value = %d\n", value);
   // Channel = 0 in default mode, but zero isn't a valid arguement to the set call
   
-  // Channel has a range of 1-20
-  if (value < 1) {
-    chan = 1;
-  } else if (value > NUM_VAR_CHANS) {
-    chan = NUM_VAR_CHANS;
-  } else {
-    chan = value;
-  }
+  getIntegerParam(PhotronOpMode, &opMode);
   
-  nRet = PDC_SetVariableChannel(this->nDeviceNo, this->nChildNo, chan, 
-                                &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_SetVariableChannel Error %d\n", nErrorCode);
-    return asynError;
+  // Only apply the channel selection if the user is in variable mode
+  // This allows the user to examine the settings while in default mode
+  if (opMode == 1)
+  {
+    // Channel has a range of 1-20
+    if (value < 1) {
+      chan = 1;
+    } else if (value > NUM_VAR_CHANS) {
+      chan = NUM_VAR_CHANS;
+    } else {
+      chan = value;
+    }
+  
+    nRet = PDC_SetVariableChannel(this->nDeviceNo, this->nChildNo, chan, 
+                                  &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetVariableChannel Error %d\n", nErrorCode);
+      return asynError;
+    }
   }
   
   return (asynStatus)status;
@@ -2777,28 +2807,26 @@ asynStatus Photron::readParameters() {
   }
   
   getIntegerParam(PhotronVarChan, &chan);
-  getIntegerParam(PhotronOpMode, &opMode);
+  //getIntegerParam(PhotronOpMode, &opMode);
   
-  if (opMode == 1) {
-    
-    if (chan > 0) {
-      nRet = PDC_GetVariableChannelInfo(this->nDeviceNo, chan, &(this->varRate),
-                                        &(this->varWidth), &(this->varHeight),
-                                        &(this->varXPos), &(this->varYPos),
-                                        &nErrorCode);
-    } else {
-      this->varRate = 0;
-      this->varWidth = 0;
-      this->varHeight = 0;
-      this->varXPos = 0;
-      this->varYPos = 0;
-    }
-    setIntegerParam(PhotronVarChanRate, this->varRate);
-    setIntegerParam(PhotronVarChanXSize, this->varWidth);
-    setIntegerParam(PhotronVarChanYSize, this->varHeight);
-    setIntegerParam(PhotronVarChanXPos, this->varXPos);
-    setIntegerParam(PhotronVarChanYPos, this->varYPos);
+  if (chan > 0) {
+    nRet = PDC_GetVariableChannelInfo(this->nDeviceNo, chan, &(this->varRate),
+                                      &(this->varWidth), &(this->varHeight),
+                                      &(this->varXPos), &(this->varYPos),
+                                      &nErrorCode);
+  } else {
+    this->varRate = 0;
+    this->varWidth = 0;
+    this->varHeight = 0;
+    this->varXPos = 0;
+    this->varYPos = 0;
   }
+  setIntegerParam(PhotronVarChanRate, this->varRate);
+  setIntegerParam(PhotronVarChanXSize, this->varWidth);
+  setIntegerParam(PhotronVarChanYSize, this->varHeight);
+  setIntegerParam(PhotronVarChanXPos, this->varXPos);
+  setIntegerParam(PhotronVarChanYPos, this->varYPos);
+  
   
   if (functionList[PDC_EXIST_HIGH_SPEED_MODE] == PDC_EXIST_SUPPORTED) {
     nRet = PDC_GetHighSpeedMode(this->nDeviceNo, &(this->highSpeedMode),

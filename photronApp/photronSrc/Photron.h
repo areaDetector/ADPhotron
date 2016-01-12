@@ -279,6 +279,8 @@ private:
   unsigned long varYPos;
   // where should this reside in the list?
   unsigned long bitDepth;
+  // Keep track of the desired record rate (for switching back to Default mode)
+  int desiredRate;
   //
   epicsTimeStamp preIRIGStartTime;
   epicsTimeStamp postIRIGStartTime;
