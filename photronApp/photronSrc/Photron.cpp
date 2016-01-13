@@ -1031,9 +1031,9 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status |= changeResIndex(value);
   } else if (function == ADAcquire) {
     getIntegerParam(PhotronAcquireMode, &acqMode);
+    getIntegerParam(ADStatus, &adstatus);
     if (acqMode == 0) {
       // For Live mode, signal the PhotronTask
-      getIntegerParam(ADStatus, &adstatus);
       if (value && (adstatus == ADStatusIdle)) {
         /* Send an event to wake up the acquisition task.
         * It won't actually start generating new images until we release the lock
@@ -1052,9 +1052,16 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
         softwareTrigger();
         setIntegerParam(ADAcquire, 1);
       } else {
-        // Stop acquisition
-        this->abortFlag = 1;
-        setIntegerParam(ADAcquire, 0);
+        // Ignore the stop request if status == waiting
+        if (adstatus != ADStatusWaiting) {
+          // Stop current (or next) readout
+          this->abortFlag = 1;
+          setIntegerParam(ADAcquire, 0);
+          if (adstatus == ADStatusAcquire) {
+            // Abort acquisition if it is in progress
+            setLive();
+          }
+        }
       }
     }
   } else if (function == NDDataType) {
