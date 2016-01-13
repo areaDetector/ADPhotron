@@ -103,6 +103,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronRandomFramesString,  asynParamInt32, &PhotronRandomFrames);
   createParam(PhotronRecCountString,      asynParamInt32, &PhotronRecCount);
   createParam(PhotronSoftTrigString,      asynParamInt32, &PhotronSoftTrig);
+  createParam(PhotronLiveModeString,      asynParamInt32, &PhotronLiveMode);
   createParam(PhotronIRIGString,          asynParamInt32, &PhotronIRIG);
   createParam(PhotronMemIRIGDayString,    asynParamInt32, &PhotronMemIRIGDay);
   createParam(PhotronMemIRIGHourString,   asynParamInt32, &PhotronMemIRIGHour);
@@ -1102,9 +1103,15 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronStatus) {
     setStatus(value);
   } else if (function == PhotronSoftTrig) {
-    printf("Soft Trigger changed. value = %d\n", value);
+    //printf("Soft Trigger changed. value = %d\n", value);
     softwareTrigger();
-    
+  } else if (function == PhotronLiveMode) {
+    // Manually returning to live mode is necessary when eternally triggering
+    // random modes and it is desirable to readout data before the internal
+    // memory is full.
+    if (value == 1) {
+      setLive();
+    }
   } else if ((function == ADTriggerMode) || (function == PhotronAfterFrames) ||
             (function == PhotronRandomFrames) || (function == PhotronRecCount)) {
     //printf("function = %d\n", function);

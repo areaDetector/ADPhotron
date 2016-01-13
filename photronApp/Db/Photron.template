@@ -345,6 +345,15 @@ record(bo, "$(P)$(R)SoftwareTrigger") {
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SOFT_TRIG")
 }
 
+record(bo, "$(P)$(R)LiveMode")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Set Live Mode")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_LIVE_MODE")
+   field(ZNAM, "Ignore")
+   field(ONAM, "Enable")
+}
+
 record(longin, "$(P)$(R)MemIRIGDay_RBV")
 {
    field(DTYP, "asynInt32")

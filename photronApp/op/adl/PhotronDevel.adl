@@ -1299,3 +1299,18 @@ text {
 	label="-"
 	press_msg="0"
 }
+"message button" {
+	object {
+		x=402
+		y=13
+		width=40
+		height=25
+	}
+	control {
+		chan="$(P)$(R)LiveMode"
+		clr=14
+		bclr=4
+	}
+	label="Read"
+	press_msg="1"
+}
