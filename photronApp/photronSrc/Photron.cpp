@@ -1505,8 +1505,9 @@ asynStatus Photron::setRecReady() {
       case PDC_TRIGGER_CENTER:
       case PDC_TRIGGER_END:
       case PDC_TRIGGER_MANUAL:
-      case PDC_TRIGGER_RANDOM_CENTER:
-      case PDC_TRIGGER_RANDOM_MANUAL:
+      // Setting endless mode for random modes generates an extra recording
+      //case PDC_TRIGGER_RANDOM_CENTER:
+      //case PDC_TRIGGER_RANDOM_MANUAL:
         //
         setEndless();
         break;
