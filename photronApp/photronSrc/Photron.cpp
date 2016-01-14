@@ -1506,8 +1506,9 @@ asynStatus Photron::setRecReady() {
       case PDC_TRIGGER_END:
       case PDC_TRIGGER_MANUAL:
       // Setting endless mode for random modes generates an extra recording
-      //case PDC_TRIGGER_RANDOM_CENTER:
-      //case PDC_TRIGGER_RANDOM_MANUAL:
+      // but only if fewer than the specified number of recordings are generated
+      case PDC_TRIGGER_RANDOM_CENTER:
+      case PDC_TRIGGER_RANDOM_MANUAL:
         //
         setEndless();
         break;
@@ -1847,6 +1848,9 @@ asynStatus Photron::readMem() {
       pBuf = malloc(dataSize);
       
       epicsTimeGetCurrent(&startTime);
+      
+      // TODO: Catch random trigger modes, see if fewer than the specified
+      // number of recordings have occurred, then omit the first acquisition
       
       //for (index=FrameInfo.m_nTrigger; index==(FrameInfo.m_nTrigger); index++) {
       for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
