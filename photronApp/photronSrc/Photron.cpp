@@ -331,7 +331,7 @@ void Photron::PhotronRecTask() {
         callParamCallbacks();
         
         //
-        printf("Return camerea to ready-to-trigger state\n");
+        printf("Return camera to ready-to-trigger state\n");
         setRecReady();
       }
       
