@@ -1384,3 +1384,19 @@ text {
 	limits {
 	}
 }
+valuator {
+	object {
+		x=390
+		y=557
+		width=257
+		height=26
+	}
+	control {
+		chan="$(P)$(R)PMIndex"
+		clr=14
+		bclr=4
+	}
+	dPrecision=5.000000
+	limits {
+	}
+}
