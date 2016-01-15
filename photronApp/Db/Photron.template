@@ -354,6 +354,43 @@ record(bo, "$(P)$(R)LiveMode")
    field(ONAM, "Enable")
 }
 
+record(bo, "$(P)$(R)PreviewMode")
+{
+   field(DTYP, "asynInt32")
+   #field(PINI, "YES")
+   field(DESC, "Preview Mode")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PREVIEW_MODE")
+   field(ZNAM, "Off")
+   field(ONAM, "On")
+}
+
+record(longout, "$(P)$(R)PMIndex")
+{
+   #field(PINI, "YES")
+   field(DTYP, "asynInt32")
+   field(DESC, "Preview Mode Index")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_INDEX")
+}
+
+
+record(bo, "$(P)$(R)PMSave")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Save")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_SAVE")
+   field(ZNAM, "Reset")
+   field(ONAM, "Do")
+}
+
+record(bo, "$(P)$(R)PMCancel")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Cancel")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_CANCEL")
+   field(ZNAM, "Reset")
+   field(ONAM, "Do")
+}
+
 record(longin, "$(P)$(R)MemIRIGDay_RBV")
 {
    field(DTYP, "asynInt32")

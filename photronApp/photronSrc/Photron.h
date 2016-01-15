@@ -122,6 +122,7 @@ protected:
     int PhotronCamMode;
     int PhotronAcquireMode;
     int PhotronOpMode;
+    int PhotronPreviewMode;
     int PhotronMaxFrames;
     int Photron8BitSel;
     int PhotronRecRate;
@@ -140,6 +141,9 @@ protected:
     int PhotronRecCount;
     int PhotronSoftTrig;
     int PhotronLiveMode;
+    int PhotronPMIndex;
+    int PhotronPMSave;
+    int PhotronPMCancel;
     int PhotronIRIG;
     int PhotronMemIRIGDay;
     int PhotronMemIRIGHour;
@@ -177,6 +181,8 @@ private:
   asynStatus readParameters();
   asynStatus readVariableInfo();
   asynStatus readImage();
+  asynStatus readMemImage(epicsInt32 value);
+  asynStatus readImageRange();
   asynStatus setTransferOption();
   asynStatus setRecordRate(epicsInt32 value);
   asynStatus changeRecordRate(epicsInt32 value);
@@ -215,6 +221,7 @@ private:
   epicsEventId stopEventId;
   epicsEventId startRecEventId;
   epicsEventId stopRecEventId;
+  epicsEventId resumeRecEventId;
   // connectCamera
   unsigned long nDeviceNo;
   unsigned long nChildNo;   // hard-coded to 1 in connectCamera
@@ -282,6 +289,11 @@ private:
   unsigned long bitDepth;
   // Keep track of the desired record rate (for switching back to Default mode)
   int desiredRate;
+  // readMem
+  unsigned long memWidth;
+  unsigned long memHeight;
+  unsigned long tMode;
+  PDC_FRAME_INFO FrameInfo;
   //
   epicsTimeStamp preIRIGStartTime;
   epicsTimeStamp postIRIGStartTime;
@@ -312,6 +324,7 @@ typedef struct {
 #define PhotronCamModeString    "PHOTRON_CAM_MODE"   /* (asynInt32,    r)   */
 #define PhotronAcquireModeString "PHOTRON_ACQUIRE_MODE" /* (asynInt32,    w) */
 #define PhotronOpModeString     "PHOTRON_OP_MODE" /* (asynInt32,    w) */
+#define PhotronPreviewModeString "PHOTRON_PREVIEW_MODE" /* (asynInt32,    w) */
 #define PhotronMaxFramesString  "PHOTRON_MAX_FRAMES" /* (asynInt32,    r)   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
 #define PhotronRecordRateString "PHOTRON_REC_RATE"   /* (asynInt32,    rw)   */
@@ -330,6 +343,9 @@ typedef struct {
 #define PhotronRecCountString   "PHOTRON_REC_COUNT"  /* (asynInt32,    rw)   */
 #define PhotronSoftTrigString   "PHOTRON_SOFT_TRIG"   /* (asynInt32,    w) */
 #define PhotronLiveModeString   "PHOTRON_LIVE_MODE" /* (asynInt32,    w) */
+#define PhotronPMIndexString    "PHOTRON_PM_INDEX"  /* (asynInt32,   rw) */
+#define PhotronPMSaveString     "PHOTRON_PM_SAVE" /* (asynInt32,    w) */
+#define PhotronPMCancelString   "PHOTRON_PM_CANCEL"   /* (asynInt32,    w) */
 #define PhotronIRIGString       "PHOTRON_IRIG"   /* (asynInt32,    w) */
 #define PhotronMemIRIGDayString "PHOTRON_MEM_IRIG_DAY" /* (asynInt32,    r) */
 #define PhotronMemIRIGHourString "PHOTRON_MEM_IRIG_HOUR" /* (asynInt32,    r) */

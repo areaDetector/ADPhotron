@@ -1314,3 +1314,73 @@ text {
 	label="Read"
 	press_msg="1"
 }
+menu {
+	object {
+		x=153
+		y=527
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PreviewMode"
+		clr=14
+		bclr=4
+	}
+}
+text {
+	object {
+		x=23
+		y=527
+		width=125
+		height=25
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Preview Mode"
+}
+"message button" {
+	object {
+		x=141
+		y=565
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PMCancel.VAL"
+		clr=14
+		bclr=4
+	}
+	label="Cancel"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=36
+		y=565
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PMSave.VAL"
+		clr=14
+		bclr=4
+	}
+	label="Save"
+	press_msg="1"
+}
+"text entry" {
+	object {
+		x=267
+		y=540
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PMIndex"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
