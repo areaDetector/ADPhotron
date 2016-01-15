@@ -325,6 +325,9 @@ void Photron::PhotronRecTask() {
         //
         printf("Read info from camera\n");
         readMem();
+
+	// Optionally enter preview mode here
+	
         
         // Reset Acquire
         setIntegerParam(ADAcquire, 0);
