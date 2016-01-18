@@ -1,6 +1,6 @@
 
 file {
-	name="newDisplay.adl"
+	name="D:\epics\AD-2-4\areaDetector-R2-4\ADPhotron\photronApp\op\adl\PhotronPMSlider.adl"
 	version=030109
 }
 display {
@@ -146,5 +146,48 @@ valuator {
 		bclr=4
 	}
 	limits {
+	}
+}
+"message button" {
+	object {
+		x=24
+		y=15
+		width=80
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PMPlay.PROC"
+		clr=14
+		bclr=4
+	}
+	label="Play"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=223
+		y=14
+		width=80
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PMStop.PROC"
+		clr=14
+		bclr=4
+	}
+	label="Stop"
+	press_msg="1"
+}
+menu {
+	object {
+		x=115
+		y=16
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PMRepeat"
+		clr=14
+		bclr=4
 	}
 }

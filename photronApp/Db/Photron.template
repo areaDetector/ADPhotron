@@ -373,6 +373,8 @@ record(longout, "$(P)$(R)PMIndex")
    info(asyn:READBACK, "1")
 }
 
+# TODO: Replace the following calcouts with a single transform record
+
 record(calcout, "$(P)$(R)PMIndexLOPR")
 {
    field(INPA, "$(P)$(R)PMStart CP NMS")
@@ -405,6 +407,69 @@ record(longout, "$(P)$(R)PMEnd")
    info(asyn:READBACK, "1")
 }
 
+# TODO: allow the driver to set this to a reasonable value
+record(longout, "$(P)$(R)PMStep")
+{
+   field("VAL", "5")
+}
+
+record(longout, "$(P)$(R)PMPlay")
+{
+   field(DESC, "Play preview")
+   field(VAL,  "9")
+   field(OUT,  "$(P)$(R)PMTrans.SCAN PP NMS")
+}
+
+record(longout, "$(P)$(R)PMStop")
+{
+   field(DESC, "Stop preview")
+   field(VAL,  "0")
+   field(OUT,  "$(P)$(R)PMTrans.SCAN PP NMS")
+}
+
+record(bo, "$(P)$(R)PMRepeat")
+{
+   field(DESC, "Save")
+   field(ZNAM, "Off")
+   field(ONAM, "On")
+   field(VAL,  "0")
+}
+
+record(transform, "$(P)$(R)PMTrans")
+{
+   field(DESC, "PM play transform")
+   field(SCAN, "Passive")
+   field(CMTA, "Start")
+   field(CMTB, "Index")
+   field(CMTC, "End")
+   field(CMTD, "Step")
+   field(CMTE, "Repeat")
+   field(CMTF, "Next Index")
+   field(CMTG, "End Reached")
+   field(CMTO, "End Calc")
+   field(CMTP, "Increment Index")
+   field(INPA, "$(P)$(R)PMStart NPP NMS")
+   field(INPB, "$(P)$(R)PMIndex NPP NMS")
+   field(INPC, "$(P)$(R)PMEnd NPP NMS")
+   field(INPD, "$(P)$(R)PMStep NPP NMS")
+   field(INPE, "$(P)$(R)PMRepeat NPP NMS")
+   field(CLCF, "B+D")
+   field(CLCG, "F>C")
+   field(CLCO, "G?(E?0:1):0")
+   field(CLCP, "G?A:F")
+   field(OUTO, "$(P)$(R)PMEndCalc.A PP NMS")
+   field(OUTP, "$(P)$(R)PMIndex PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMEndCalc")
+{
+   field(DESC, "PM end calc")
+   field(CALC, "A")
+   field(OCAL, "0")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)$(R)PMTrans.SCAN PP NMS")
+}
 
 record(bo, "$(P)$(R)PMSave")
 {
