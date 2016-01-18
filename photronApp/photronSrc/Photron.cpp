@@ -106,6 +106,8 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronSoftTrigString,      asynParamInt32, &PhotronSoftTrig);
   createParam(PhotronLiveModeString,      asynParamInt32, &PhotronLiveMode);
   createParam(PhotronPMIndexString,       asynParamInt32, &PhotronPMIndex);
+  createParam(PhotronPMStartString,       asynParamInt32, &PhotronPMStart);
+  createParam(PhotronPMEndString,         asynParamInt32, &PhotronPMEnd);
   createParam(PhotronPMSaveString,        asynParamInt32, &PhotronPMSave);
   createParam(PhotronPMCancelString,      asynParamInt32, &PhotronPMCancel);
   createParam(PhotronIRIGString,          asynParamInt32, &PhotronIRIG);
@@ -1130,6 +1132,12 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronPMIndex) {
     // grab and display an image from memory
     readMemImage(value);
+  } else if (function == PhotronPMStart) {
+    // Do something eventually
+    setPreviewRange(function, value);
+  } else if (function == PhotronPMEnd) {
+    // Do something eventually
+    setPreviewRange(function, value);
   } else if (function == PhotronPMCancel) {
     // TODO: do nothing if not it playback mode
     // Set the abort flag then resume the recording task
@@ -1842,6 +1850,28 @@ asynStatus Photron::readMem() {
   return status;
 }
 
+
+asynStatus Photron::setPreviewRange(epicsInt32 function, epicsInt32 value) {
+  asynStatus status = asynSuccess;
+  int start, index, end;
+  static const char *functionName = "setPreviewRange";
+  
+  getIntegerParam(PhotronPMIndex, &index);
+  getIntegerParam(PhotronPMStart, &start);
+  getIntegerParam(PhotronPMEnd, &end);
+  
+  if (function == PhotronPMStart) {
+    printf("PhotronPMStart: value = %d\n", value);
+  } else if (function == PhotronPMEnd) {
+    printf("PhotronPMEnd: value = %d\n", value);
+  }
+  
+  printf("\tindex = %d\n", index);
+  printf("\tstart = %d\n", start);
+  printf("\tend = %d\n", end);
+  
+  return asynSuccess;
+}
 
 
 asynStatus Photron::readMemImage(epicsInt32 value) {

@@ -370,6 +370,25 @@ record(longout, "$(P)$(R)PMIndex")
    field(DTYP, "asynInt32")
    field(DESC, "Preview Mode Index")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_INDEX")
+   info(asyn:READBACK, "1")
+}
+
+record(longout, "$(P)$(R)PMStart")
+{
+   #field(PINI, "YES")
+   field(DTYP, "asynInt32")
+   field(DESC, "Preview Mode Index Start")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_START")
+   info(asyn:READBACK, "1")
+}
+
+record(longout, "$(P)$(R)PMEnd")
+{
+   #field(PINI, "YES")
+   field(DTYP, "asynInt32")
+   field(DESC, "Preview Mode Index End")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_END")
+   info(asyn:READBACK, "1")
 }
 
 
@@ -378,7 +397,7 @@ record(bo, "$(P)$(R)PMSave")
    field(DTYP, "asynInt32")
    field(DESC, "Save")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_SAVE")
-   field(ZNAM, "Reset")
+   field(ZNAM, "Done")
    field(ONAM, "Do")
 }
 
@@ -387,7 +406,7 @@ record(bo, "$(P)$(R)PMCancel")
    field(DTYP, "asynInt32")
    field(DESC, "Cancel")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_CANCEL")
-   field(ZNAM, "Reset")
+   field(ZNAM, "Done")
    field(ONAM, "Do")
 }
 
