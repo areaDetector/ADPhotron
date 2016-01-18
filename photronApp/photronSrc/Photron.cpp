@@ -1790,6 +1790,10 @@ asynStatus Photron::readMem() {
       printf("\tRecorded Frames:\t%d\n", FrameInfo.m_nRecordedFrames);
       this->FrameInfo = FrameInfo;
       
+      setIntegerParam(PhotronPMIndex, FrameInfo.m_nStart);
+      setIntegerParam(PhotronPMStart, FrameInfo.m_nStart);
+      setIntegerParam(PhotronPMEnd, FrameInfo.m_nEnd);
+      
       // PDC_GetMemResolution
       nRet = PDC_GetMemResolution(this->nDeviceNo, this->nChildNo, &memWidth,
                                   &memHeight, &nErrorCode);
@@ -1846,6 +1850,8 @@ asynStatus Photron::readMem() {
   } else {
     printf("Mode != record; Ignoring read mem\n");
   }
+  
+  callParamCallbacks();
   
   return status;
 }

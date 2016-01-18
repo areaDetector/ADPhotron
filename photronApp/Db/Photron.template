@@ -373,6 +373,20 @@ record(longout, "$(P)$(R)PMIndex")
    info(asyn:READBACK, "1")
 }
 
+record(calcout, "$(P)$(R)PMIndexLOPR")
+{
+   field(INPA, "$(P)$(R)PMStart CP NMS")
+   field(CALC, "A")
+   field(OUT,  "$(P)$(R)PMIndex.LOPR NPP NMS")
+}
+
+record(calcout, "$(P)$(R)PMIndexHOPR")
+{
+   field(INPA, "$(P)$(R)PMEnd CP NMS")
+   field(CALC, "A")
+   field(OUT,  "$(P)$(R)PMIndex.HOPR NPP NMS")
+}
+
 record(longout, "$(P)$(R)PMStart")
 {
    #field(PINI, "YES")

@@ -1384,22 +1384,6 @@ text {
 	limits {
 	}
 }
-valuator {
-	object {
-		x=63
-		y=565
-		width=257
-		height=26
-	}
-	control {
-		chan="$(P)$(R)PMIndex"
-		clr=14
-		bclr=4
-	}
-	dPrecision=5.000000
-	limits {
-	}
-}
 "text entry" {
 	object {
 		x=242
@@ -1429,4 +1413,20 @@ valuator {
 	}
 	limits {
 	}
+}
+"related display" {
+	object {
+		x=120
+		y=567
+		width=134
+		height=25
+	}
+	display[0] {
+		label="Slider"
+		name="PhotronPMSlider.adl"
+		args="P=$(P),R=$(R)"
+	}
+	clr=14
+	bclr=4
+	label="-Slider"
 }
