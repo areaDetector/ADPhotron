@@ -373,6 +373,15 @@ record(longout, "$(P)$(R)PMIndex")
    info(asyn:READBACK, "1")
 }
 
+record(bo, "$(P)$(R)ChangePMIndex")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Change PM Index")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_PM_INDEX")
+   field(ZNAM, "Decrease")
+   field(ONAM, "Increase")
+}
+
 # TODO: Replace the following calcouts with a single transform record
 
 record(calcout, "$(P)$(R)PMIndexLOPR")

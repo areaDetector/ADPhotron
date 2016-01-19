@@ -142,6 +142,7 @@ protected:
     int PhotronSoftTrig;
     int PhotronLiveMode;
     int PhotronPMIndex;
+    int PhotronChangePMIndex;
     int PhotronPMStart;
     int PhotronPMEnd;
     int PhotronPMSave;
@@ -201,6 +202,7 @@ private:
   asynStatus setEndless();
   asynStatus setLive();
   asynStatus setPlayback();
+  asynStatus changePMIndex(epicsInt32 value);
   asynStatus setPreviewRange(epicsInt32 function, epicsInt32 value);
   asynStatus readMem();
   asynStatus setIRIG(epicsInt32 value);
@@ -347,6 +349,7 @@ typedef struct {
 #define PhotronSoftTrigString   "PHOTRON_SOFT_TRIG"   /* (asynInt32,    w) */
 #define PhotronLiveModeString   "PHOTRON_LIVE_MODE" /* (asynInt32,    w) */
 #define PhotronPMIndexString    "PHOTRON_PM_INDEX"  /* (asynInt32,   rw) */
+#define PhotronChangePMIndexString "PHOTRON_CHANGE_PM_INDEX" /* (asynInt32, rw) */
 #define PhotronPMStartString    "PHOTRON_PM_START"  /* (asynInt32,   rw) */
 #define PhotronPMEndString    "PHOTRON_PM_END"  /* (asynInt32,   rw) */
 #define PhotronPMSaveString     "PHOTRON_PM_SAVE" /* (asynInt32,    w) */

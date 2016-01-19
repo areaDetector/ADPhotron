@@ -5,9 +5,9 @@ file {
 }
 display {
 	object {
-		x=8
-		y=30
-		width=336
+		x=766
+		y=332
+		width=500
 		height=132
 	}
 	clr=14
@@ -89,9 +89,9 @@ display {
 }
 valuator {
 	object {
-		x=34
+		x=50
 		y=50
-		width=257
+		width=400
 		height=26
 	}
 	control {
@@ -150,8 +150,8 @@ valuator {
 }
 "message button" {
 	object {
-		x=24
-		y=15
+		x=111
+		y=16
 		width=80
 		height=25
 	}
@@ -165,8 +165,8 @@ valuator {
 }
 "message button" {
 	object {
-		x=223
-		y=14
+		x=296
+		y=16
 		width=80
 		height=25
 	}
@@ -180,7 +180,7 @@ valuator {
 }
 menu {
 	object {
-		x=115
+		x=194
 		y=16
 		width=100
 		height=25
@@ -190,4 +190,34 @@ menu {
 		clr=14
 		bclr=4
 	}
+}
+"message button" {
+	object {
+		x=380
+		y=16
+		width=40
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangePMIndex"
+		clr=14
+		bclr=4
+	}
+	label="+1"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=67
+		y=16
+		width=40
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangePMIndex"
+		clr=14
+		bclr=4
+	}
+	label="-1"
+	press_msg="0"
 }

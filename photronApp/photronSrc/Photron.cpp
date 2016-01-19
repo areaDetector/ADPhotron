@@ -106,6 +106,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronSoftTrigString,      asynParamInt32, &PhotronSoftTrig);
   createParam(PhotronLiveModeString,      asynParamInt32, &PhotronLiveMode);
   createParam(PhotronPMIndexString,       asynParamInt32, &PhotronPMIndex);
+  createParam(PhotronChangePMIndexString, asynParamInt32, &PhotronChangePMIndex);
   createParam(PhotronPMStartString,       asynParamInt32, &PhotronPMStart);
   createParam(PhotronPMEndString,         asynParamInt32, &PhotronPMEnd);
   createParam(PhotronPMSaveString,        asynParamInt32, &PhotronPMSave);
@@ -1132,6 +1133,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronPMIndex) {
     // grab and display an image from memory
     readMemImage(value);
+  } else if (function == PhotronChangePMIndex) {
+    changePMIndex(value);
   } else if (function == PhotronPMStart) {
     // Do something eventually
     setPreviewRange(function, value);
@@ -1877,6 +1880,32 @@ asynStatus Photron::setPreviewRange(epicsInt32 function, epicsInt32 value) {
   printf("\tend = %d\n", end);
   
   return asynSuccess;
+}
+
+
+asynStatus Photron::changePMIndex(epicsInt32 value) {
+  int status = asynSuccess;
+  epicsInt32 index;
+  static const char *functionName = "changePMIndex";
+  
+  // check for playback mode?
+  
+  status |= getIntegerParam(PhotronPMIndex, &index);
+  
+  // check for valid index here?
+  if (value > 0) {
+    // Increase the preview mode index
+    index++;
+  } else {
+    // Decrease the preview mode index
+    index--;
+  }
+  
+  status |= setIntegerParam(PhotronPMIndex, index);
+  // readMemImage calls callParamCallbacks
+  status |= this->readMemImage(index);
+  
+  return (asynStatus)status;
 }
 
 
