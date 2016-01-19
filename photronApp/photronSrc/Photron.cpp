@@ -104,6 +104,8 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronRandomFramesString,  asynParamInt32, &PhotronRandomFrames);
   createParam(PhotronRecCountString,      asynParamInt32, &PhotronRecCount);
   createParam(PhotronSoftTrigString,      asynParamInt32, &PhotronSoftTrig);
+  createParam(PhotronFrameStartString,    asynParamInt32, &PhotronFrameStart);
+  createParam(PhotronFrameEndString,      asynParamInt32, &PhotronFrameEnd);
   createParam(PhotronLiveModeString,      asynParamInt32, &PhotronLiveMode);
   createParam(PhotronPMIndexString,       asynParamInt32, &PhotronPMIndex);
   createParam(PhotronChangePMIndexString, asynParamInt32, &PhotronChangePMIndex);
@@ -1132,7 +1134,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     // Do nothing
   } else if (function == PhotronPMIndex) {
     // grab and display an image from memory
-    readMemImage(value);
+    setPMIndex(value);
   } else if (function == PhotronChangePMIndex) {
     changePMIndex(value);
   } else if (function == PhotronPMStart) {
@@ -1793,6 +1795,8 @@ asynStatus Photron::readMem() {
       printf("\tRecorded Frames:\t%d\n", FrameInfo.m_nRecordedFrames);
       this->FrameInfo = FrameInfo;
       
+      setIntegerParam(PhotronFrameStart, FrameInfo.m_nStart);
+      setIntegerParam(PhotronFrameEnd, FrameInfo.m_nEnd);
       setIntegerParam(PhotronPMIndex, FrameInfo.m_nStart);
       setIntegerParam(PhotronPMStart, FrameInfo.m_nStart);
       setIntegerParam(PhotronPMEnd, FrameInfo.m_nEnd);
@@ -1862,24 +1866,60 @@ asynStatus Photron::readMem() {
 
 asynStatus Photron::setPreviewRange(epicsInt32 function, epicsInt32 value) {
   asynStatus status = asynSuccess;
-  int start, index, end;
+  //int index;
+  int start, end, frameStart, frameEnd;
   static const char *functionName = "setPreviewRange";
   
-  getIntegerParam(PhotronPMIndex, &index);
+  // Should the index be changed here or left to be checked the next time it is changed?
+  //getIntegerParam(PhotronPMIndex, &index);
   getIntegerParam(PhotronPMStart, &start);
   getIntegerParam(PhotronPMEnd, &end);
+  getIntegerParam(PhotronFrameStart, &frameStart);
+  getIntegerParam(PhotronFrameEnd, &frameEnd);
   
   if (function == PhotronPMStart) {
     printf("PhotronPMStart: value = %d\n", value);
+    if (start > end) {
+      start = end;
+    }
+    if (start < frameStart) {
+      start = frameStart;
+    }
+    setIntegerParam(PhotronPMStart, start);
   } else if (function == PhotronPMEnd) {
     printf("PhotronPMEnd: value = %d\n", value);
+    if (end < start) {
+      end = start;
+    }
+    if (end > frameEnd) {
+      end = frameEnd;
+    }
+    setIntegerParam(PhotronPMEnd, end);
   }
   
-  printf("\tindex = %d\n", index);
-  printf("\tstart = %d\n", start);
-  printf("\tend = %d\n", end);
-  
   return asynSuccess;
+}
+
+
+asynStatus Photron::setPMIndex(epicsInt32 value) {
+  int status = asynSuccess;
+  int start, end;
+  static const char *functionName = "setPMIndex";
+  
+  status |= getIntegerParam(PhotronPMStart, &start);
+  status |= getIntegerParam(PhotronPMEnd, &end);
+  
+  if (value < start) {
+    value = start;
+  }
+  if (value > end) {
+    value = end;
+  }
+  status |= setIntegerParam(PhotronPMIndex, value);
+  
+  status |= this->readMemImage(value);
+  
+  return (asynStatus)status;
 }
 
 
@@ -1901,9 +1941,9 @@ asynStatus Photron::changePMIndex(epicsInt32 value) {
     index--;
   }
   
-  status |= setIntegerParam(PhotronPMIndex, index);
+  // setPMIndex calls setIntegerParam, then calls readMemImage
   // readMemImage calls callParamCallbacks
-  status |= this->readMemImage(index);
+  status |= this->setPMIndex(index);
   
   return (asynStatus)status;
 }
