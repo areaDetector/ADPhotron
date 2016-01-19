@@ -357,7 +357,7 @@ record(bo, "$(P)$(R)LiveMode")
 record(bo, "$(P)$(R)PreviewMode")
 {
    field(DTYP, "asynInt32")
-   #field(PINI, "YES")
+   field(PINI, "YES")
    field(DESC, "Preview Mode")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PREVIEW_MODE")
    field(ZNAM, "Off")
