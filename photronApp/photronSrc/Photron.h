@@ -113,6 +113,7 @@ public:
   /* PhotronTask should be private, but gets called from C, so must be public */
   void PhotronTask(); 
   void PhotronRecTask(); 
+  void PhotronPlayTask(); 
   
   /* These are called from C and so must be public */
   static void shutdown(void *arg);
@@ -147,6 +148,8 @@ protected:
     int PhotronChangePMIndex;
     int PhotronPMStart;
     int PhotronPMEnd;
+    int PhotronPMPlay;
+    int PhotronPMRepeat;
     int PhotronPMSave;
     int PhotronPMCancel;
     int PhotronIRIG;
@@ -220,7 +223,9 @@ private:
   int outputModeToAPI(int mode);
   asynStatus createStaticEnums();
   asynStatus createDynamicEnums();
-
+  void timeDiff(PPDC_IRIG_INFO time1, PPDC_IRIG_INFO time2, PPDC_IRIG_INFO timeDiff);
+  void timeDataToSec(PPDC_IRIG_INFO tData, double *seconds);
+  
   /* These items are specific to the Photron driver */
   // constructor
   char *cameraId;                /* This can be an IP name, or IP address */
@@ -230,6 +235,7 @@ private:
   epicsEventId startRecEventId;
   epicsEventId stopRecEventId;
   epicsEventId resumeRecEventId;
+  epicsEventId startPlayEventId;
   // connectCamera
   unsigned long nDeviceNo;
   unsigned long nChildNo;   // hard-coded to 1 in connectCamera
@@ -300,12 +306,17 @@ private:
   // readMem
   unsigned long memWidth;
   unsigned long memHeight;
+  unsigned long memRate;
   unsigned long tMode;
+  PDC_IRIG_INFO tDataStart;
+  PDC_IRIG_INFO tDataEnd;
   PDC_FRAME_INFO FrameInfo;
   //
   epicsTimeStamp preIRIGStartTime;
   epicsTimeStamp postIRIGStartTime;
   int abortFlag;
+  //
+  int stopFlag;
   /* Our data */
   NDArray *pRaw;
   int numValidTriggerModes_;
@@ -320,6 +331,7 @@ private:
    the contructor in the source file */ 
 static void PhotronTaskC(void *drvPvt);
 static void PhotronRecTaskC(void *drvPvt);
+static void PhotronPlayTaskC(void *drvPvt);
 
 typedef struct {
   ELLNODE node;
@@ -356,7 +368,9 @@ typedef struct {
 #define PhotronPMIndexString    "PHOTRON_PM_INDEX"  /* (asynInt32,   rw) */
 #define PhotronChangePMIndexString "PHOTRON_CHANGE_PM_INDEX" /* (asynInt32, rw) */
 #define PhotronPMStartString    "PHOTRON_PM_START"  /* (asynInt32,   rw) */
-#define PhotronPMEndString    "PHOTRON_PM_END"  /* (asynInt32,   rw) */
+#define PhotronPMEndString      "PHOTRON_PM_END"  /* (asynInt32,   rw) */
+#define PhotronPMPlayString     "PHOTRON_PM_PLAY"  /* (asynInt32,   rw) */
+#define PhotronPMRepeatString   "PHOTRON_PM_REPEAT"  /* (asynInt32,   rw) */
 #define PhotronPMSaveString     "PHOTRON_PM_SAVE" /* (asynInt32,    w) */
 #define PhotronPMCancelString   "PHOTRON_PM_CANCEL"   /* (asynInt32,    w) */
 #define PhotronIRIGString       "PHOTRON_IRIG"   /* (asynInt32,    w) */

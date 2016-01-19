@@ -429,6 +429,15 @@ record(longout, "$(P)$(R)PMPlay")
    field(OUT,  "$(P)$(R)PMTrans.SCAN PP NMS")
 }
 
+record(bo, "$(P)$(R)PMPlayNew")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Play preview")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_PLAY")
+   field(ZNAM, "Done")
+   field(ONAM, "Play")
+}
+
 record(longout, "$(P)$(R)PMStop")
 {
    field(DESC, "Stop preview")
@@ -438,7 +447,17 @@ record(longout, "$(P)$(R)PMStop")
 
 record(bo, "$(P)$(R)PMRepeat")
 {
-   field(DESC, "Save")
+   field(DESC, "Repeat")
+   field(ZNAM, "Off")
+   field(ONAM, "On")
+   field(VAL,  "0")
+}
+
+record(bo, "$(P)$(R)PMRepeatNew")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Repeat")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_REPEAT")
    field(ZNAM, "Off")
    field(ONAM, "On")
    field(VAL,  "0")
