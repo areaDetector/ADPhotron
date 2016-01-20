@@ -151,6 +151,7 @@ protected:
     int PhotronPMPlay;
     int PhotronPMPlayRev;
     int PhotronPMPlayFPS;
+    int PhotronPMPlayMult;
     int PhotronPMRepeat;
     int PhotronPMSave;
     int PhotronPMCancel;
@@ -377,6 +378,7 @@ typedef struct {
 #define PhotronPMPlayString     "PHOTRON_PM_PLAY"  /* (asynInt32,   rw) */
 #define PhotronPMPlayRevString  "PHOTRON_PM_PLAY_REV"  /* (asynInt32,   rw) */
 #define PhotronPMPlayFPSString  "PHOTRON_PM_PLAY_FPS"  /* (asynInt32,   rw) */
+#define PhotronPMPlayMultString "PHOTRON_PM_PLAY_MULT"  /* (asynInt32,   rw) */
 #define PhotronPMRepeatString   "PHOTRON_PM_REPEAT"  /* (asynInt32,   rw) */
 #define PhotronPMSaveString     "PHOTRON_PM_SAVE" /* (asynInt32,    w) */
 #define PhotronPMCancelString   "PHOTRON_PM_CANCEL"   /* (asynInt32,    w) */

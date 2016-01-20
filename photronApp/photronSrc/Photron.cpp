@@ -114,6 +114,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronPMPlayString,        asynParamInt32, &PhotronPMPlay);
   createParam(PhotronPMPlayRevString,     asynParamInt32, &PhotronPMPlayRev);
   createParam(PhotronPMPlayFPSString,     asynParamInt32, &PhotronPMPlayFPS);
+  createParam(PhotronPMPlayMultString,    asynParamInt32, &PhotronPMPlayMult);
   createParam(PhotronPMRepeatString,      asynParamInt32, &PhotronPMRepeat);
   createParam(PhotronPMSaveString,        asynParamInt32, &PhotronPMSave);
   createParam(PhotronPMCancelString,      asynParamInt32, &PhotronPMCancel);
@@ -314,7 +315,7 @@ void Photron::PhotronPlayTask() {
   unsigned long nRet;
   unsigned long nErrorCode;
   epicsInt32 phostat, start, end, repeat, current;
-  epicsInt32 fps;
+  epicsInt32 fps, multiplier;
   int index, nextIndex, stop;
   //
   int transferBitDepth;
@@ -361,7 +362,6 @@ void Photron::PhotronPlayTask() {
     if (phostat == 1) {
       getIntegerParam(PhotronPMStart, &start);
       getIntegerParam(PhotronPMEnd, &end);
-      getIntegerParam(PhotronPMRepeat, &repeat);
       getIntegerParam(PhotronPMIndex, &current);
       
       if (this->pixelBits == 8) {
@@ -443,6 +443,10 @@ void Photron::PhotronPlayTask() {
         //
         memcpy(pImage->pData, pBuf, dataSize);
         
+        // Allow repeat and multiplier to be changed during playback
+        getIntegerParam(PhotronPMRepeat, &repeat);
+        getIntegerParam(PhotronPMPlayMult, &multiplier);
+        
         // Determine if another frame should start preloading based on index
         if (this->dirFlag == 1) {
           // forward direction
@@ -457,7 +461,10 @@ void Photron::PhotronPlayTask() {
               stop = 1;
             }
           } else {
-            nextIndex = index + 1;
+            nextIndex = index + multiplier;
+            if (nextIndex > end) {
+              nextIndex = end;
+            }
             stop = 0;
           }
         } else {
@@ -473,7 +480,10 @@ void Photron::PhotronPlayTask() {
               stop = 1;
             }
           } else {
-            nextIndex = index - 1;
+            nextIndex = index - multiplier;
+            if (nextIndex < start) {
+              nextIndex = start;
+            }
             stop = 0;
           }
         }
@@ -1510,6 +1520,10 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     if (value < 1) {
       setIntegerParam(PhotronPMPlayFPS, 1);
     }
+  } else if (function == PhotronPMPlayMult) {
+    if (value < 1) {
+      setIntegerParam(PhotronPMPlayMult, 1);
+    }
   } else if (function == PhotronPMRepeat) {
     // Do nothing
     printf("PhotronPMRepeat: value = %d\n", value);
@@ -1550,7 +1564,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   }
   
   if ((function == PhotronPMPlay) || (function == PhotronPMPlayFPS) ||
-      (function == PhotronPMPlayRev)) {
+      (function == PhotronPMPlayRev) || (function == PhotronPMPlayMult) ||
+      (function == PhotronPMRepeat)) {
     // Don't call readParameters() for PVs that can be changed during preview
     // Calling readParameters here results in locking issues
     callParamCallbacks();

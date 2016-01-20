@@ -238,13 +238,28 @@ menu {
 }
 "text entry" {
 	object {
-		x=345
+		x=350
 		y=89
 		width=50
 		height=25
 	}
 	control {
 		chan="$(P)$(R)PMPlayFPS"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+"text entry" {
+	object {
+		x=443
+		y=90
+		width=50
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PMPlayMult"
 		clr=14
 		bclr=51
 	}
