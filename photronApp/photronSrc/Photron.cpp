@@ -316,7 +316,6 @@ void Photron::PhotronPlayTask() {
   epicsInt32 phostat, start, end, repeat, current;
   int index, nextIndex, stop;
   //
-  
   int transferBitDepth;
   PDC_IRIG_INFO tData, tDataDiff;
   //
@@ -489,14 +488,15 @@ void Photron::PhotronPlayTask() {
         
         /* Call the callbacks to update any changes */
         callParamCallbacks();
-  
-        /* Get the current parameters */
-        getIntegerParam(NDArrayCounter, &imageCounter);
-        getIntegerParam(ADNumImagesCounter, &numImagesCounter);
+        
+         // Get params
         getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-        imageCounter++;
-        numImagesCounter++;
+        
+        // Set the image counters during playback to the values they would have
+        // if the frames were saved with the current settings
+        imageCounter = this->NDArrayCounterBackup + index - start;
         setIntegerParam(NDArrayCounter, imageCounter);
+        numImagesCounter = index - start;
         setIntegerParam(ADNumImagesCounter, numImagesCounter);
         
         /* Put the frame number and time stamp into the buffer */
@@ -623,6 +623,12 @@ void Photron::PhotronRecTask() {
           epicsEventWait(this->resumeRecEventId);
           this->lock();
         }
+        
+        // Re-zero the num images complete (num will = total saved this acq)
+        setIntegerParam(ADNumImagesCounter, 0);
+        // Restore the image counter (num will = total saved since last reset)
+        setIntegerParam(NDArrayCounter, this->NDArrayCounterBackup);
+        callParamCallbacks();
         
         // Read specified image range here
         this->readImageRange();
@@ -2077,6 +2083,9 @@ asynStatus Photron::readMem() {
   setIntegerParam(ADNumImagesCounter, 0);
   callParamCallbacks();
   
+  // Save the image counter (user can reset it whenever they want)
+  getIntegerParam(NDArrayCounter, &(this->NDArrayCounterBackup));
+  
   // Only read memory if in record mode
   // AND status is playback
   if (acqMode == 1) {
@@ -2278,11 +2287,14 @@ asynStatus Photron::changePMIndex(epicsInt32 value) {
 }
 
 
+// This is called during playback (preview) mode
+// value has already been validated
 asynStatus Photron::readMemImage(epicsInt32 value) {
   asynStatus status = asynSuccess;
   int transferBitDepth;
   unsigned long nRet, nErrorCode;
-  PDC_IRIG_INFO tData;
+  PDC_IRIG_INFO tData, tDataDiff;
+  double tRel;
   //
   NDArray *pImage;
   NDArrayInfo_t arrayInfo;
@@ -2296,12 +2308,12 @@ asynStatus Photron::readMemImage(epicsInt32 value) {
   size_t dataSize;
   //
   int imageCounter;
-  int numImages, numImagesCounter;
-  int imageMode;
+  int numImagesCounter;
   int arrayCallbacks;
   //double acquirePeriod, delay;
   epicsTimeStamp startTime;
-  epicsUInt32 irigSeconds;
+  //epicsUInt32 irigSeconds;
+  epicsInt32 start;
   //
   static const char *functionName = "readMemImage";
   
@@ -2374,36 +2386,38 @@ asynStatus Photron::readMemImage(epicsInt32 value) {
   setIntegerParam(NDArraySize,  (int)arrayInfo.totalBytes);
   setIntegerParam(NDArraySizeX, (int)pImage->dims[0].size);
   setIntegerParam(NDArraySizeY, (int)pImage->dims[1].size);
-  printf("callParamCallbacks()\n");
+  
   /* Call the callbacks to update any changes */
   callParamCallbacks();
   
-  // TODO: Do something smarter with the image counter, array counter, and timestamps
-  // Currently acquiring frames in preview mode increments the counter more than it should
-  
-  /* Get the current parameters */
-  getIntegerParam(NDArrayCounter, &imageCounter);
-  getIntegerParam(ADNumImages, &numImages);
-  getIntegerParam(ADNumImagesCounter, &numImagesCounter);
-  getIntegerParam(ADImageMode, &imageMode);
+  // Get the current parameters
   getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-  imageCounter++;
-  numImagesCounter++;
+  getIntegerParam(PhotronPMStart, &start);
+  
+  // Set the image counters during playback to the values they would have
+  // if the frames were saved with the current settings
+  imageCounter = this->NDArrayCounterBackup + value - start;
   setIntegerParam(NDArrayCounter, imageCounter);
+  numImagesCounter = value - start;
   setIntegerParam(ADNumImagesCounter, numImagesCounter);
-
+  
   /* Put the frame number and time stamp into the buffer */
   pImage->uniqueId = imageCounter;
   if (tMode == 1) {
-    irigSeconds = (((((tData.m_nDayOfYear * 24) + tData.m_nHour) * 60) + tData.m_nMinute) * 60) + tData.m_nSecond;
-    pImage->timeStamp = (this->postIRIGStartTime).secPastEpoch + irigSeconds + (this->postIRIGStartTime).nsec / 1.e9 + tData.m_nMicroSecond / 1.e6;
+    // Absolute time
+    //irigSeconds = (((((tData.m_nDayOfYear * 24) + tData.m_nHour) * 60) + tData.m_nMinute) * 60) + tData.m_nSecond;
+    //pImage->timeStamp = (this->postIRIGStartTime).secPastEpoch + irigSeconds + (this->postIRIGStartTime).nsec / 1.e9 + tData.m_nMicroSecond / 1.e6;
+    // Relative time
+    this->timeDiff(&tData, &(this->tDataStart), &tDataDiff);
+    this->timeDataToSec(&tDataDiff, &tRel);
+    pImage->timeStamp = tRel;
   }
   else {
-    // TODO: use relative time from the start of recording assume ideal acuisition rate
-    pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
+    // Use theoretical time
+    pImage->timeStamp = 1.0 * value / this->memRate;
   }
   updateTimeStamp(&pImage->epicsTS);
-  printf("Getting attributes\n");
+  
   /* Get any attributes that have been defined for this driver */
   this->getAttributes(pImage->pAttributeList);
 
@@ -2411,12 +2425,12 @@ asynStatus Photron::readMemImage(epicsInt32 value) {
     /* Call the NDArray callback */
     /* Must release the lock here, or we can get into a deadlock, because we
     * can block on the plugin lock, and the plugin can be calling us */
-    //this->unlock();
+    this->unlock();
     asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
               "%s:%s: calling imageData callback\n", driverName,
               functionName);
     doCallbacksGenericPointer(pImage, NDArrayData, 0);
-    //this->lock();
+    this->lock();
   }
   
   free(pBuf);

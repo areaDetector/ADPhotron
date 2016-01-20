@@ -304,6 +304,7 @@ private:
   // Keep track of the desired record rate (for switching back to Default mode)
   int desiredRate;
   // readMem
+  epicsInt32 NDArrayCounterBackup;
   unsigned long memWidth;
   unsigned long memHeight;
   unsigned long memRate;
