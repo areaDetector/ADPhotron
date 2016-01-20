@@ -384,9 +384,13 @@ void Photron::PhotronPlayTask() {
       dataSize = this->memWidth * this->memHeight * pixelSize;
       pBuf = malloc(dataSize);
       
-      // Start with the specified start frame. This is much simpler than 
-      // attempting to start with the current frame;
-      index = start;
+      // Start with the current start frame. If we're at the end, restart from
+      // the beginning.
+      if (current == end) {
+        index = start;
+      } else {
+        index = current;
+      }
       
       // Preload the first frame
       nRet = PDC_GetMemImageDataStart(this->nDeviceNo, this->nChildNo, index,

@@ -156,7 +156,7 @@ valuator {
 		height=25
 	}
 	control {
-		chan="$(P)$(R)PMPlay.PROC"
+		chan="$(P)$(R)PMPlay"
 		clr=14
 		bclr=4
 	}
@@ -171,12 +171,12 @@ valuator {
 		height=25
 	}
 	control {
-		chan="$(P)$(R)PMStop.PROC"
+		chan="$(P)$(R)PMPlay"
 		clr=14
 		bclr=4
 	}
 	label="Stop"
-	press_msg="1"
+	press_msg="0"
 }
 menu {
 	object {
