@@ -2547,6 +2547,7 @@ asynStatus Photron::readImageRange() {
   double elapsedTime;
   epicsUInt32 irigSeconds;
   //
+  int start, end;
   static const char *functionName = "readImageRange";
   
   if (this->pixelBits == 8) {
@@ -2565,10 +2566,14 @@ asynStatus Photron::readImageRange() {
   
   epicsTimeGetCurrent(&startTime);
   
+  getIntegerParam(PhotronPMStart, &start);
+  getIntegerParam(PhotronPMEnd, &end);
+  
   // TODO: Catch random trigger modes, see if fewer than the specified
   // number of recordings have occurred, then omit the first acquisition
   
-  for (index=this->FrameInfo.m_nStart; index<(this->FrameInfo.m_nEnd+1); index++) {
+  //for (index=this->FrameInfo.m_nStart; index<(this->FrameInfo.m_nEnd+1); index++) {
+  for (index=start; index<(end+1); index++) {
     // Allow user to abort acquisition
     if (this->abortFlag == 1) {
       printf("Aborting data readout!d\n");
