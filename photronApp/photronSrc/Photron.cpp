@@ -286,15 +286,6 @@ void Photron::shutdown (void* arg) {
 }
 
 
-void Photron::timeDiff(PPDC_IRIG_INFO time1, PPDC_IRIG_INFO time2, PPDC_IRIG_INFO timeDiff) {
-  (*timeDiff).m_nDayOfYear = (*time2).m_nDayOfYear - (*time1).m_nDayOfYear;
-  (*timeDiff).m_nHour = (*time2).m_nHour - (*time1).m_nHour;
-  (*timeDiff).m_nMinute = (*time2).m_nMinute - (*time1).m_nMinute;
-  (*timeDiff).m_nSecond = (*time2).m_nSecond - (*time1).m_nSecond;
-  (*timeDiff).m_nMicroSecond = (*time2).m_nMicroSecond - (*time1).m_nMicroSecond;
-}
-
-
 void Photron::timeDataToSec(PPDC_IRIG_INFO tData, double *seconds) {
   *seconds = (((((((*tData).m_nDayOfYear * 24) + (*tData).m_nHour) * 60) + (*tData).m_nMinute) * 60) + (*tData).m_nSecond) * 1.0;
   *seconds += ((*tData).m_nMicroSecond / 1.0e6);
@@ -317,7 +308,7 @@ void Photron::PhotronPlayTask() {
   int index, nextIndex, stop;
   //
   int transferBitDepth;
-  PDC_IRIG_INFO tData, tDataDiff;
+  PDC_IRIG_INFO tData;
   //
   NDArray *pImage;
   NDArrayInfo_t arrayInfo;
@@ -335,7 +326,7 @@ void Photron::PhotronPlayTask() {
   int arrayCallbacks;
   //double acquirePeriod, delay;
   //double elapsedTime;
-  double tRel;
+  double tRel, tStart, tNow;
   //
   const char *functionName = "PhotronPlayTask";
   
@@ -506,8 +497,9 @@ void Photron::PhotronPlayTask() {
           //irigSeconds = (((((tData.m_nDayOfYear * 24) + tData.m_nHour) * 60) + tData.m_nMinute) * 60) + tData.m_nSecond;
           //pImage->timeStamp = (this->postIRIGStartTime).secPastEpoch + irigSeconds + (this->postIRIGStartTime).nsec / 1.e9 + tData.m_nMicroSecond / 1.e6;
           // Relative time
-          this->timeDiff(&tData, &(this->tDataStart), &tDataDiff);
-          this->timeDataToSec(&tDataDiff, &tRel);
+          this->timeDataToSec(&tData, &tNow);
+          this->timeDataToSec(&(this->tDataStart), &tStart);
+          tRel = tNow - tStart;
           pImage->timeStamp = tRel;
         }
         else {
@@ -2293,8 +2285,8 @@ asynStatus Photron::readMemImage(epicsInt32 value) {
   asynStatus status = asynSuccess;
   int transferBitDepth;
   unsigned long nRet, nErrorCode;
-  PDC_IRIG_INFO tData, tDataDiff;
-  double tRel;
+  PDC_IRIG_INFO tData;
+  double tRel, tStart, tNow;
   //
   NDArray *pImage;
   NDArrayInfo_t arrayInfo;
@@ -2408,8 +2400,9 @@ asynStatus Photron::readMemImage(epicsInt32 value) {
     //irigSeconds = (((((tData.m_nDayOfYear * 24) + tData.m_nHour) * 60) + tData.m_nMinute) * 60) + tData.m_nSecond;
     //pImage->timeStamp = (this->postIRIGStartTime).secPastEpoch + irigSeconds + (this->postIRIGStartTime).nsec / 1.e9 + tData.m_nMicroSecond / 1.e6;
     // Relative time
-    this->timeDiff(&tData, &(this->tDataStart), &tDataDiff);
-    this->timeDataToSec(&tDataDiff, &tRel);
+    this->timeDataToSec(&tData, &tNow);
+    this->timeDataToSec(&(this->tDataStart), &tStart);
+    tRel = tNow - tStart;
     pImage->timeStamp = tRel;
   }
   else {
