@@ -416,12 +416,20 @@ record(longout, "$(P)$(R)PMEnd")
    info(asyn:READBACK, "1")
 }
 
-
 record(bo, "$(P)$(R)PMPlay")
 {
    field(DTYP, "asynInt32")
    field(DESC, "Play preview")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_PLAY")
+   field(ZNAM, "Done")
+   field(ONAM, "Play")
+}
+
+record(bo, "$(P)$(R)PMPlayRev")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Play reverse preview")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_PLAY_REV")
    field(ZNAM, "Done")
    field(ONAM, "Play")
 }

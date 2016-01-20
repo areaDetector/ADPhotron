@@ -112,6 +112,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronPMStartString,       asynParamInt32, &PhotronPMStart);
   createParam(PhotronPMEndString,         asynParamInt32, &PhotronPMEnd);
   createParam(PhotronPMPlayString,        asynParamInt32, &PhotronPMPlay);
+  createParam(PhotronPMPlayRevString,     asynParamInt32, &PhotronPMPlayRev);
   createParam(PhotronPMRepeatString,      asynParamInt32, &PhotronPMRepeat);
   createParam(PhotronPMSaveString,        asynParamInt32, &PhotronPMSave);
   createParam(PhotronPMCancelString,      asynParamInt32, &PhotronPMCancel);
@@ -376,8 +377,10 @@ void Photron::PhotronPlayTask() {
       
       // Start with the current start frame. If we're at the end, restart from
       // the beginning.
-      if (current == end) {
+      if ((this->dirFlag == 1) && (current == end)) {
         index = start;
+      } else if ((this->dirFlag) == 0 && (current == start)) {
+        index = end;
       } else {
         index = current;
       }
@@ -432,19 +435,38 @@ void Photron::PhotronPlayTask() {
         memcpy(pImage->pData, pBuf, dataSize);
         
         // Determine if another frame should start preloading based on index
-        if (index == end) {
-          if (repeat == 1) {
-            printf("It is time to REPEAT\n");
-            printf("\tindex=%d, start=%d, end=%d\n", index, start, end);
-            nextIndex = start;
-            stop = 0;
+        if (this->dirFlag == 1) {
+          // forward direction
+          if (index == end) {
+            if (repeat == 1) {
+              printf("It is time to REPEAT\n");
+              printf("\tindex=%d, start=%d, end=%d\n", index, start, end);
+              nextIndex = start;
+              stop = 0;
+            } else {
+              nextIndex = end;
+              stop = 1;
+            }
           } else {
-            nextIndex = end;
-            stop = 1;
+            nextIndex = index + 1;
+            stop = 0;
           }
         } else {
-          nextIndex = index + 1;
-          stop = 0;
+          // reverse direction
+          if (index == start) {
+            if (repeat == 1) {
+              printf("It is time to REPEAT\n");
+              printf("\tindex=%d, start=%d, end=%d\n", index, start, end);
+              nextIndex = end;
+              stop = 0;
+            } else {
+              nextIndex = start;
+              stop = 1;
+            }
+          } else {
+            nextIndex = index - 1;
+            stop = 0;
+          }
         }
         
         // Check to see if the user requested playback to stop
@@ -1431,11 +1453,30 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       // Reset the stop flag
       this->stopFlag = 0;
       
+      // Set the dir flag
+      this->dirFlag = 1;
+      
       // Wake up the PhotronPlayTask
       epicsEventSignal(this->startPlayEventId);
     } else {
       printf("Stopping Preview\n");
+      // Set a flag to stop playback to allow the play task to stop appropriately
+      this->stopFlag = 1;
+    }
+  } else if (function == PhotronPMPlayRev) {
+    if (value == 1) {
+      printf("Playing reverse preview\n");
       
+      // Reset the stop flag
+      this->stopFlag = 0;
+      
+      // Set the dir flag
+      this->dirFlag = 0;
+      
+      // Wake up the PhotronPlayTask
+      epicsEventSignal(this->startPlayEventId);
+    } else {
+      printf("Stopping reverse preview\n");
       // Set a flag to stop playback to allow the play task to stop appropriately
       this->stopFlag = 1;
     }

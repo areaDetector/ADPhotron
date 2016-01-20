@@ -149,6 +149,7 @@ protected:
     int PhotronPMStart;
     int PhotronPMEnd;
     int PhotronPMPlay;
+    int PhotronPMPlayRev;
     int PhotronPMRepeat;
     int PhotronPMSave;
     int PhotronPMCancel;
@@ -318,6 +319,7 @@ private:
   int abortFlag;
   //
   int stopFlag;
+  int dirFlag;
   /* Our data */
   NDArray *pRaw;
   int numValidTriggerModes_;
@@ -371,6 +373,7 @@ typedef struct {
 #define PhotronPMStartString    "PHOTRON_PM_START"  /* (asynInt32,   rw) */
 #define PhotronPMEndString      "PHOTRON_PM_END"  /* (asynInt32,   rw) */
 #define PhotronPMPlayString     "PHOTRON_PM_PLAY"  /* (asynInt32,   rw) */
+#define PhotronPMPlayRevString  "PHOTRON_PM_PLAY_REV"  /* (asynInt32,   rw) */
 #define PhotronPMRepeatString   "PHOTRON_PM_REPEAT"  /* (asynInt32,   rw) */
 #define PhotronPMSaveString     "PHOTRON_PM_SAVE" /* (asynInt32,    w) */
 #define PhotronPMCancelString   "PHOTRON_PM_CANCEL"   /* (asynInt32,    w) */

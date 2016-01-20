@@ -150,7 +150,7 @@ valuator {
 }
 "message button" {
 	object {
-		x=111
+		x=151
 		y=16
 		width=80
 		height=25
@@ -165,7 +165,7 @@ valuator {
 }
 "message button" {
 	object {
-		x=296
+		x=336
 		y=16
 		width=80
 		height=25
@@ -180,7 +180,7 @@ valuator {
 }
 menu {
 	object {
-		x=194
+		x=234
 		y=16
 		width=100
 		height=25
@@ -193,7 +193,7 @@ menu {
 }
 "message button" {
 	object {
-		x=380
+		x=420
 		y=16
 		width=40
 		height=25
@@ -208,7 +208,7 @@ menu {
 }
 "message button" {
 	object {
-		x=67
+		x=27
 		y=16
 		width=40
 		height=25
@@ -220,4 +220,19 @@ menu {
 	}
 	label="-1"
 	press_msg="0"
+}
+"message button" {
+	object {
+		x=69
+		y=16
+		width=80
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PMPlayRev"
+		clr=14
+		bclr=4
+	}
+	label="Play Rev"
+	press_msg="1"
 }
