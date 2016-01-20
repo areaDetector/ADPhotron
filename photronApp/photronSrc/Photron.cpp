@@ -113,6 +113,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronPMEndString,         asynParamInt32, &PhotronPMEnd);
   createParam(PhotronPMPlayString,        asynParamInt32, &PhotronPMPlay);
   createParam(PhotronPMPlayRevString,     asynParamInt32, &PhotronPMPlayRev);
+  createParam(PhotronPMPlayFPSString,     asynParamInt32, &PhotronPMPlayFPS);
   createParam(PhotronPMRepeatString,      asynParamInt32, &PhotronPMRepeat);
   createParam(PhotronPMSaveString,        asynParamInt32, &PhotronPMSave);
   createParam(PhotronPMCancelString,      asynParamInt32, &PhotronPMCancel);
@@ -195,6 +196,13 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   this->startPlayEventId = epicsEventCreate(epicsEventEmpty);
   if (!this->startPlayEventId) {
     printf("%s:%s epicsEventCreate failure for start play event\n",
+           driverName, functionName);
+    return;
+  }
+  
+  this->stopPlayEventId = epicsEventCreate(epicsEventEmpty);
+  if (!this->stopPlayEventId) {
+    printf("%s:%s epicsEventCreate failure for stop play event\n",
            driverName, functionName);
     return;
   }
@@ -306,6 +314,7 @@ void Photron::PhotronPlayTask() {
   unsigned long nRet;
   unsigned long nErrorCode;
   epicsInt32 phostat, start, end, repeat, current;
+  epicsInt32 fps;
   int index, nextIndex, stop;
   //
   int transferBitDepth;
@@ -325,9 +334,10 @@ void Photron::PhotronPlayTask() {
   int imageCounter;
   int numImagesCounter;
   int arrayCallbacks;
-  //double acquirePeriod, delay;
-  //double elapsedTime;
+  double updatePeriod, delay;
+  double elapsedTime;
   double tRel, tStart, tNow;
+  epicsTimeStamp startTime, endTime;
   //
   const char *functionName = "PhotronPlayTask";
   
@@ -352,10 +362,7 @@ void Photron::PhotronPlayTask() {
       getIntegerParam(PhotronPMStart, &start);
       getIntegerParam(PhotronPMEnd, &end);
       getIntegerParam(PhotronPMRepeat, &repeat);
-      // Should the playback start from the index or the start?
       getIntegerParam(PhotronPMIndex, &current);
-      
-      // TODO: Should the image counter be saved so it can be restored after playback is done?
       
       if (this->pixelBits == 8) {
         // 8 bits
@@ -391,6 +398,8 @@ void Photron::PhotronPlayTask() {
       if (nRet == PDC_FAILED) {
         printf("PDC_GetMemImageDataStart Error %d; index = %d\n", nErrorCode, index);
       }
+      
+      epicsTimeGetCurrent(&startTime);
       
       while (1) {
         // Acquire the image data
@@ -469,15 +478,26 @@ void Photron::PhotronPlayTask() {
           }
         }
         
+        // Allow the speed to be changed during playback
+        getIntegerParam(PhotronPMPlayFPS, &fps);
+        updatePeriod = 1.0 / fps;
+        
+        // delay if possible and necessary
+        epicsTimeGetCurrent(&endTime);
+        elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
+        delay = updatePeriod - elapsedTime;
+        if (delay > 0) {
+          //printf("delay = %f\n", delay);
+          this->unlock();
+          epicsEventWaitWithTimeout(this->stopPlayEventId, delay);
+          this->lock();
+        }
+        epicsTimeGetCurrent(&startTime);
+        
         // Check to see if the user requested playback to stop
         if (this->stopFlag == 1) {
           stop = 1;
         }
-        
-        // release the lock -- is this helpful or necessary?
-        /*this->unlock();
-        epicsThreadSleep(0.001);
-        this->lock();*/
         
         //
         if (stop == 0) {
@@ -1462,6 +1482,9 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       printf("Stopping Preview\n");
       // Set a flag to stop playback to allow the play task to stop appropriately
       this->stopFlag = 1;
+      
+      // Wake up the PhotronPlayTask
+      epicsEventSignal(this->stopPlayEventId);
     }
   } else if (function == PhotronPMPlayRev) {
     if (value == 1) {
@@ -1479,6 +1502,13 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       printf("Stopping reverse preview\n");
       // Set a flag to stop playback to allow the play task to stop appropriately
       this->stopFlag = 1;
+      
+      // Wake up the PhotronPlayTask
+      epicsEventSignal(this->stopPlayEventId);
+    }
+  } else if (function == PhotronPMPlayFPS) {
+    if (value < 1) {
+      setIntegerParam(PhotronPMPlayFPS, 1);
     }
   } else if (function == PhotronPMRepeat) {
     // Do nothing
@@ -1519,9 +1549,10 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status = ADDriver::writeInt32(pasynUser, value);
   }
   
-  if (function == PhotronPMPlay) {
-    // Don't call readParameters if the play/stop button is pressed.
-    // Calling readParameters results in locking issues.
+  if ((function == PhotronPMPlay) || (function == PhotronPMPlayFPS) ||
+      (function == PhotronPMPlayRev)) {
+    // Don't call readParameters() for PVs that can be changed during preview
+    // Calling readParameters here results in locking issues
     callParamCallbacks();
   } else {
     // Read the camera parameters and do callbacks

@@ -416,6 +416,16 @@ record(longout, "$(P)$(R)PMEnd")
    info(asyn:READBACK, "1")
 }
 
+record(longout, "$(P)$(R)PMPlayFPS")
+{
+   field(PINI, "YES")
+   field(DTYP, "asynInt32")
+   field(DESC, "Preview Mode FPS")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_PLAY_FPS")
+   field(VAL,  "1")
+   info(asyn:READBACK, "1")
+}
+
 record(bo, "$(P)$(R)PMPlay")
 {
    field(DTYP, "asynInt32")

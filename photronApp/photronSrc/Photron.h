@@ -150,6 +150,7 @@ protected:
     int PhotronPMEnd;
     int PhotronPMPlay;
     int PhotronPMPlayRev;
+    int PhotronPMPlayFPS;
     int PhotronPMRepeat;
     int PhotronPMSave;
     int PhotronPMCancel;
@@ -237,6 +238,7 @@ private:
   epicsEventId stopRecEventId;
   epicsEventId resumeRecEventId;
   epicsEventId startPlayEventId;
+  epicsEventId stopPlayEventId;
   // connectCamera
   unsigned long nDeviceNo;
   unsigned long nChildNo;   // hard-coded to 1 in connectCamera
@@ -374,6 +376,7 @@ typedef struct {
 #define PhotronPMEndString      "PHOTRON_PM_END"  /* (asynInt32,   rw) */
 #define PhotronPMPlayString     "PHOTRON_PM_PLAY"  /* (asynInt32,   rw) */
 #define PhotronPMPlayRevString  "PHOTRON_PM_PLAY_REV"  /* (asynInt32,   rw) */
+#define PhotronPMPlayFPSString  "PHOTRON_PM_PLAY_FPS"  /* (asynInt32,   rw) */
 #define PhotronPMRepeatString   "PHOTRON_PM_REPEAT"  /* (asynInt32,   rw) */
 #define PhotronPMSaveString     "PHOTRON_PM_SAVE" /* (asynInt32,    w) */
 #define PhotronPMCancelString   "PHOTRON_PM_CANCEL"   /* (asynInt32,    w) */

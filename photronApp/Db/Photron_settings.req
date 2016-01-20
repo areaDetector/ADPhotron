@@ -9,6 +9,7 @@ $(P)$(R)RandomFrames
 $(P)$(R)RecCount
 $(P)$(R)IRIG
 $(P)$(R)PreviewMode
+$(P)$(R)PMPlayFPS
 $(P)$(R)VarChan
 # Save res index instead of size X and size Y -- this may not work for variable mode
 $(P)$(R)ResIdx

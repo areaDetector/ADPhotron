@@ -236,3 +236,18 @@ menu {
 	label="Play Rev"
 	press_msg="1"
 }
+"text entry" {
+	object {
+		x=345
+		y=89
+		width=50
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PMPlayFPS"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
