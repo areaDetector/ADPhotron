@@ -12,26 +12,26 @@ include "ADBase.template"
 #        Photron                                                              #
 ###############################################################################
 
-# This breaks resolution changes
-#!record(longin, "$(P)$(R)SizeX_RBV")
-#!{
-#!   field(FLNK, "$(P)$(R)SyncSizeX")
-#!}
+# Keep target positions and size in sync with the readbacks
+record(longout, "$(P)$(R)SizeX")
+{
+   info(asyn:READBACK, "1")
+}
 
-#!record(longin, "$(P)$(R)SizeY_RBV")
-#!{
-#!   field(FLNK, "$(P)$(R)SyncSizeY")
-#!}
+record(longout, "$(P)$(R)SizeY")
+{
+   info(asyn:READBACK, "1")
+}
 
-#!record(longin, "$(P)$(R)MinX_RBV")
-#!{
-#!   field(FLNK, "$(P)$(R)SyncMinX")
-#!}
+record(longout, "$(P)$(R)MinX")
+{
+   info(asyn:READBACK, "1")
+}
 
-#!record(longin, "$(P)$(R)MinY_RBV")
-#!{
-#!   field(FLNK, "$(P)$(R)SyncMinY")
-#!}
+record(longout, "$(P)$(R)MinY")
+{
+   info(asyn:READBACK, "1")
+}
 
 # Acquire time needs a higher precision
 record(ao, "$(P)$(R)AcquireTime")
@@ -749,6 +749,7 @@ record(longout, "$(P)$(R)ResIdx")
    field(DTYP, "asynInt32")
    field(DESC, "Resolution Index")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_RES_INDEX")
+   info(asyn:READBACK, "1")
 }
 
 record(longin, "$(P)$(R)ResIdx_RBV")
@@ -757,15 +758,6 @@ record(longin, "$(P)$(R)ResIdx_RBV")
    field(DESC, "Resolution Index")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_RES_INDEX")
    field(SCAN, "I/O Intr")
-   field(FLNK, "$(P)$(R)ResIdxSync")
-}
-
-record(calcout, "$(P)$(R)ResIdxSync")
-{
-   field(DESC, "Sync res index")
-   field(INPA, "$(P)$(R)ResIdx_RBV")
-   field(CALC, "A")
-   field(OUT,  "$(P)$(R)ResIdx PP")
 }
 
 record(bo, "$(P)$(R)ChangeResIdx")
@@ -785,6 +777,7 @@ record(longout, "$(P)$(R)VarChan")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN")
    field(DRVH, "20")
    field(DRVL, "1")
+   info(asyn:READBACK, "1")
 }
 
 record(longin, "$(P)$(R)VarChan_RBV")
@@ -793,15 +786,6 @@ record(longin, "$(P)$(R)VarChan_RBV")
    field(DESC, "Variable Channel")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN")
    field(SCAN, "I/O Intr")
-   field(FLNK, "$(P)$(R)VarChanSync")
-}
-
-record(calcout, "$(P)$(R)VarChanSync")
-{
-   field(DESC, "Sync variable chan")
-   field(INPA, "$(P)$(R)VarChan_RBV")
-   field(CALC, "A")
-   field(OUT,  "$(P)$(R)VarChan PP")
 }
 
 record(bo, "$(P)$(R)ChangeVarChan")
@@ -851,44 +835,4 @@ record(longin, "$(P)$(R)VarChanYPos_RBV")
    field(DESC, "Variable Chan Y Pos")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_Y_POS")
    field(SCAN, "I/O Intr")
-}
-
-record(fanout, "$(P)$(R)SyncFanout")
-{
-   field(LNK1, "$(P)$(R)SyncSizeX")
-   field(LNK2, "$(P)$(R)SyncSizeY")
-   field(LNK3, "$(P)$(R)SyncMinX")
-   field(LNK4, "$(P)$(R)SyncMinY")
-}
-
-record(calcout, "$(P)$(R)SyncSizeX")
-{
-   field(DESC, "Sync res targets")
-   field(INPA, "$(P)$(R)SizeX_RBV")
-   field(CALC, "A")
-   field(OUT,  "$(P)$(R)SizeX PP")
-}
-
-record(calcout, "$(P)$(R)SyncSizeY")
-{
-   field(DESC, "Sync res targets")
-   field(INPA, "$(P)$(R)SizeY_RBV")
-   field(CALC, "A")
-   field(OUT,  "$(P)$(R)SizeY PP")
-}
-
-record(calcout, "$(P)$(R)SyncMinX")
-{
-   field(DESC, "Sync res targets")
-   field(INPA, "$(P)$(R)MinX_RBV")
-   field(CALC, "A")
-   field(OUT,  "$(P)$(R)MinX PP")
-}
-
-record(calcout, "$(P)$(R)SyncMinY")
-{
-   field(DESC, "Sync res targets")
-   field(INPA, "$(P)$(R)MinY_RBV")
-   field(CALC, "A")
-   field(OUT,  "$(P)$(R)MinY PP")
 }
