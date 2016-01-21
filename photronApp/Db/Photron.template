@@ -508,6 +508,150 @@ record(longin, "$(P)$(R)MemIRIGDay_RBV")
    field(SCAN, "I/O Intr")
 }
 
+record(calcout, "$(P)$(R)PMStatusMon")
+{
+   field(DESC, "Status monitor")
+   field(INPA, "$(P)$(R)Status_RBV CP NMS")
+   field(INPB, "$(P)$(R)PreviewMode NPP NMS")
+   field(CALC, "(A=1)&&(B=1)")
+   field(OCAL, "1")
+   field(OOPT, "Transition To Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)$(R)PMPluginRead.PROC PP NMS")
+}
+
+record(transform, "$(P)$(R)PMPluginRead")
+{
+   field(DESC, "Read file plugins")
+   field(SCAN, "Passive")
+   field(CMTA, "NetCDF")
+   field(CMTB, "TIFF")
+   field(CMTC, "JPEG")
+   field(CMTD, "Nexus")
+   field(CMTE, "Magick")
+   field(CMTF, "HDF")
+   field(INPA, "$(P)netCDF1:EnableCallbacks NPP NMS")
+   field(INPB, "$(P)TIFF1:EnableCallbacks NPP NMS")
+   field(INPC, "$(P)JPEG1:EnableCallbacks NPP NMS")
+   field(INPD, "$(P)Nexus1:EnableCallbacks NPP NMS")
+   field(INPE, "$(P)Magick1:EnableCallbacks NPP NMS")
+   field(INPF, "$(P)HDF1:EnableCallbacks NPP NMS")
+   field(FLNK, "$(P)$(R)PMPluginDisable")
+}
+
+record(dfanout, "$(P)$(R)PMPluginDisable")
+{
+   field(DESC, "Disable file plugins")
+   field(OMSL, "supervisory")
+   field(VAL,  "0")
+   field(OUTA, "$(P)netCDF1:EnableCallbacks PP NMS")
+   field(OUTB, "$(P)TIFF1:EnableCallbacks PP NMS")
+   field(OUTC, "$(P)JPEG1:EnableCallbacks PP NMS")
+   field(OUTD, "$(P)Nexus1:EnableCallbacks PP NMS")
+   field(OUTE, "$(P)Magick1:EnableCallbacks PP NMS")
+   field(OUTF, "$(P)HDF1:EnableCallbacks PP NMS")
+}
+
+record(dfanout, "$(P)$(R)PMSaveFanout")
+{
+   field(DESC, "Restore plugins then save")
+   field(OMSL, "supervisory")
+   field(VAL,  "1")
+   field(OUTA, "$(P)$(R)PMPluginRestore1.PROC PP NMS")
+   field(OUTB, "$(P)$(R)PMPluginRestore2.PROC PP NMS")
+   field(OUTC, "$(P)$(R)PMPluginRestore3.PROC PP NMS")
+   field(OUTD, "$(P)$(R)PMPluginRestore4.PROC PP NMS")
+   field(OUTE, "$(P)$(R)PMPluginRestore5.PROC PP NMS")
+   field(OUTF, "$(P)$(R)PMPluginRestore6.PROC PP NMS")
+   field(OUTG, "$(P)$(R)PMSave PP NMS")
+}
+
+record(dfanout, "$(P)$(R)PMCancelFanout")
+{
+   field(DESC, "Restore plugins then cancel")
+   field(OMSL, "supervisory")
+   field(VAL,  "1")
+   field(OUTA, "$(P)$(R)PMPluginRestore1.PROC PP NMS")
+   field(OUTB, "$(P)$(R)PMPluginRestore2.PROC PP NMS")
+   field(OUTC, "$(P)$(R)PMPluginRestore3.PROC PP NMS")
+   field(OUTD, "$(P)$(R)PMPluginRestore4.PROC PP NMS")
+   field(OUTE, "$(P)$(R)PMPluginRestore5.PROC PP NMS")
+   field(OUTF, "$(P)$(R)PMPluginRestore6.PROC PP NMS")
+   field(OUTG, "$(P)$(R)PMCancel PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore1")
+{
+   field(DESC, "Restore NetCDF")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.A NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)netCDF1:EnableCallbacks PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore2")
+{
+   field(DESC, "Restore TIFF")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.B NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)TIFF1:EnableCallbacks PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore3")
+{
+   field(DESC, "Restore JPEG")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.C NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)JPEG1:EnableCallbacks PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore4")
+{
+   field(DESC, "Restore Nexus")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.D NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)Nexus1:EnableCallbacks PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore5")
+{
+   field(DESC, "Restore Magick")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.E NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)Magick1:EnableCallbacks PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore6")
+{
+   field(DESC, "Restore HDF")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.F NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)HDF1:EnableCallbacks PP NMS")
+}
+
 record(longin, "$(P)$(R)MemIRIGHour_RBV")
 {
    field(DTYP, "asynInt32")

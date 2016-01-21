@@ -1347,7 +1347,7 @@ text {
 		height=25
 	}
 	control {
-		chan="$(P)$(R)PMCancel.VAL"
+		chan="$(P)$(R)PMCancelFanout.PROC"
 		clr=14
 		bclr=4
 	}
@@ -1362,7 +1362,7 @@ text {
 		height=25
 	}
 	control {
-		chan="$(P)$(R)PMSave.VAL"
+		chan="$(P)$(R)PMSaveFanout.PROC"
 		clr=14
 		bclr=4
 	}
