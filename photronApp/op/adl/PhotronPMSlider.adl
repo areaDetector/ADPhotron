@@ -5,8 +5,8 @@ file {
 }
 display {
 	object {
-		x=766
-		y=332
+		x=721
+		y=333
 		width=500
 		height=132
 	}
@@ -150,7 +150,7 @@ valuator {
 }
 "message button" {
 	object {
-		x=151
+		x=344
 		y=16
 		width=80
 		height=25
@@ -160,12 +160,12 @@ valuator {
 		clr=14
 		bclr=4
 	}
-	label="Play"
+	label=">"
 	press_msg="1"
 }
 "message button" {
 	object {
-		x=336
+		x=158
 		y=16
 		width=80
 		height=25
@@ -175,12 +175,12 @@ valuator {
 		clr=14
 		bclr=4
 	}
-	label="Stop"
+	label="X"
 	press_msg="0"
 }
 menu {
 	object {
-		x=234
+		x=241
 		y=16
 		width=100
 		height=25
@@ -193,7 +193,7 @@ menu {
 }
 "message button" {
 	object {
-		x=420
+		x=427
 		y=16
 		width=40
 		height=25
@@ -208,7 +208,7 @@ menu {
 }
 "message button" {
 	object {
-		x=27
+		x=34
 		y=16
 		width=40
 		height=25
@@ -223,7 +223,7 @@ menu {
 }
 "message button" {
 	object {
-		x=69
+		x=76
 		y=16
 		width=80
 		height=25
@@ -233,7 +233,7 @@ menu {
 		clr=14
 		bclr=4
 	}
-	label="Play Rev"
+	label="<"
 	press_msg="1"
 }
 "text entry" {
@@ -265,4 +265,34 @@ menu {
 	}
 	limits {
 	}
+}
+"message button" {
+	object {
+		x=470
+		y=16
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PMLast"
+		clr=14
+		bclr=4
+	}
+	label=">|"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=7
+		y=16
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)PMFirst"
+		clr=14
+		bclr=4
+	}
+	label="|<"
+	press_msg="1"
 }

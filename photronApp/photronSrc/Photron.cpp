@@ -86,7 +86,6 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronCamModeString,       asynParamInt32, &PhotronCamMode);
   createParam(PhotronAcquireModeString,   asynParamInt32, &PhotronAcquireMode);
   createParam(PhotronOpModeString,        asynParamInt32, &PhotronOpMode);
-  createParam(PhotronPreviewModeString,   asynParamInt32, &PhotronPreviewMode);
   createParam(PhotronMaxFramesString,     asynParamInt32, &PhotronMaxFrames);
   createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
   createParam(PhotronRecordRateString,    asynParamInt32, &PhotronRecRate);
@@ -107,10 +106,13 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronFrameStartString,    asynParamInt32, &PhotronFrameStart);
   createParam(PhotronFrameEndString,      asynParamInt32, &PhotronFrameEnd);
   createParam(PhotronLiveModeString,      asynParamInt32, &PhotronLiveMode);
-  createParam(PhotronPMIndexString,       asynParamInt32, &PhotronPMIndex);
-  createParam(PhotronChangePMIndexString, asynParamInt32, &PhotronChangePMIndex);
+  createParam(PhotronPreviewModeString,   asynParamInt32, &PhotronPreviewMode);
   createParam(PhotronPMStartString,       asynParamInt32, &PhotronPMStart);
   createParam(PhotronPMEndString,         asynParamInt32, &PhotronPMEnd);
+  createParam(PhotronPMIndexString,       asynParamInt32, &PhotronPMIndex);
+  createParam(PhotronChangePMIndexString, asynParamInt32, &PhotronChangePMIndex);
+  createParam(PhotronPMFirstString,       asynParamInt32, &PhotronPMFirst);
+  createParam(PhotronPMLastString,        asynParamInt32, &PhotronPMLast);
   createParam(PhotronPMPlayString,        asynParamInt32, &PhotronPMPlay);
   createParam(PhotronPMPlayRevString,     asynParamInt32, &PhotronPMPlayRev);
   createParam(PhotronPMPlayFPSString,     asynParamInt32, &PhotronPMPlayFPS);
@@ -1347,6 +1349,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int function = pasynUser->reason;
   int status = asynSuccess;
   int adstatus, acqMode, chan;
+  int index;
+  int skipReadParams = 0;
   static const char *functionName = "writeInt32";
   
   //printf("FUNCTION: %d - VALUE: %d\n", function, value);
@@ -1468,14 +1472,26 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronPMIndex) {
     // grab and display an image from memory
     setPMIndex(value);
+    skipReadParams = 1;
   } else if (function == PhotronChangePMIndex) {
     changePMIndex(value);
+    skipReadParams = 1;
+  } else if (function == PhotronPMFirst) {
+    getIntegerParam(PhotronPMStart, &index);
+    setPMIndex(index);
+    setIntegerParam(PhotronPMIndex, index);
+    skipReadParams = 1;
+  } else if (function == PhotronPMLast) {
+    getIntegerParam(PhotronPMEnd, &index);
+    setPMIndex(index);
+    setIntegerParam(PhotronPMEnd, index);
+    skipReadParams = 1;
   } else if (function == PhotronPMStart) {
-    // Do something eventually
     setPreviewRange(function, value);
+    skipReadParams = 1;
   } else if (function == PhotronPMEnd) {
-    // Do something eventually
     setPreviewRange(function, value);
+    skipReadParams = 1;
   } else if (function == PhotronPMPlay) {
     if (value == 1) {
       printf("Playing Preview\n");
@@ -1496,6 +1512,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       // Wake up the PhotronPlayTask
       epicsEventSignal(this->stopPlayEventId);
     }
+    skipReadParams = 1;
   } else if (function == PhotronPMPlayRev) {
     if (value == 1) {
       printf("Playing reverse preview\n");
@@ -1516,28 +1533,35 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       // Wake up the PhotronPlayTask
       epicsEventSignal(this->stopPlayEventId);
     }
+    skipReadParams = 1;
   } else if (function == PhotronPMPlayFPS) {
     if (value < 1) {
       setIntegerParam(PhotronPMPlayFPS, 1);
     }
+    skipReadParams = 1;
   } else if (function == PhotronPMPlayMult) {
     if (value < 1) {
       setIntegerParam(PhotronPMPlayMult, 1);
     }
+    skipReadParams = 1;
   } else if (function == PhotronPMRepeat) {
     // Do nothing
     printf("PhotronPMRepeat: value = %d\n", value);
+    skipReadParams = 1;
   } else if (function == PhotronPMCancel) {
     // TODO: do nothing if not it playback mode
     // Set the abort flag then resume the recording task
     printf("PMCancel %d\n", value);
     this->abortFlag = 1;
     epicsEventSignal(this->resumeRecEventId);
+    skipReadParams = 1;
   } else if (function == PhotronPMSave) {
     // TODO: do nothing if not it playback mode
     // Send the signal to resume the recording task
     printf("PMSave %d\n", value);
     epicsEventSignal(this->resumeRecEventId);
+    skipReadParams = 1;
+  } else if (function == PhotronIRIG) {
   } else if (function == PhotronIRIG) {
     setIRIG(value);
   } else if (function == PhotronSyncPriority) {
@@ -1563,9 +1587,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status = ADDriver::writeInt32(pasynUser, value);
   }
   
-  if ((function == PhotronPMPlay) || (function == PhotronPMPlayFPS) ||
-      (function == PhotronPMPlayRev) || (function == PhotronPMPlayMult) ||
-      (function == PhotronPMRepeat)) {
+  if (skipReadParams == 1) {
     // Don't call readParameters() for PVs that can be changed during preview
     // Calling readParameters here results in locking issues
     callParamCallbacks();

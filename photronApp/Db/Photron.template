@@ -398,6 +398,24 @@ record(calcout, "$(P)$(R)PMIndexHOPR")
    field(OUT,  "$(P)$(R)PMIndex.HOPR NPP NMS")
 }
 
+record(bo, "$(P)$(R)PMFirst")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Jump to start")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_FIRST")
+   field(ZNAM, "Done")
+   field(ONAM, "Do")
+}
+
+record(bo, "$(P)$(R)PMLast")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Jump to end")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_LAST")
+   field(ZNAM, "Done")
+   field(ONAM, "Do")
+}
+
 record(longout, "$(P)$(R)PMStart")
 {
    #field(PINI, "YES")

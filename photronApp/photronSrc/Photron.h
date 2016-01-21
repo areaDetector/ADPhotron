@@ -123,7 +123,6 @@ protected:
     int PhotronCamMode;
     int PhotronAcquireMode;
     int PhotronOpMode;
-    int PhotronPreviewMode;
     int PhotronMaxFrames;
     int Photron8BitSel;
     int PhotronRecRate;
@@ -144,10 +143,13 @@ protected:
     int PhotronFrameStart;
     int PhotronFrameEnd;
     int PhotronLiveMode;
-    int PhotronPMIndex;
-    int PhotronChangePMIndex;
+    int PhotronPreviewMode;
     int PhotronPMStart;
     int PhotronPMEnd;
+    int PhotronPMIndex;
+    int PhotronChangePMIndex;
+    int PhotronPMFirst;
+    int PhotronPMLast;
     int PhotronPMPlay;
     int PhotronPMPlayRev;
     int PhotronPMPlayFPS;
@@ -350,7 +352,6 @@ typedef struct {
 #define PhotronCamModeString    "PHOTRON_CAM_MODE"   /* (asynInt32,    r)   */
 #define PhotronAcquireModeString "PHOTRON_ACQUIRE_MODE" /* (asynInt32,    w) */
 #define PhotronOpModeString     "PHOTRON_OP_MODE" /* (asynInt32,    w) */
-#define PhotronPreviewModeString "PHOTRON_PREVIEW_MODE" /* (asynInt32,    w) */
 #define PhotronMaxFramesString  "PHOTRON_MAX_FRAMES" /* (asynInt32,    r)   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
 #define PhotronRecordRateString "PHOTRON_REC_RATE"   /* (asynInt32,    rw)   */
@@ -371,10 +372,13 @@ typedef struct {
 #define PhotronFrameStartString "PHOTRON_FRAME_START" /* (asynInt32,    r) */
 #define PhotronFrameEndString   "PHOTRON_FRAME_END"   /* (asynInt32,    r) */
 #define PhotronLiveModeString   "PHOTRON_LIVE_MODE" /* (asynInt32,    w) */
-#define PhotronPMIndexString    "PHOTRON_PM_INDEX"  /* (asynInt32,   rw) */
-#define PhotronChangePMIndexString "PHOTRON_CHANGE_PM_INDEX" /* (asynInt32, rw) */
+#define PhotronPreviewModeString "PHOTRON_PREVIEW_MODE" /* (asynInt32,    w) */
 #define PhotronPMStartString    "PHOTRON_PM_START"  /* (asynInt32,   rw) */
 #define PhotronPMEndString      "PHOTRON_PM_END"  /* (asynInt32,   rw) */
+#define PhotronPMIndexString    "PHOTRON_PM_INDEX"  /* (asynInt32,   rw) */
+#define PhotronChangePMIndexString "PHOTRON_CHANGE_PM_INDEX" /* (asynInt32, rw) */
+#define PhotronPMFirstString     "PHOTRON_PM_FIRST"  /* (asynInt32,   rw) */
+#define PhotronPMLastString     "PHOTRON_PM_LAST"  /* (asynInt32,   rw) */
 #define PhotronPMPlayString     "PHOTRON_PM_PLAY"  /* (asynInt32,   rw) */
 #define PhotronPMPlayRevString  "PHOTRON_PM_PLAY_REV"  /* (asynInt32,   rw) */
 #define PhotronPMPlayFPSString  "PHOTRON_PM_PLAY_FPS"  /* (asynInt32,   rw) */
