@@ -354,12 +354,302 @@ record(bo, "$(P)$(R)LiveMode")
    field(ONAM, "Enable")
 }
 
+record(bo, "$(P)$(R)PreviewMode")
+{
+   field(DTYP, "asynInt32")
+   field(PINI, "YES")
+   field(DESC, "Preview Mode")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PREVIEW_MODE")
+   field(ZNAM, "Off")
+   field(ONAM, "On")
+}
+
+record(longout, "$(P)$(R)PMIndex")
+{
+   #field(PINI, "YES")
+   field(DTYP, "asynInt32")
+   field(DESC, "Preview Mode Index")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_INDEX")
+   info(asyn:READBACK, "1")
+}
+
+record(bo, "$(P)$(R)ChangePMIndex")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Change PM Index")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_PM_INDEX")
+   field(ZNAM, "Decrease")
+   field(ONAM, "Increase")
+}
+
+# TODO: Replace the following calcouts with a single transform record
+
+record(calcout, "$(P)$(R)PMIndexLOPR")
+{
+   field(INPA, "$(P)$(R)PMStart CP NMS")
+   field(CALC, "A")
+   field(OUT,  "$(P)$(R)PMIndex.LOPR NPP NMS")
+}
+
+record(calcout, "$(P)$(R)PMIndexHOPR")
+{
+   field(INPA, "$(P)$(R)PMEnd CP NMS")
+   field(CALC, "A")
+   field(OUT,  "$(P)$(R)PMIndex.HOPR NPP NMS")
+}
+
+record(bo, "$(P)$(R)PMFirst")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Jump to start")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_FIRST")
+   field(ZNAM, "Done")
+   field(ONAM, "Do")
+}
+
+record(bo, "$(P)$(R)PMLast")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Jump to end")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_LAST")
+   field(ZNAM, "Done")
+   field(ONAM, "Do")
+}
+
+record(longout, "$(P)$(R)PMStart")
+{
+   #field(PINI, "YES")
+   field(DTYP, "asynInt32")
+   field(DESC, "Preview Mode Index Start")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_START")
+   info(asyn:READBACK, "1")
+}
+
+record(longout, "$(P)$(R)PMEnd")
+{
+   #field(PINI, "YES")
+   field(DTYP, "asynInt32")
+   field(DESC, "Preview Mode Index End")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_END")
+   info(asyn:READBACK, "1")
+}
+
+record(longout, "$(P)$(R)PMPlayFPS")
+{
+   field(PINI, "YES")
+   field(DTYP, "asynInt32")
+   field(DESC, "Preview Mode FPS")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_PLAY_FPS")
+   field(VAL,  "1")
+   info(asyn:READBACK, "1")
+}
+
+record(longout, "$(P)$(R)PMPlayMult")
+{
+   field(PINI, "YES")
+   field(DTYP, "asynInt32")
+   field(DESC, "Preview Mode Mult")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_PLAY_MULT")
+   field(VAL,  "1")
+   info(asyn:READBACK, "1")
+}
+
+record(bo, "$(P)$(R)PMPlay")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Play preview")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_PLAY")
+   field(ZNAM, "Done")
+   field(ONAM, "Play")
+}
+
+record(bo, "$(P)$(R)PMPlayRev")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Play reverse preview")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_PLAY_REV")
+   field(ZNAM, "Done")
+   field(ONAM, "Play")
+}
+
+record(bo, "$(P)$(R)PMRepeat")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Repeat")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_REPEAT")
+   field(ZNAM, "Off")
+   field(ONAM, "On")
+   field(VAL,  "0")
+}
+
+record(bo, "$(P)$(R)PMSave")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Save")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_SAVE")
+   field(ZNAM, "Done")
+   field(ONAM, "Do")
+}
+
+record(bo, "$(P)$(R)PMCancel")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Cancel")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_CANCEL")
+   field(ZNAM, "Done")
+   field(ONAM, "Do")
+}
+
 record(longin, "$(P)$(R)MemIRIGDay_RBV")
 {
    field(DTYP, "asynInt32")
    field(DESC, "Mem IRIG Day")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_MEM_IRIG_DAY")
    field(SCAN, "I/O Intr")
+}
+
+record(calcout, "$(P)$(R)PMStatusMon")
+{
+   field(DESC, "Status monitor")
+   field(INPA, "$(P)$(R)Status_RBV CP NMS")
+   field(INPB, "$(P)$(R)PreviewMode NPP NMS")
+   field(CALC, "(A=1)&&(B=1)")
+   field(OCAL, "1")
+   field(OOPT, "Transition To Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)$(R)PMPluginRead.PROC PP NMS")
+}
+
+record(transform, "$(P)$(R)PMPluginRead")
+{
+   field(DESC, "Read file plugins")
+   field(SCAN, "Passive")
+   field(CMTA, "NetCDF")
+   field(CMTB, "TIFF")
+   field(CMTC, "JPEG")
+   field(CMTD, "Nexus")
+   field(CMTE, "Magick")
+   field(CMTF, "HDF")
+   field(INPA, "$(P)netCDF1:EnableCallbacks NPP NMS")
+   field(INPB, "$(P)TIFF1:EnableCallbacks NPP NMS")
+   field(INPC, "$(P)JPEG1:EnableCallbacks NPP NMS")
+   field(INPD, "$(P)Nexus1:EnableCallbacks NPP NMS")
+   field(INPE, "$(P)Magick1:EnableCallbacks NPP NMS")
+   field(INPF, "$(P)HDF1:EnableCallbacks NPP NMS")
+   field(FLNK, "$(P)$(R)PMPluginDisable")
+}
+
+record(dfanout, "$(P)$(R)PMPluginDisable")
+{
+   field(DESC, "Disable file plugins")
+   field(OMSL, "supervisory")
+   field(VAL,  "0")
+   field(OUTA, "$(P)netCDF1:EnableCallbacks PP NMS")
+   field(OUTB, "$(P)TIFF1:EnableCallbacks PP NMS")
+   field(OUTC, "$(P)JPEG1:EnableCallbacks PP NMS")
+   field(OUTD, "$(P)Nexus1:EnableCallbacks PP NMS")
+   field(OUTE, "$(P)Magick1:EnableCallbacks PP NMS")
+   field(OUTF, "$(P)HDF1:EnableCallbacks PP NMS")
+}
+
+record(dfanout, "$(P)$(R)PMSaveFanout")
+{
+   field(DESC, "Restore plugins then save")
+   field(OMSL, "supervisory")
+   field(VAL,  "1")
+   field(OUTA, "$(P)$(R)PMPluginRestore1.PROC PP NMS")
+   field(OUTB, "$(P)$(R)PMPluginRestore2.PROC PP NMS")
+   field(OUTC, "$(P)$(R)PMPluginRestore3.PROC PP NMS")
+   field(OUTD, "$(P)$(R)PMPluginRestore4.PROC PP NMS")
+   field(OUTE, "$(P)$(R)PMPluginRestore5.PROC PP NMS")
+   field(OUTF, "$(P)$(R)PMPluginRestore6.PROC PP NMS")
+   field(OUTG, "$(P)$(R)PMSave PP NMS")
+}
+
+record(dfanout, "$(P)$(R)PMCancelFanout")
+{
+   field(DESC, "Restore plugins then cancel")
+   field(OMSL, "supervisory")
+   field(VAL,  "1")
+   field(OUTA, "$(P)$(R)PMPluginRestore1.PROC PP NMS")
+   field(OUTB, "$(P)$(R)PMPluginRestore2.PROC PP NMS")
+   field(OUTC, "$(P)$(R)PMPluginRestore3.PROC PP NMS")
+   field(OUTD, "$(P)$(R)PMPluginRestore4.PROC PP NMS")
+   field(OUTE, "$(P)$(R)PMPluginRestore5.PROC PP NMS")
+   field(OUTF, "$(P)$(R)PMPluginRestore6.PROC PP NMS")
+   field(OUTG, "$(P)$(R)PMCancel PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore1")
+{
+   field(DESC, "Restore NetCDF")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.A NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)netCDF1:EnableCallbacks PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore2")
+{
+   field(DESC, "Restore TIFF")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.B NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)TIFF1:EnableCallbacks PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore3")
+{
+   field(DESC, "Restore JPEG")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.C NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)JPEG1:EnableCallbacks PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore4")
+{
+   field(DESC, "Restore Nexus")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.D NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)Nexus1:EnableCallbacks PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore5")
+{
+   field(DESC, "Restore Magick")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.E NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)Magick1:EnableCallbacks PP NMS")
+}
+
+record(calcout, "$(P)$(R)PMPluginRestore6")
+{
+   field(DESC, "Restore HDF")
+   field(SCAN, "Passive")
+   field(INPA, "$(P)$(R)PMPluginRead.F NPP NMS")
+   field(CALC, "A=1")
+   field(OCAL, "1")
+   field(OOPT, "When Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)HDF1:EnableCallbacks PP NMS")
 }
 
 record(longin, "$(P)$(R)MemIRIGHour_RBV")

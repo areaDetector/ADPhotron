@@ -113,6 +113,7 @@ public:
   /* PhotronTask should be private, but gets called from C, so must be public */
   void PhotronTask(); 
   void PhotronRecTask(); 
+  void PhotronPlayTask(); 
   
   /* These are called from C and so must be public */
   static void shutdown(void *arg);
@@ -139,7 +140,23 @@ protected:
     int PhotronRandomFrames;
     int PhotronRecCount;
     int PhotronSoftTrig;
+    int PhotronFrameStart;
+    int PhotronFrameEnd;
     int PhotronLiveMode;
+    int PhotronPreviewMode;
+    int PhotronPMStart;
+    int PhotronPMEnd;
+    int PhotronPMIndex;
+    int PhotronChangePMIndex;
+    int PhotronPMFirst;
+    int PhotronPMLast;
+    int PhotronPMPlay;
+    int PhotronPMPlayRev;
+    int PhotronPMPlayFPS;
+    int PhotronPMPlayMult;
+    int PhotronPMRepeat;
+    int PhotronPMSave;
+    int PhotronPMCancel;
     int PhotronIRIG;
     int PhotronMemIRIGDay;
     int PhotronMemIRIGHour;
@@ -177,6 +194,8 @@ private:
   asynStatus readParameters();
   asynStatus readVariableInfo();
   asynStatus readImage();
+  asynStatus readMemImage(epicsInt32 value);
+  asynStatus readImageRange();
   asynStatus setTransferOption();
   asynStatus setRecordRate(epicsInt32 value);
   asynStatus changeRecordRate(epicsInt32 value);
@@ -193,6 +212,9 @@ private:
   asynStatus setEndless();
   asynStatus setLive();
   asynStatus setPlayback();
+  asynStatus setPMIndex(epicsInt32 value);
+  asynStatus changePMIndex(epicsInt32 value);
+  asynStatus setPreviewRange(epicsInt32 function, epicsInt32 value);
   asynStatus readMem();
   asynStatus setIRIG(epicsInt32 value);
   asynStatus setSyncPriority(epicsInt32 value);
@@ -206,7 +228,9 @@ private:
   int outputModeToAPI(int mode);
   asynStatus createStaticEnums();
   asynStatus createDynamicEnums();
-
+  void timeDiff(PPDC_IRIG_INFO time1, PPDC_IRIG_INFO time2, PPDC_IRIG_INFO timeDiff);
+  void timeDataToSec(PPDC_IRIG_INFO tData, double *seconds);
+  
   /* These items are specific to the Photron driver */
   // constructor
   char *cameraId;                /* This can be an IP name, or IP address */
@@ -215,6 +239,9 @@ private:
   epicsEventId stopEventId;
   epicsEventId startRecEventId;
   epicsEventId stopRecEventId;
+  epicsEventId resumeRecEventId;
+  epicsEventId startPlayEventId;
+  epicsEventId stopPlayEventId;
   // connectCamera
   unsigned long nDeviceNo;
   unsigned long nChildNo;   // hard-coded to 1 in connectCamera
@@ -282,10 +309,22 @@ private:
   unsigned long bitDepth;
   // Keep track of the desired record rate (for switching back to Default mode)
   int desiredRate;
+  // readMem
+  epicsInt32 NDArrayCounterBackup;
+  unsigned long memWidth;
+  unsigned long memHeight;
+  unsigned long memRate;
+  unsigned long tMode;
+  PDC_IRIG_INFO tDataStart;
+  PDC_IRIG_INFO tDataEnd;
+  PDC_FRAME_INFO FrameInfo;
   //
   epicsTimeStamp preIRIGStartTime;
   epicsTimeStamp postIRIGStartTime;
   int abortFlag;
+  //
+  int stopFlag;
+  int dirFlag;
   /* Our data */
   NDArray *pRaw;
   int numValidTriggerModes_;
@@ -300,6 +339,7 @@ private:
    the contructor in the source file */ 
 static void PhotronTaskC(void *drvPvt);
 static void PhotronRecTaskC(void *drvPvt);
+static void PhotronPlayTaskC(void *drvPvt);
 
 typedef struct {
   ELLNODE node;
@@ -329,7 +369,23 @@ typedef struct {
 #define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
 #define PhotronRecCountString   "PHOTRON_REC_COUNT"  /* (asynInt32,    rw)   */
 #define PhotronSoftTrigString   "PHOTRON_SOFT_TRIG"   /* (asynInt32,    w) */
+#define PhotronFrameStartString "PHOTRON_FRAME_START" /* (asynInt32,    r) */
+#define PhotronFrameEndString   "PHOTRON_FRAME_END"   /* (asynInt32,    r) */
 #define PhotronLiveModeString   "PHOTRON_LIVE_MODE" /* (asynInt32,    w) */
+#define PhotronPreviewModeString "PHOTRON_PREVIEW_MODE" /* (asynInt32,    w) */
+#define PhotronPMStartString    "PHOTRON_PM_START"  /* (asynInt32,   rw) */
+#define PhotronPMEndString      "PHOTRON_PM_END"  /* (asynInt32,   rw) */
+#define PhotronPMIndexString    "PHOTRON_PM_INDEX"  /* (asynInt32,   rw) */
+#define PhotronChangePMIndexString "PHOTRON_CHANGE_PM_INDEX" /* (asynInt32, rw) */
+#define PhotronPMFirstString     "PHOTRON_PM_FIRST"  /* (asynInt32,   rw) */
+#define PhotronPMLastString     "PHOTRON_PM_LAST"  /* (asynInt32,   rw) */
+#define PhotronPMPlayString     "PHOTRON_PM_PLAY"  /* (asynInt32,   rw) */
+#define PhotronPMPlayRevString  "PHOTRON_PM_PLAY_REV"  /* (asynInt32,   rw) */
+#define PhotronPMPlayFPSString  "PHOTRON_PM_PLAY_FPS"  /* (asynInt32,   rw) */
+#define PhotronPMPlayMultString "PHOTRON_PM_PLAY_MULT"  /* (asynInt32,   rw) */
+#define PhotronPMRepeatString   "PHOTRON_PM_REPEAT"  /* (asynInt32,   rw) */
+#define PhotronPMSaveString     "PHOTRON_PM_SAVE" /* (asynInt32,    w) */
+#define PhotronPMCancelString   "PHOTRON_PM_CANCEL"   /* (asynInt32,    w) */
 #define PhotronIRIGString       "PHOTRON_IRIG"   /* (asynInt32,    w) */
 #define PhotronMemIRIGDayString "PHOTRON_MEM_IRIG_DAY" /* (asynInt32,    r) */
 #define PhotronMemIRIGHourString "PHOTRON_MEM_IRIG_HOUR" /* (asynInt32,    r) */

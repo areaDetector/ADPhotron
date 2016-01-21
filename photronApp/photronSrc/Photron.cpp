@@ -103,7 +103,23 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronRandomFramesString,  asynParamInt32, &PhotronRandomFrames);
   createParam(PhotronRecCountString,      asynParamInt32, &PhotronRecCount);
   createParam(PhotronSoftTrigString,      asynParamInt32, &PhotronSoftTrig);
+  createParam(PhotronFrameStartString,    asynParamInt32, &PhotronFrameStart);
+  createParam(PhotronFrameEndString,      asynParamInt32, &PhotronFrameEnd);
   createParam(PhotronLiveModeString,      asynParamInt32, &PhotronLiveMode);
+  createParam(PhotronPreviewModeString,   asynParamInt32, &PhotronPreviewMode);
+  createParam(PhotronPMStartString,       asynParamInt32, &PhotronPMStart);
+  createParam(PhotronPMEndString,         asynParamInt32, &PhotronPMEnd);
+  createParam(PhotronPMIndexString,       asynParamInt32, &PhotronPMIndex);
+  createParam(PhotronChangePMIndexString, asynParamInt32, &PhotronChangePMIndex);
+  createParam(PhotronPMFirstString,       asynParamInt32, &PhotronPMFirst);
+  createParam(PhotronPMLastString,        asynParamInt32, &PhotronPMLast);
+  createParam(PhotronPMPlayString,        asynParamInt32, &PhotronPMPlay);
+  createParam(PhotronPMPlayRevString,     asynParamInt32, &PhotronPMPlayRev);
+  createParam(PhotronPMPlayFPSString,     asynParamInt32, &PhotronPMPlayFPS);
+  createParam(PhotronPMPlayMultString,    asynParamInt32, &PhotronPMPlayMult);
+  createParam(PhotronPMRepeatString,      asynParamInt32, &PhotronPMRepeat);
+  createParam(PhotronPMSaveString,        asynParamInt32, &PhotronPMSave);
+  createParam(PhotronPMCancelString,      asynParamInt32, &PhotronPMCancel);
   createParam(PhotronIRIGString,          asynParamInt32, &PhotronIRIG);
   createParam(PhotronMemIRIGDayString,    asynParamInt32, &PhotronMemIRIGDay);
   createParam(PhotronMemIRIGHourString,   asynParamInt32, &PhotronMemIRIGHour);
@@ -171,6 +187,28 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
            driverName, functionName);
     return;
   }
+  this->resumeRecEventId = epicsEventCreate(epicsEventEmpty);
+  if (!this->resumeRecEventId) {
+    printf("%s:%s epicsEventCreate failure for resume rec event\n",
+           driverName, functionName);
+    return;
+  }
+  
+  // Create epicsEvents for signaling the play task when to start playback of
+  // recorded images
+  this->startPlayEventId = epicsEventCreate(epicsEventEmpty);
+  if (!this->startPlayEventId) {
+    printf("%s:%s epicsEventCreate failure for start play event\n",
+           driverName, functionName);
+    return;
+  }
+  
+  this->stopPlayEventId = epicsEventCreate(epicsEventEmpty);
+  if (!this->stopPlayEventId) {
+    printf("%s:%s epicsEventCreate failure for stop play event\n",
+           driverName, functionName);
+    return;
+  }
   
   /* Register the shutdown function for epicsAtExit */
   epicsAtExit(shutdown, (void*)this);
@@ -191,6 +229,16 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
                 (EPICSTHREADFUNC)PhotronRecTaskC, this) == NULL);
   if (status) {
     printf("%s:%s epicsThreadCreate failure for record task\n",
+           driverName, functionName);
+    return;
+  }
+  
+  /* Create the thread that plays back recordings from memory */
+  status = (epicsThreadCreate("PhotronPlayTask", epicsThreadPriorityMedium,
+                epicsThreadGetStackSize(epicsThreadStackMedium),
+                (EPICSTHREADFUNC)PhotronPlayTaskC, this) == NULL);
+  if (status) {
+    printf("%s:%s epicsThreadCreate failure for play task\n",
            driverName, functionName);
     return;
   }
@@ -250,6 +298,302 @@ void Photron::shutdown (void* arg) {
 }
 
 
+void Photron::timeDataToSec(PPDC_IRIG_INFO tData, double *seconds) {
+  *seconds = (((((((*tData).m_nDayOfYear * 24) + (*tData).m_nHour) * 60) + (*tData).m_nMinute) * 60) + (*tData).m_nSecond) * 1.0;
+  *seconds += ((*tData).m_nMicroSecond / 1.0e6);
+}
+
+
+static void PhotronPlayTaskC(void *drvPvt) {
+  Photron *pPvt = (Photron *)drvPvt;
+  pPvt->PhotronPlayTask();
+}
+
+/** This thread retrieves the image data efficiently when play is pressed in
+  * playback mode.
+  */
+void Photron::PhotronPlayTask() {
+  //unsigned long status;
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  epicsInt32 phostat, start, end, repeat, current;
+  epicsInt32 fps, multiplier;
+  int index, nextIndex, stop;
+  //
+  int transferBitDepth;
+  PDC_IRIG_INFO tData;
+  //
+  NDArray *pImage;
+  NDArrayInfo_t arrayInfo;
+  int colorMode = NDColorModeMono;
+  //
+  void *pBuf;  /* Memory sequence pointer for storing a live image */
+  //
+  NDDataType_t dataType;
+  int pixelSize;
+  size_t dims[2];
+  size_t dataSize;
+  //
+  int imageCounter;
+  int numImagesCounter;
+  int arrayCallbacks;
+  double updatePeriod, delay;
+  double elapsedTime;
+  double tRel, tStart, tNow;
+  epicsTimeStamp startTime, endTime;
+  //
+  const char *functionName = "PhotronPlayTask";
+  
+  this->lock();
+  /* Loop forever */
+  while (1) {
+    /* Release the lock while we wait for an play event, then lock again */
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+              "%s:%s: waiting for play to be requested\n", driverName, 
+              functionName);
+    this->unlock();
+    printf("PhtronPlayTask is SLEEPING!!!\n");
+    epicsEventWait(this->startPlayEventId);
+    this->lock();
+    
+    printf("PhotronPlayTask is ALIVE!!!\n");
+    
+    getIntegerParam(PhotronStatus, &phostat);
+    
+    // Only play images if we're in playback mode
+    if (phostat == 1) {
+      getIntegerParam(PhotronPMStart, &start);
+      getIntegerParam(PhotronPMEnd, &end);
+      getIntegerParam(PhotronPMIndex, &current);
+      
+      if (this->pixelBits == 8) {
+        // 8 bits
+        dataType = NDUInt8;
+        pixelSize = 1;
+      } else {
+        // 12 bits (stored in 2 bytes)
+        dataType = NDUInt16;
+        pixelSize = 2;
+      }
+      //
+      dims[0] = this->memWidth;
+      dims[1] = this->memHeight;
+      
+      //
+      transferBitDepth = 8 * pixelSize;
+      dataSize = this->memWidth * this->memHeight * pixelSize;
+      pBuf = malloc(dataSize);
+      
+      // Start with the current start frame. If we're at the end, restart from
+      // the beginning.
+      if ((this->dirFlag == 1) && (current == end)) {
+        index = start;
+      } else if ((this->dirFlag) == 0 && (current == start)) {
+        index = end;
+      } else {
+        index = current;
+      }
+      
+      // Preload the first frame
+      nRet = PDC_GetMemImageDataStart(this->nDeviceNo, this->nChildNo, index,
+                                      transferBitDepth, pBuf, &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetMemImageDataStart Error %d; index = %d\n", nErrorCode, index);
+      }
+      
+      epicsTimeGetCurrent(&startTime);
+      
+      while (1) {
+        // Acquire the image data
+        nRet = PDC_GetMemImageDataEnd(this->nDeviceNo, this->nChildNo,
+                                        transferBitDepth, pBuf, &nErrorCode);
+        if (nRet == PDC_FAILED) {
+          printf("PDC_GetMemImageDataEnd Error %d\n", nErrorCode);
+        }
+        
+        setIntegerParam(PhotronPMIndex, index);
+        
+        // Retrieve frame time
+        if (this->tMode == 1) {
+          //
+          nRet = PDC_GetMemIRIGData(this->nDeviceNo, this->nChildNo, index,
+                                    &tData, &nErrorCode);
+          if (nRet == PDC_FAILED) {
+            printf("PDC_GetMemIRIGData Error %d\n", nErrorCode);
+          }
+          
+          setIntegerParam(PhotronMemIRIGDay, tData.m_nDayOfYear);
+          setIntegerParam(PhotronMemIRIGHour, tData.m_nHour);
+          setIntegerParam(PhotronMemIRIGMin, tData.m_nMinute);
+          setIntegerParam(PhotronMemIRIGSec, tData.m_nSecond);
+          setIntegerParam(PhotronMemIRIGUsec, tData.m_nMicroSecond);
+          setIntegerParam(PhotronMemIRIGSigEx, tData.m_ExistSignal);
+        }
+        
+        /* We save the most recent image buffer so it can be used in the read() 
+         * function. Now release it before getting a new version. */
+        if (this->pArrays[0]) 
+          this->pArrays[0]->release();
+  
+        /* Allocate the raw buffer */
+        pImage = this->pNDArrayPool->alloc(2, dims, dataType, 0, NULL);
+        if (!pImage) {
+          asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                    "%s:%s: error allocating buffer\n", driverName, functionName);
+        }
+        
+        //
+        memcpy(pImage->pData, pBuf, dataSize);
+        
+        // Allow repeat and multiplier to be changed during playback
+        getIntegerParam(PhotronPMRepeat, &repeat);
+        getIntegerParam(PhotronPMPlayMult, &multiplier);
+        
+        // Determine if another frame should start preloading based on index
+        if (this->dirFlag == 1) {
+          // forward direction
+          if (index == end) {
+            if (repeat == 1) {
+              printf("It is time to REPEAT\n");
+              printf("\tindex=%d, start=%d, end=%d\n", index, start, end);
+              nextIndex = start;
+              stop = 0;
+            } else {
+              nextIndex = end;
+              stop = 1;
+            }
+          } else {
+            nextIndex = index + multiplier;
+            if (nextIndex > end) {
+              nextIndex = end;
+            }
+            stop = 0;
+          }
+        } else {
+          // reverse direction
+          if (index == start) {
+            if (repeat == 1) {
+              printf("It is time to REPEAT\n");
+              printf("\tindex=%d, start=%d, end=%d\n", index, start, end);
+              nextIndex = end;
+              stop = 0;
+            } else {
+              nextIndex = start;
+              stop = 1;
+            }
+          } else {
+            nextIndex = index - multiplier;
+            if (nextIndex < start) {
+              nextIndex = start;
+            }
+            stop = 0;
+          }
+        }
+        
+        // Allow the speed to be changed during playback
+        getIntegerParam(PhotronPMPlayFPS, &fps);
+        updatePeriod = 1.0 / fps;
+        
+        // delay if possible and necessary
+        epicsTimeGetCurrent(&endTime);
+        elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
+        delay = updatePeriod - elapsedTime;
+        if (delay > 0) {
+          //printf("delay = %f\n", delay);
+          this->unlock();
+          epicsEventWaitWithTimeout(this->stopPlayEventId, delay);
+          this->lock();
+        }
+        epicsTimeGetCurrent(&startTime);
+        
+        // Check to see if the user requested playback to stop
+        if (this->stopFlag == 1) {
+          stop = 1;
+        }
+        
+        //
+        if (stop == 0) {
+          // Start preloading the next frame
+          nRet = PDC_GetMemImageDataStart(this->nDeviceNo, this->nChildNo, nextIndex,
+                                          transferBitDepth, pBuf, &nErrorCode);
+          if (nRet == PDC_FAILED) {
+            printf("PDC_GetMemImageDataStart Error %d; nextIndex = %d\n", nErrorCode, nextIndex);
+          }
+        } else {
+          printf("Stopping after posting this last image to plugins\n");
+        }
+        
+        this->pArrays[0] = pImage;
+        pImage->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, 
+                                    &colorMode);
+        pImage->getInfo(&arrayInfo);
+        setIntegerParam(NDArraySize,  (int)arrayInfo.totalBytes);
+        setIntegerParam(NDArraySizeX, (int)pImage->dims[0].size);
+        setIntegerParam(NDArraySizeY, (int)pImage->dims[1].size);
+        
+        /* Call the callbacks to update any changes */
+        callParamCallbacks();
+        
+         // Get params
+        getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
+        
+        // Set the image counters during playback to the values they would have
+        // if the frames were saved with the current settings
+        imageCounter = this->NDArrayCounterBackup + index - start;
+        setIntegerParam(NDArrayCounter, imageCounter);
+        numImagesCounter = index - start;
+        setIntegerParam(ADNumImagesCounter, numImagesCounter);
+        
+        /* Put the frame number and time stamp into the buffer */
+        pImage->uniqueId = imageCounter;
+        if (tMode == 1) {
+          // Absolute time
+          //irigSeconds = (((((tData.m_nDayOfYear * 24) + tData.m_nHour) * 60) + tData.m_nMinute) * 60) + tData.m_nSecond;
+          //pImage->timeStamp = (this->postIRIGStartTime).secPastEpoch + irigSeconds + (this->postIRIGStartTime).nsec / 1.e9 + tData.m_nMicroSecond / 1.e6;
+          // Relative time
+          this->timeDataToSec(&tData, &tNow);
+          this->timeDataToSec(&(this->tDataStart), &tStart);
+          tRel = tNow - tStart;
+          pImage->timeStamp = tRel;
+        }
+        else {
+          // Use theoretical time
+          pImage->timeStamp = 1.0 * index / this->memRate;
+        }
+        updateTimeStamp(&pImage->epicsTS);
+        
+        /* Get any attributes that have been defined for this driver */
+        this->getAttributes(pImage->pAttributeList);
+        
+        if (arrayCallbacks) {
+          /* Call the NDArray callback */
+          /* Must release the lock here, or we can get into a deadlock, because we
+          * can block on the plugin lock, and the plugin can be calling us */
+          this->unlock();
+          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+                    "%s:%s: calling imageData callback\n", driverName,
+                    functionName);
+          doCallbacksGenericPointer(pImage, NDArrayData, 0);
+          this->lock();
+        }
+        
+        if (stop == 1) {
+          printf("Breaking\n");
+          break;
+        } else {
+          index = nextIndex;
+        }
+      }
+      
+      free(pBuf);
+      
+    } else {
+      printf("Play was request but camera isn't in playback mode!\n");
+    }
+  }
+}
+
+
 static void PhotronRecTaskC(void *drvPvt) {
   Photron *pPvt = (Photron *)drvPvt;
   pPvt->PhotronRecTask();
@@ -260,22 +604,10 @@ static void PhotronRecTaskC(void *drvPvt) {
   * from the camera after recording is done.
   */
 void Photron::PhotronRecTask() {
-  /*asynStatus imageStatus;
-  int imageCounter;
-  int numImages, numImagesCounter;
-  int imageMode;
-  int arrayCallbacks;
-  NDArray *pImage;
-  double acquirePeriod, delay;
-  epicsTimeStamp startTime, endTime;
-  double elapsedTime;*/
-  
   unsigned long status;
   unsigned long nRet;
   unsigned long nErrorCode;
-  int acqMode;
-  //int recFlag;
-  //PDC_FRAME_INFO FrameInfo;
+  int acqMode, previewMode;
   
   const char *functionName = "PhotronRecTask";
 
@@ -324,7 +656,28 @@ void Photron::PhotronRecTask() {
         setPlayback();
         //
         printf("Read info from camera\n");
+        // readMem should set the readout params to the max?
         readMem();
+        
+        getIntegerParam(PhotronPreviewMode, &previewMode);
+        
+        // Optionally enter preview mode here
+        if (previewMode) {
+          // Wait until user is done previewing the data
+          printf("Entering PREVIEW mode\n");
+          this->unlock();
+          epicsEventWait(this->resumeRecEventId);
+          this->lock();
+        }
+        
+        // Re-zero the num images complete (num will = total saved this acq)
+        setIntegerParam(ADNumImagesCounter, 0);
+        // Restore the image counter (num will = total saved since last reset)
+        setIntegerParam(NDArrayCounter, this->NDArrayCounterBackup);
+        callParamCallbacks();
+        
+        // Read specified image range here
+        this->readImageRange();
         
         // Reset Acquire
         setIntegerParam(ADAcquire, 0);
@@ -891,17 +1244,6 @@ asynStatus Photron::readImage() {
   getIntegerParam(ADSizeY,  &sizeY);
   getDoubleParam (ADGain,   &gain);
   
-  //-------
-  // DEBUG print the status - will I need to check the status before acquiring in the future?
-  /*nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_GetStatus failed %d\n", nErrorCode);
-    return asynError;
-  } else {
-    printf("PDC_GetStatus succeeded. status = %d\n", this->nStatus);
-  }*/
-  //-------
-  
   if (this->pixelBits == 8) {
     // 8 bits
     dataType = NDUInt8;
@@ -1007,6 +1349,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int function = pasynUser->reason;
   int status = asynSuccess;
   int adstatus, acqMode, chan;
+  int index;
+  int skipReadParams = 0;
   static const char *functionName = "writeInt32";
   
   //printf("FUNCTION: %d - VALUE: %d\n", function, value);
@@ -1072,7 +1416,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       // code to return to live mode goes here
       setLive();
       
-      // Stop the PhotronRecTask (will it do one last read after returning to live?
+      // Stop the PhotronRecTask (will it do one last read after returning to live?)
       epicsEventSignal(this->stopRecEventId);
     } else {
       // code to enter recording mode
@@ -1123,6 +1467,101 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
             (function == PhotronRandomFrames) || (function == PhotronRecCount)) {
     //printf("function = %d\n", function);
     setTriggerMode();
+  } else if (function == PhotronPreviewMode) {
+    // Do nothing
+  } else if (function == PhotronPMIndex) {
+    // grab and display an image from memory
+    setPMIndex(value);
+    skipReadParams = 1;
+  } else if (function == PhotronChangePMIndex) {
+    changePMIndex(value);
+    skipReadParams = 1;
+  } else if (function == PhotronPMFirst) {
+    getIntegerParam(PhotronPMStart, &index);
+    setPMIndex(index);
+    setIntegerParam(PhotronPMIndex, index);
+    skipReadParams = 1;
+  } else if (function == PhotronPMLast) {
+    getIntegerParam(PhotronPMEnd, &index);
+    setPMIndex(index);
+    setIntegerParam(PhotronPMEnd, index);
+    skipReadParams = 1;
+  } else if (function == PhotronPMStart) {
+    setPreviewRange(function, value);
+    skipReadParams = 1;
+  } else if (function == PhotronPMEnd) {
+    setPreviewRange(function, value);
+    skipReadParams = 1;
+  } else if (function == PhotronPMPlay) {
+    if (value == 1) {
+      printf("Playing Preview\n");
+      
+      // Reset the stop flag
+      this->stopFlag = 0;
+      
+      // Set the dir flag
+      this->dirFlag = 1;
+      
+      // Wake up the PhotronPlayTask
+      epicsEventSignal(this->startPlayEventId);
+    } else {
+      printf("Stopping Preview\n");
+      // Set a flag to stop playback to allow the play task to stop appropriately
+      this->stopFlag = 1;
+      
+      // Wake up the PhotronPlayTask
+      epicsEventSignal(this->stopPlayEventId);
+    }
+    skipReadParams = 1;
+  } else if (function == PhotronPMPlayRev) {
+    if (value == 1) {
+      printf("Playing reverse preview\n");
+      
+      // Reset the stop flag
+      this->stopFlag = 0;
+      
+      // Set the dir flag
+      this->dirFlag = 0;
+      
+      // Wake up the PhotronPlayTask
+      epicsEventSignal(this->startPlayEventId);
+    } else {
+      printf("Stopping reverse preview\n");
+      // Set a flag to stop playback to allow the play task to stop appropriately
+      this->stopFlag = 1;
+      
+      // Wake up the PhotronPlayTask
+      epicsEventSignal(this->stopPlayEventId);
+    }
+    skipReadParams = 1;
+  } else if (function == PhotronPMPlayFPS) {
+    if (value < 1) {
+      setIntegerParam(PhotronPMPlayFPS, 1);
+    }
+    skipReadParams = 1;
+  } else if (function == PhotronPMPlayMult) {
+    if (value < 1) {
+      setIntegerParam(PhotronPMPlayMult, 1);
+    }
+    skipReadParams = 1;
+  } else if (function == PhotronPMRepeat) {
+    // Do nothing
+    printf("PhotronPMRepeat: value = %d\n", value);
+    skipReadParams = 1;
+  } else if (function == PhotronPMCancel) {
+    // TODO: do nothing if not it playback mode
+    // Set the abort flag then resume the recording task
+    printf("PMCancel %d\n", value);
+    this->abortFlag = 1;
+    epicsEventSignal(this->resumeRecEventId);
+    skipReadParams = 1;
+  } else if (function == PhotronPMSave) {
+    // TODO: do nothing if not it playback mode
+    // Send the signal to resume the recording task
+    printf("PMSave %d\n", value);
+    epicsEventSignal(this->resumeRecEventId);
+    skipReadParams = 1;
+  } else if (function == PhotronIRIG) {
   } else if (function == PhotronIRIG) {
     setIRIG(value);
   } else if (function == PhotronSyncPriority) {
@@ -1148,8 +1587,14 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     status = ADDriver::writeInt32(pasynUser, value);
   }
   
-  /* Read the camera parameters and do callbacks */
-  status |= readParameters();
+  if (skipReadParams == 1) {
+    // Don't call readParameters() for PVs that can be changed during preview
+    // Calling readParameters here results in locking issues
+    callParamCallbacks();
+  } else {
+    // Read the camera parameters and do callbacks
+    status |= readParameters();
+  }
   
   if (status) 
     asynPrint(pasynUser, ASYN_TRACE_ERROR, 
@@ -1720,33 +2165,15 @@ asynStatus Photron::setPlayback() {
 
 asynStatus Photron::readMem() {
   asynStatus status = asynSuccess;
-  int acqMode, phostat, index, transferBitDepth;
+  int acqMode, phostat, index;
   unsigned long nRet, nErrorCode;
   PDC_FRAME_INFO FrameInfo;
   unsigned long memRate, memWidth, memHeight;
   unsigned long memTrigMode, memAFrames, memRFrames, memRCount;
-  PDC_IRIG_INFO tData;
   unsigned long tMode;
+  PDC_IRIG_INFO tDataStart, tDataEnd;
   //
-  NDArray *pImage;
-  NDArrayInfo_t arrayInfo;
   int colorMode = NDColorModeMono;
-  //
-  void *pBuf;  /* Memory sequence pointer for storing a live image */
-  //
-  NDDataType_t dataType;
-  int pixelSize;
-  size_t dims[2];
-  size_t dataSize;
-  //
-  int imageCounter;
-  int numImages, numImagesCounter;
-  int imageMode;
-  int arrayCallbacks;
-  //double acquirePeriod, delay;
-  epicsTimeStamp startTime, endTime;
-  double elapsedTime;
-  epicsUInt32 irigSeconds;
   //
   static const char *functionName = "readMem";
   
@@ -1757,14 +2184,13 @@ asynStatus Photron::readMem() {
   setIntegerParam(ADNumImagesCounter, 0);
   callParamCallbacks();
   
+  // Save the image counter (user can reset it whenever they want)
+  getIntegerParam(NDArrayCounter, &(this->NDArrayCounterBackup));
+  
   // Only read memory if in record mode
   // AND status is playback
   if (acqMode == 1) {
     if (phostat == PDC_STATUS_PLAYBACK) {
-      
-      /* Get the current time */
-      epicsTimeGetCurrent(&startTime);
-      
       // Retrieves frame information 
       nRet = PDC_GetMemFrameInfo(this->nDeviceNo, this->nChildNo, &FrameInfo,
                                  &nErrorCode);
@@ -1785,7 +2211,14 @@ asynStatus Photron::readMem() {
       }
       printf("\tEvent count:\t%d\n", FrameInfo.m_nEventCount);
       printf("\tRecorded Frames:\t%d\n", FrameInfo.m_nRecordedFrames);
-        
+      this->FrameInfo = FrameInfo;
+      
+      setIntegerParam(PhotronFrameStart, FrameInfo.m_nStart);
+      setIntegerParam(PhotronFrameEnd, FrameInfo.m_nEnd);
+      setIntegerParam(PhotronPMIndex, FrameInfo.m_nStart);
+      setIntegerParam(PhotronPMStart, FrameInfo.m_nStart);
+      setIntegerParam(PhotronPMEnd, FrameInfo.m_nEnd);
+      
       // PDC_GetMemResolution
       nRet = PDC_GetMemResolution(this->nDeviceNo, this->nChildNo, &memWidth,
                                   &memHeight, &nErrorCode);
@@ -1794,6 +2227,8 @@ asynStatus Photron::readMem() {
         return asynError;
       }
       printf("Memory Resolution: %d x %d\n", memWidth, memHeight);
+      this->memWidth = memWidth;
+      this->memHeight = memHeight;
       
       // PDC_GetMemRecordRate
       nRet = PDC_GetMemRecordRate(this->nDeviceNo, this->nChildNo, &memRate,
@@ -1803,6 +2238,7 @@ asynStatus Photron::readMem() {
         return asynError;
       }
       printf("Memory Record Rate = %d Hz\n", memRate);
+      this->memRate = memRate;
       
       // PDC_GetMemTriggerMode
       nRet = PDC_GetMemTriggerMode(this->nDeviceNo, this->nChildNo, 
@@ -1832,131 +2268,27 @@ asynStatus Photron::readMem() {
         setIntegerParam(PhotronMemIRIGUsec, 0);
         setIntegerParam(PhotronMemIRIGSigEx, 0);
       }
+      this->tMode = tMode;
       
-      if (this->pixelBits == 8) {
-        // 8 bits
-        dataType = NDUInt8;
-        pixelSize = 1;
-      } else {
-        // 12 bits (stored in 2 bytes)
-        dataType = NDUInt16;
-        pixelSize = 2;
-      }
-      
-      transferBitDepth = 8 * pixelSize;
-      dataSize = memWidth * memHeight * pixelSize;
-      pBuf = malloc(dataSize);
-      
-      epicsTimeGetCurrent(&startTime);
-      
-      // TODO: Catch random trigger modes, see if fewer than the specified
-      // number of recordings have occurred, then omit the first acquisition
-      
-      //for (index=FrameInfo.m_nTrigger; index==(FrameInfo.m_nTrigger); index++) {
-      for (index=FrameInfo.m_nStart; index<(FrameInfo.m_nEnd+1); index++) {
-      //for (index=FrameInfo.m_nStart; index<101; index++) {
-        // Allow user to abort acquisition
-        if (this->abortFlag == 1) {
-          printf("Aborting data readout!d\n");
-          this->abortFlag = 0;
-          break;
-        }
-        
-        // Retrieve a frame
-        nRet = PDC_GetMemImageData(this->nDeviceNo, this->nChildNo, index,
-                                   transferBitDepth, pBuf, &nErrorCode);
+      // Retrieve frame time
+      if (this->tMode == 1) {
+        //
+        nRet = PDC_GetMemIRIGData(this->nDeviceNo, this->nChildNo,
+                                  FrameInfo.m_nStart, &tDataStart, &nErrorCode);
         if (nRet == PDC_FAILED) {
-          printf("PDC_GetMemImageData Error %d\n", nErrorCode);
+          printf("PDC_GetMemIRIGData Error %d\n", nErrorCode);
         }
+        this->tDataStart = tDataStart;
         
-        // Retrieve frame time
-        if (tMode == 1) {
-        
-          nRet = PDC_GetMemIRIGData(this->nDeviceNo, this->nChildNo, index,
-                                    &tData, &nErrorCode);
-          if (nRet == PDC_FAILED) {
-            printf("PDC_GetMemIRIGData Error %d\n", nErrorCode);
-          }
-          
-          setIntegerParam(PhotronMemIRIGDay, tData.m_nDayOfYear);
-          setIntegerParam(PhotronMemIRIGHour, tData.m_nHour);
-          setIntegerParam(PhotronMemIRIGMin, tData.m_nMinute);
-          setIntegerParam(PhotronMemIRIGSec, tData.m_nSecond);
-          setIntegerParam(PhotronMemIRIGUsec, tData.m_nMicroSecond);
-          setIntegerParam(PhotronMemIRIGSigEx, tData.m_ExistSignal);
+        nRet = PDC_GetMemIRIGData(this->nDeviceNo, this->nChildNo,
+                                  FrameInfo.m_nEnd, &tDataEnd, &nErrorCode);
+        if (nRet == PDC_FAILED) {
+          printf("PDC_GetMemIRIGData Error %d\n", nErrorCode);
         }
-        
-        /* We save the most recent image buffer so it can be used in the read() 
-         * function. Now release it before getting a new version. */
-        if (this->pArrays[0]) 
-          this->pArrays[0]->release();
-  
-        /* Allocate the raw buffer */
-        dims[0] = memWidth;
-        dims[1] = memHeight;
-        pImage = this->pNDArrayPool->alloc(2, dims, dataType, 0, NULL);
-        if (!pImage) {
-          asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
-                    "%s:%s: error allocating buffer\n", driverName, functionName);
-          return(asynError);
-        }
-  
-        memcpy(pImage->pData, pBuf, dataSize);
-  
-        this->pArrays[0] = pImage;
-        pImage->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, 
-                                    &colorMode);
-        pImage->getInfo(&arrayInfo);
-        setIntegerParam(NDArraySize,  (int)arrayInfo.totalBytes);
-        setIntegerParam(NDArraySizeX, (int)pImage->dims[0].size);
-        setIntegerParam(NDArraySizeY, (int)pImage->dims[1].size);
-        
-        /* Call the callbacks to update any changes */
-        callParamCallbacks();
+        this->tDataEnd = tDataEnd;
       
-        /* Get the current parameters */
-        getIntegerParam(NDArrayCounter, &imageCounter);
-        getIntegerParam(ADNumImages, &numImages);
-        getIntegerParam(ADNumImagesCounter, &numImagesCounter);
-        getIntegerParam(ADImageMode, &imageMode);
-        getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
-        imageCounter++;
-        numImagesCounter++;
-        setIntegerParam(NDArrayCounter, imageCounter);
-        setIntegerParam(ADNumImagesCounter, numImagesCounter);
-
-        /* Put the frame number and time stamp into the buffer */
-        pImage->uniqueId = imageCounter;
-        if (tMode == 1) {
-          irigSeconds = (((((tData.m_nDayOfYear * 24) + tData.m_nHour) * 60) + tData.m_nMinute) * 60) + tData.m_nSecond;
-          pImage->timeStamp = (this->postIRIGStartTime).secPastEpoch + irigSeconds + (this->postIRIGStartTime).nsec / 1.e9 + tData.m_nMicroSecond / 1.e6;
-        }
-        else {
-          pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
-        }
-        updateTimeStamp(&pImage->epicsTS);
-
-        /* Get any attributes that have been defined for this driver */
-        this->getAttributes(pImage->pAttributeList);
-
-        if (arrayCallbacks) {
-          /* Call the NDArray callback */
-          /* Must release the lock here, or we can get into a deadlock, because we
-          * can block on the plugin lock, and the plugin can be calling us */
-          this->unlock();
-          asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
-                    "%s:%s: calling imageData callback\n", driverName,
-                    functionName);
-          doCallbacksGenericPointer(pImage, NDArrayData, 0);
-          this->lock();
-        }
       }
       
-      epicsTimeGetCurrent(&endTime);
-      elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
-      printf("Elapsed time: %f\n", elapsedTime);
-      
-      free(pBuf);
       
     } else {
       printf("status != playback; Ignoring read mem\n");
@@ -1965,7 +2297,409 @@ asynStatus Photron::readMem() {
     printf("Mode != record; Ignoring read mem\n");
   }
   
+  callParamCallbacks();
+  
   return status;
+}
+
+
+asynStatus Photron::setPreviewRange(epicsInt32 function, epicsInt32 value) {
+  asynStatus status = asynSuccess;
+  //int index;
+  int start, end, frameStart, frameEnd;
+  static const char *functionName = "setPreviewRange";
+  
+  // Should the index be changed here or left to be checked the next time it is changed?
+  //getIntegerParam(PhotronPMIndex, &index);
+  getIntegerParam(PhotronPMStart, &start);
+  getIntegerParam(PhotronPMEnd, &end);
+  getIntegerParam(PhotronFrameStart, &frameStart);
+  getIntegerParam(PhotronFrameEnd, &frameEnd);
+  
+  if (function == PhotronPMStart) {
+    printf("PhotronPMStart: value = %d\n", value);
+    if (start > end) {
+      start = end;
+    }
+    if (start < frameStart) {
+      start = frameStart;
+    }
+    setIntegerParam(PhotronPMStart, start);
+  } else if (function == PhotronPMEnd) {
+    printf("PhotronPMEnd: value = %d\n", value);
+    if (end < start) {
+      end = start;
+    }
+    if (end > frameEnd) {
+      end = frameEnd;
+    }
+    setIntegerParam(PhotronPMEnd, end);
+  }
+  
+  return asynSuccess;
+}
+
+
+asynStatus Photron::setPMIndex(epicsInt32 value) {
+  int status = asynSuccess;
+  int start, end;
+  static const char *functionName = "setPMIndex";
+  
+  status |= getIntegerParam(PhotronPMStart, &start);
+  status |= getIntegerParam(PhotronPMEnd, &end);
+  
+  if (value < start) {
+    value = start;
+  }
+  if (value > end) {
+    value = end;
+  }
+  status |= setIntegerParam(PhotronPMIndex, value);
+  
+  status |= this->readMemImage(value);
+  
+  return (asynStatus)status;
+}
+
+
+asynStatus Photron::changePMIndex(epicsInt32 value) {
+  int status = asynSuccess;
+  epicsInt32 index;
+  static const char *functionName = "changePMIndex";
+  
+  // check for playback mode?
+  
+  status |= getIntegerParam(PhotronPMIndex, &index);
+  
+  // check for valid index here?
+  if (value > 0) {
+    // Increase the preview mode index
+    index++;
+  } else {
+    // Decrease the preview mode index
+    index--;
+  }
+  
+  // setPMIndex calls setIntegerParam, then calls readMemImage
+  // readMemImage calls callParamCallbacks
+  status |= this->setPMIndex(index);
+  
+  return (asynStatus)status;
+}
+
+
+// This is called during playback (preview) mode
+// value has already been validated
+asynStatus Photron::readMemImage(epicsInt32 value) {
+  asynStatus status = asynSuccess;
+  int transferBitDepth;
+  unsigned long nRet, nErrorCode;
+  PDC_IRIG_INFO tData;
+  double tRel, tStart, tNow;
+  //
+  NDArray *pImage;
+  NDArrayInfo_t arrayInfo;
+  int colorMode = NDColorModeMono;
+  //
+  void *pBuf;  /* Memory sequence pointer for storing a live image */
+  //
+  NDDataType_t dataType;
+  int pixelSize;
+  size_t dims[2];
+  size_t dataSize;
+  //
+  int imageCounter;
+  int numImagesCounter;
+  int arrayCallbacks;
+  //double acquirePeriod, delay;
+  epicsTimeStamp startTime;
+  //epicsUInt32 irigSeconds;
+  epicsInt32 start;
+  //
+  static const char *functionName = "readMemImage";
+  
+  // TODO: check that value is within range
+  
+  printf("readMemImage %d\n", value);
+  
+  if (this->pixelBits == 8) {
+    // 8 bits
+    dataType = NDUInt8;
+    pixelSize = 1;
+  } else {
+    // 12 bits (stored in 2 bytes)
+    dataType = NDUInt16;
+    pixelSize = 2;
+  }
+  
+  transferBitDepth = 8 * pixelSize;
+  dataSize = this->memWidth * this->memHeight * pixelSize;
+  pBuf = malloc(dataSize);
+  
+  epicsTimeGetCurrent(&startTime);
+  
+  // Retrieve a frame
+  nRet = PDC_GetMemImageData(this->nDeviceNo, this->nChildNo, value,
+                             transferBitDepth, pBuf, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetMemImageData Error %d\n", nErrorCode);
+  } else {
+    printf("PDC_GetMemImageData Succeeded\n");
+  }
+    
+  // Retrieve frame time
+  if (this->tMode == 1) {
+    nRet = PDC_GetMemIRIGData(this->nDeviceNo, this->nChildNo, value,
+                              &tData, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetMemIRIGData Error %d\n", nErrorCode);
+    }
+    
+    setIntegerParam(PhotronMemIRIGDay, tData.m_nDayOfYear);
+    setIntegerParam(PhotronMemIRIGHour, tData.m_nHour);
+    setIntegerParam(PhotronMemIRIGMin, tData.m_nMinute);
+    setIntegerParam(PhotronMemIRIGSec, tData.m_nSecond);
+    setIntegerParam(PhotronMemIRIGUsec, tData.m_nMicroSecond);
+    setIntegerParam(PhotronMemIRIGSigEx, tData.m_ExistSignal);
+  }
+  
+  /* We save the most recent image buffer so it can be used in the read() 
+   * function. Now release it before getting a new version. */
+  if (this->pArrays[0]) 
+    this->pArrays[0]->release();
+  
+  /* Allocate the raw buffer */
+  dims[0] = memWidth;
+  dims[1] = memHeight;
+  pImage = this->pNDArrayPool->alloc(2, dims, dataType, 0, NULL);
+  if (!pImage) {
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+              "%s:%s: error allocating buffer\n", driverName, functionName);
+    return(asynError);
+  }
+  
+  memcpy(pImage->pData, pBuf, dataSize);
+  
+  this->pArrays[0] = pImage;
+  pImage->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, 
+                              &colorMode);
+  pImage->getInfo(&arrayInfo);
+  setIntegerParam(NDArraySize,  (int)arrayInfo.totalBytes);
+  setIntegerParam(NDArraySizeX, (int)pImage->dims[0].size);
+  setIntegerParam(NDArraySizeY, (int)pImage->dims[1].size);
+  
+  /* Call the callbacks to update any changes */
+  callParamCallbacks();
+  
+  // Get the current parameters
+  getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
+  getIntegerParam(PhotronPMStart, &start);
+  
+  // Set the image counters during playback to the values they would have
+  // if the frames were saved with the current settings
+  imageCounter = this->NDArrayCounterBackup + value - start;
+  setIntegerParam(NDArrayCounter, imageCounter);
+  numImagesCounter = value - start;
+  setIntegerParam(ADNumImagesCounter, numImagesCounter);
+  
+  /* Put the frame number and time stamp into the buffer */
+  pImage->uniqueId = imageCounter;
+  if (tMode == 1) {
+    // Absolute time
+    //irigSeconds = (((((tData.m_nDayOfYear * 24) + tData.m_nHour) * 60) + tData.m_nMinute) * 60) + tData.m_nSecond;
+    //pImage->timeStamp = (this->postIRIGStartTime).secPastEpoch + irigSeconds + (this->postIRIGStartTime).nsec / 1.e9 + tData.m_nMicroSecond / 1.e6;
+    // Relative time
+    this->timeDataToSec(&tData, &tNow);
+    this->timeDataToSec(&(this->tDataStart), &tStart);
+    tRel = tNow - tStart;
+    pImage->timeStamp = tRel;
+  }
+  else {
+    // Use theoretical time
+    pImage->timeStamp = 1.0 * value / this->memRate;
+  }
+  updateTimeStamp(&pImage->epicsTS);
+  
+  /* Get any attributes that have been defined for this driver */
+  this->getAttributes(pImage->pAttributeList);
+
+  if (arrayCallbacks) {
+    /* Call the NDArray callback */
+    /* Must release the lock here, or we can get into a deadlock, because we
+    * can block on the plugin lock, and the plugin can be calling us */
+    this->unlock();
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+              "%s:%s: calling imageData callback\n", driverName,
+              functionName);
+    doCallbacksGenericPointer(pImage, NDArrayData, 0);
+    this->lock();
+  }
+  
+  free(pBuf);
+  printf("Returning...\n");
+  return asynSuccess;
+}
+
+
+
+
+asynStatus Photron::readImageRange() {
+  asynStatus status = asynSuccess;
+  int index, transferBitDepth;
+  unsigned long nRet, nErrorCode;
+  PDC_IRIG_INFO tData;
+  //
+  NDArray *pImage;
+  NDArrayInfo_t arrayInfo;
+  int colorMode = NDColorModeMono;
+  //
+  void *pBuf;  /* Memory sequence pointer for storing a live image */
+  //
+  NDDataType_t dataType;
+  int pixelSize;
+  size_t dims[2];
+  size_t dataSize;
+  //
+  int imageCounter;
+  int numImages, numImagesCounter;
+  int imageMode;
+  int arrayCallbacks;
+  //double acquirePeriod, delay;
+  epicsTimeStamp startTime, endTime;
+  double elapsedTime;
+  epicsUInt32 irigSeconds;
+  //
+  int start, end;
+  static const char *functionName = "readImageRange";
+  
+  if (this->pixelBits == 8) {
+    // 8 bits
+    dataType = NDUInt8;
+    pixelSize = 1;
+  } else {
+    // 12 bits (stored in 2 bytes)
+    dataType = NDUInt16;
+    pixelSize = 2;
+  }
+  
+  transferBitDepth = 8 * pixelSize;
+  dataSize = this->memWidth * this->memHeight * pixelSize;
+  pBuf = malloc(dataSize);
+  
+  epicsTimeGetCurrent(&startTime);
+  
+  getIntegerParam(PhotronPMStart, &start);
+  getIntegerParam(PhotronPMEnd, &end);
+  
+  // TODO: Catch random trigger modes, see if fewer than the specified
+  // number of recordings have occurred, then omit the first acquisition
+  
+  //for (index=this->FrameInfo.m_nStart; index<(this->FrameInfo.m_nEnd+1); index++) {
+  for (index=start; index<(end+1); index++) {
+    // Allow user to abort acquisition
+    if (this->abortFlag == 1) {
+      printf("Aborting data readout!d\n");
+      this->abortFlag = 0;
+      break;
+    }
+    
+    // Retrieve a frame
+    nRet = PDC_GetMemImageData(this->nDeviceNo, this->nChildNo, index,
+                               transferBitDepth, pBuf, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetMemImageData Error %d\n", nErrorCode);
+    }
+    
+    // Retrieve frame time
+    if (this->tMode == 1) {
+    
+      nRet = PDC_GetMemIRIGData(this->nDeviceNo, this->nChildNo, index,
+                                &tData, &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetMemIRIGData Error %d\n", nErrorCode);
+      }
+      
+      setIntegerParam(PhotronMemIRIGDay, tData.m_nDayOfYear);
+      setIntegerParam(PhotronMemIRIGHour, tData.m_nHour);
+      setIntegerParam(PhotronMemIRIGMin, tData.m_nMinute);
+      setIntegerParam(PhotronMemIRIGSec, tData.m_nSecond);
+      setIntegerParam(PhotronMemIRIGUsec, tData.m_nMicroSecond);
+      setIntegerParam(PhotronMemIRIGSigEx, tData.m_ExistSignal);
+    }
+    
+    /* We save the most recent image buffer so it can be used in the read() 
+     * function. Now release it before getting a new version. */
+    if (this->pArrays[0]) 
+      this->pArrays[0]->release();
+  
+    /* Allocate the raw buffer */
+    dims[0] = memWidth;
+    dims[1] = memHeight;
+    pImage = this->pNDArrayPool->alloc(2, dims, dataType, 0, NULL);
+    if (!pImage) {
+      asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
+                "%s:%s: error allocating buffer\n", driverName, functionName);
+      return(asynError);
+    }
+  
+    memcpy(pImage->pData, pBuf, dataSize);
+  
+    this->pArrays[0] = pImage;
+    pImage->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, 
+                                &colorMode);
+    pImage->getInfo(&arrayInfo);
+    setIntegerParam(NDArraySize,  (int)arrayInfo.totalBytes);
+    setIntegerParam(NDArraySizeX, (int)pImage->dims[0].size);
+    setIntegerParam(NDArraySizeY, (int)pImage->dims[1].size);
+    
+    /* Call the callbacks to update any changes */
+    callParamCallbacks();
+  
+    /* Get the current parameters */
+    getIntegerParam(NDArrayCounter, &imageCounter);
+    getIntegerParam(ADNumImages, &numImages);
+    getIntegerParam(ADNumImagesCounter, &numImagesCounter);
+    getIntegerParam(ADImageMode, &imageMode);
+    getIntegerParam(NDArrayCallbacks, &arrayCallbacks);
+    imageCounter++;
+    numImagesCounter++;
+    setIntegerParam(NDArrayCounter, imageCounter);
+    setIntegerParam(ADNumImagesCounter, numImagesCounter);
+
+    /* Put the frame number and time stamp into the buffer */
+    pImage->uniqueId = imageCounter;
+    if (tMode == 1) {
+      irigSeconds = (((((tData.m_nDayOfYear * 24) + tData.m_nHour) * 60) + tData.m_nMinute) * 60) + tData.m_nSecond;
+      pImage->timeStamp = (this->postIRIGStartTime).secPastEpoch + irigSeconds + (this->postIRIGStartTime).nsec / 1.e9 + tData.m_nMicroSecond / 1.e6;
+    }
+    else {
+      pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
+    }
+    updateTimeStamp(&pImage->epicsTS);
+
+    /* Get any attributes that have been defined for this driver */
+    this->getAttributes(pImage->pAttributeList);
+
+    if (arrayCallbacks) {
+      /* Call the NDArray callback */
+      /* Must release the lock here, or we can get into a deadlock, because we
+      * can block on the plugin lock, and the plugin can be calling us */
+      this->unlock();
+      asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+                "%s:%s: calling imageData callback\n", driverName,
+                functionName);
+      doCallbacksGenericPointer(pImage, NDArrayData, 0);
+      this->lock();
+    }
+  }
+  
+  epicsTimeGetCurrent(&endTime);
+  elapsedTime = epicsTimeDiffInSeconds(&endTime, &startTime);
+  printf("Elapsed time: %f\n", elapsedTime);
+  
+  free(pBuf);
+  
+  return asynSuccess;
 }
 
 
@@ -2692,7 +3426,8 @@ asynStatus Photron::readParameters() {
   int tmode;
   int index;
   int eVal;
-  int chan, opMode;
+  int chan;
+  //int opMode;
   char bitDepthChar;
   static const char *functionName = "readParameters";    
   
@@ -2873,7 +3608,9 @@ asynStatus Photron::readParameters() {
   
   /* Call the callbacks to update the values in higher layers */
   callParamCallbacks();
-
+  
+  //printf("Done reading parameters\n");
+  
   if (status)
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,
               "%s:%s: error, status=%d\n", driverName, functionName, status);
