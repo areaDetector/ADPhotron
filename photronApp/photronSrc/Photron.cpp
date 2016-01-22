@@ -267,6 +267,7 @@ Photron::~Photron() {
   static const char *functionName = "~Photron";
 
   // Attempt to stop the recording thread
+  this->stopRecFlag = 1;
   epicsEventSignal(this->stopRecEventId);
   
   this->lock();
@@ -623,7 +624,7 @@ void Photron::PhotronRecTask() {
 
     /* If we are not in record mode then wait for a semaphore that is given when 
        record mode is requested */
-    if (acqMode != 1) {
+    if ((acqMode != 1) || (this->stopRecFlag == 1)) {
       /* Release the lock while we wait for an event that says acquire has 
          started, then lock again */
       asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
@@ -632,6 +633,13 @@ void Photron::PhotronRecTask() {
       this->unlock();
       epicsEventWait(this->startRecEventId);
       this->lock();
+      
+      // Reset the stopRecFlag
+      this->stopRecFlag = 0;
+    }
+    
+    if (this->stopRecFlag == 1) {
+      this->stopRecFlag = 0;
       
     }
     
@@ -694,8 +702,13 @@ void Photron::PhotronRecTask() {
       
       // release the lock so the trigger PV can be used
       this->unlock();
-      epicsThreadSleep(0.001);
+      //epicsThreadSleep(0.001);
+      epicsEventWaitWithTimeout(this->stopRecEventId, 0.001);
       this->lock();
+      
+      if (this->stopRecFlag == 1) {
+        break;
+      }
       
       // Update the acq mode
       getIntegerParam(PhotronAcquireMode, &acqMode);
@@ -1421,6 +1434,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       setLive();
       
       // Stop the PhotronRecTask (will it do one last read after returning to live?)
+      this->stopRecFlag = 1;
       epicsEventSignal(this->stopRecEventId);
     } else {
       // code to enter recording mode

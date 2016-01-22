@@ -327,6 +327,8 @@ private:
   //
   int stopFlag;
   int dirFlag;
+  //
+  int stopRecFlag;
   /* Our data */
   NDArray *pRaw;
   int numValidTriggerModes_;
