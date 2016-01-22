@@ -206,6 +206,8 @@ private:
   asynStatus parseResolutionList();
   void printResOptions();
   void printTrigModes();
+  void printShutterSpeeds();
+  void printShadingModes();
   asynStatus setPixelFormat();
   asynStatus setTriggerMode();
   asynStatus softwareTrigger();
@@ -300,6 +302,10 @@ private:
   unsigned long ResolutionList[PDC_MAX_LIST_NUMBER];
   unsigned long TriggerModeListSize;
   unsigned long TriggerModeList[PDC_MAX_LIST_NUMBER];
+  unsigned long ShutterSpeedFpsListSize;
+  unsigned long ShutterSpeedFpsList[PDC_MAX_LIST_NUMBER];
+  unsigned long ShadingModeListSize;
+  unsigned long ShadingModeList[PDC_MAX_LIST_NUMBER];
   unsigned long pixelBits;
   unsigned long highSpeedMode;
   unsigned long varRate;

@@ -3652,6 +3652,21 @@ asynStatus Photron::readParameters() {
   setIntegerParam(PhotronVarChanXPos, this->varXPos);
   setIntegerParam(PhotronVarChanYPos, this->varYPos);
   
+  nRet = PDC_GetShutterSpeedFpsList(this->nDeviceNo, this->nChildNo,
+                                    &(this->ShutterSpeedFpsListSize),
+                                    this->ShutterSpeedFpsList, &nErrorCode);
+  if (nRet = PDC_FAILED) {
+    printf("PDC_GetShutterSpeedFpsList failed. error = %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  nRet = PDC_GetShadingModeList(this->nDeviceNo, this->nChildNo,
+                                &(this->ShadingModeListSize),
+                                this->ShadingModeList, &nErrorCode);
+  if (nRet = PDC_FAILED) {
+    printf("PDC_GetShadingModeList failed. error = %d\n", nErrorCode);
+    return asynError;
+  }
   
   if (functionList[PDC_EXIST_HIGH_SPEED_MODE] == PDC_EXIST_SUPPORTED) {
     nRet = PDC_GetHighSpeedMode(this->nDeviceNo, &(this->highSpeedMode),
@@ -3785,6 +3800,26 @@ void Photron::printTrigModes() {
 }
 
 
+void Photron::printShutterSpeeds() {
+  int index;
+  
+  printf("\n  Shutter Speeds (FPS):\n");
+  for (index=0; index<(int)this->ShutterSpeedFpsListSize; index++) {
+    printf("\t%d:\t%d\n", index, ShutterSpeedFpsList[index]);
+  }
+}
+
+
+void Photron::printShadingModes() {
+  int index;
+  
+  printf("\n  Shading Modes:\n");
+  for (index=0; index<(int)this->ShadingModeListSize; index++) {
+    printf("\t%d:\t%d\n", index, ShadingModeList[index]);
+  }
+}
+
+
 /** Report status of the driver.
   * Prints details about the driver if details>0.
   * It then calls the ADDriver::report() method.
@@ -3856,6 +3891,12 @@ void Photron::report(FILE *fp, int details) {
     
     //
     printTrigModes();
+    
+    //
+    printShutterSpeeds();
+    
+    //
+    printShadingModes();
   }
   
   if (details > 6) {
