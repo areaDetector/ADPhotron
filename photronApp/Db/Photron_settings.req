@@ -13,6 +13,8 @@ $(P)$(R)PMPlayFPS
 $(P)$(R)VarChan
 # Save res index instead of size X and size Y -- this may not work for variable mode
 $(P)$(R)ResIdx
+#
+$(P)$(R)ShutterFps
 
 # Settings usually found in ADBase_settings.req
 # Need to omit some of them, so ADBase_settings.req can't be included

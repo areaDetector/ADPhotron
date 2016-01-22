@@ -89,8 +89,8 @@ display {
 }
 "related display" {
 	object {
-		x=659
-		y=551
+		x=303
+		y=531
 		width=134
 		height=39
 	}
@@ -1468,4 +1468,106 @@ text {
 	format="hexadecimal"
 	limits {
 	}
+}
+"text entry" {
+	object {
+		x=604
+		y=624
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ShutterFps"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=688
+		y=588
+		width=100
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)ShutterFps_RBV"
+		clr=14
+		bclr=4
+	}
+	limits {
+	}
+}
+text {
+	object {
+		x=453
+		y=588
+		width=125
+		height=25
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Shutter Speed (FPS)"
+}
+"message button" {
+	object {
+		x=706
+		y=624
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeShutterFps.VAL"
+		clr=14
+		bclr=4
+	}
+	label="+"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=577
+		y=624
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeShutterFps.VAL"
+		clr=14
+		bclr=4
+	}
+	label="-"
+	press_msg="0"
+}
+"message button" {
+	object {
+		x=733
+		y=624
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)JumpShutterFps.VAL"
+		clr=14
+		bclr=4
+	}
+	label=">|"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=550
+		y=624
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)JumpShutterFps.VAL"
+		clr=14
+		bclr=4
+	}
+	label="|<"
+	press_msg="0"
 }

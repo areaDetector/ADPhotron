@@ -130,6 +130,9 @@ protected:
     int PhotronChangeRecRate;
     int PhotronResIndex;
     int PhotronChangeResIdx;
+    int PhotronShutterFps;
+    int PhotronChangeShutterFps;
+    int PhotronJumpShutterFps;
     int PhotronVarChan;
     int PhotronChangeVarChan;
     int PhotronVarChanRate;
@@ -200,6 +203,9 @@ private:
   asynStatus setTransferOption();
   asynStatus setRecordRate(epicsInt32 value);
   asynStatus changeRecordRate(epicsInt32 value);
+  asynStatus setShutterSpeedFps(epicsInt32 value);
+  asynStatus changeShutterSpeedFps(epicsInt32 value);
+  asynStatus jumpShutterSpeedFps(epicsInt32 value);
   asynStatus setVariableChannel(epicsInt32 value);
   asynStatus changeVariableChannel(epicsInt32 value);
   asynStatus setStatus(epicsInt32 value);
@@ -289,6 +295,7 @@ private:
   unsigned long nMaxFrames;
   unsigned long nBlocks; // total number of current partition blocks
   unsigned long nRate; // units = frames per second
+  unsigned long shutterSpeedFps;
   unsigned long triggerMode;
   unsigned long trigAFrames;
   unsigned long trigRFrames;
@@ -302,6 +309,7 @@ private:
   unsigned long ResolutionList[PDC_MAX_LIST_NUMBER];
   unsigned long TriggerModeListSize;
   unsigned long TriggerModeList[PDC_MAX_LIST_NUMBER];
+  int shutterSpeedFpsIndex;
   unsigned long ShutterSpeedFpsListSize;
   unsigned long ShutterSpeedFpsList[PDC_MAX_LIST_NUMBER];
   unsigned long ShadingModeListSize;
@@ -369,6 +377,9 @@ typedef struct {
 #define PhotronChangeRecRateString "PHOTRON_CHANGE_REC_RATE" /* (asynInt32, w) */
 #define PhotronResIndexString   "PHOTRON_RES_INDEX"  /* (asynInt32, rw) */
 #define PhotronChangeResIdxString "PHOTRON_CHANGE_RES_IDX" /* (asynInt32, w) */
+#define PhotronShutterFpsString   "PHOTRON_SHUTTER_FPS"  /* (asynInt32, rw) */
+#define PhotronChangeShutterFpsString "PHOTRON_CHANGE_SHUTTER_FPS" /* (asynInt32, w) */
+#define PhotronJumpShutterFpsString "PHOTRON_JUMP_SHUTTER_FPS" /* (asynInt32, w) */
 #define PhotronVarChanString "PHOTRON_VAR_CHAN"   /* (asynInt32,    rw)   */
 #define PhotronChangeVarChanString "PHOTRON_CHANGE_VAR_CHAN" /* (asynInt32, w) */
 #define PhotronVarChanRateString "PHOTRON_VAR_CHAN_RATE" /* (asynInt32,  r) */

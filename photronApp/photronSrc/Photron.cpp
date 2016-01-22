@@ -93,6 +93,9 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronChangeRecRateString, asynParamInt32, &PhotronChangeRecRate);
   createParam(PhotronResIndexString,      asynParamInt32, &PhotronResIndex);
   createParam(PhotronChangeResIdxString,  asynParamInt32, &PhotronChangeResIdx);
+  createParam(PhotronShutterFpsString,    asynParamInt32, &PhotronShutterFps);
+  createParam(PhotronChangeShutterFpsString, asynParamInt32, &PhotronChangeShutterFps);
+  createParam(PhotronJumpShutterFpsString, asynParamInt32, &PhotronJumpShutterFps);
   createParam(PhotronVarChanString,       asynParamInt32, &PhotronVarChan);
   createParam(PhotronChangeVarChanString, asynParamInt32, &PhotronChangeVarChan);
   createParam(PhotronVarChanRateString,   asynParamInt32, &PhotronVarChanRate);
@@ -1469,6 +1472,12 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setRecordRate(value);
   } else if (function == PhotronChangeRecRate) {
     changeRecordRate(value);
+  } else if (function == PhotronShutterFps) {
+    setShutterSpeedFps(value);
+  } else if (function == PhotronChangeShutterFps) {
+    changeShutterSpeedFps(value);
+  } else if (function == PhotronJumpShutterFps) {
+    jumpShutterSpeedFps(value);
   } else if (function == PhotronStatus) {
     setStatus(value);
   } else if (function == PhotronSoftTrig) {
@@ -3255,6 +3264,132 @@ asynStatus Photron::setTransferOption() {
 }
 
 
+asynStatus Photron::setShutterSpeedFps(epicsInt32 value) {
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  int status = asynSuccess;
+  int index;
+  epicsInt32 upperDiff, lowerDiff;
+  
+  static const char *functionName = "setShutterSpeedFps";
+  
+  //printf("setShutterSpeedFps: value = %d\n", value);
+  
+  if (this->ShutterSpeedFpsListSize == 0) {
+    printf("Error: ShutterSpeedFpsListSize is ZERO\n");
+    return asynError;
+  }
+  
+  if (this->ShutterSpeedFpsListSize == 1) {
+    // Don't allow the value to be changed
+    value = this->ShutterSpeedFpsList[0];
+    this->shutterSpeedFpsIndex = 0;
+  } else {
+    /* Choose the closest allowed rate 
+       NOTE: ShutterSpeedFpsList is in ascending order */
+    for (index=0; index<((int)this->ShutterSpeedFpsListSize-1); index++) {
+      if (value < (int)this->ShutterSpeedFpsList[index+1]) {
+        upperDiff = (epicsInt32)this->ShutterSpeedFpsList[index+1] - value;
+        lowerDiff = value - (epicsInt32)this->ShutterSpeedFpsList[index];
+        // One of the rates (index or index+1) is the best choice
+        if (upperDiff < lowerDiff) {
+          value = this->ShutterSpeedFpsList[index+1];
+          this->shutterSpeedFpsIndex = index + 1;
+          break;
+        } else {
+          value = this->ShutterSpeedFpsList[index];
+          this->shutterSpeedFpsIndex = index;
+          break;
+        }
+      } else {
+        // Are we at the end of the list?
+        if (index == this->ShutterSpeedFpsListSize-2) {
+          // value is higher than the highest rate
+          value = this->ShutterSpeedFpsList[index+1];
+          this->shutterSpeedFpsIndex = index + 1;
+          break;
+        } else {
+          // We haven't found the closest rate yet
+          continue;
+        }
+      }
+    }
+  }
+  
+  nRet = PDC_SetShutterSpeedFps(this->nDeviceNo, this->nChildNo, value, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetShutterSpeedFps Error %d\n", nErrorCode);
+    return asynError;
+  } else {
+    //printf("PDC_SetShutterSpeedFps succeeded. Rate = %d\n", value);
+  }
+  
+  return asynSuccess;
+}
+
+
+asynStatus Photron::changeShutterSpeedFps(epicsInt32 value) {
+  int status = asynSuccess;
+  int newShutterSpeedFpsIndex;
+  int newShutterSpeedFps;
+  static const char *functionName = "changeShutterSpeedFps";
+  
+  //printf("changeShutterSpeedFps: value = %d\n", value);
+  
+  // The record rate list is in order of incresting rate
+  // Assumption: this->shutterSpeedFpsIndex is up-to-date
+  
+  // By default the rec rate stays the same
+  newShutterSpeedFpsIndex = this->shutterSpeedFpsIndex;
+  
+  // Only attempt to to change the index if the list has 2 or more elements
+  if (this->ShutterSpeedFpsListSize > 1) {
+    if (value > 0) {
+      // Increase the shutter speed
+      if (this->shutterSpeedFpsIndex < ((int)this->ShutterSpeedFpsListSize-1)) {
+        newShutterSpeedFpsIndex = this->shutterSpeedFpsIndex + 1;
+      }
+    } else {
+      // Decrease the shutter speed
+      if (this->shutterSpeedFpsIndex > 0) {
+        newShutterSpeedFpsIndex = this->shutterSpeedFpsIndex - 1;
+      }
+    }
+    newShutterSpeedFps = this->ShutterSpeedFpsList[newShutterSpeedFpsIndex];
+    this->setShutterSpeedFps(newShutterSpeedFps);
+  }
+  
+  return (asynStatus)status;
+}
+
+
+asynStatus Photron::jumpShutterSpeedFps(epicsInt32 value) {
+  int status = asynSuccess;
+  int newShutterSpeedFpsIndex;
+  int newShutterSpeedFps;
+  static const char *functionName = "jumpShutterSpeedFps";
+  
+  //printf("jumpShutterSpeedFps: value = %d\n", value);
+  
+  // The record rate list is in order of incresting rate
+  
+  // Only attempt to to change the index if the list has 2 or more elements
+  if (this->ShutterSpeedFpsListSize > 1) {
+    if (value > 0) {
+      // Jump to fastest shutter speed
+      newShutterSpeedFpsIndex = this->ShutterSpeedFpsListSize - 1;
+    } else {
+      // Jump to slowest shutter speed
+      newShutterSpeedFpsIndex = 0;
+    }
+    newShutterSpeedFps = this->ShutterSpeedFpsList[newShutterSpeedFpsIndex];
+    this->setShutterSpeedFps(newShutterSpeedFps);
+  }
+  
+  return (asynStatus)status;
+}
+
+
 asynStatus Photron::setRecordRate(epicsInt32 value) {
   unsigned long nRet;
   unsigned long nErrorCode;
@@ -3522,6 +3657,14 @@ asynStatus Photron::readParameters() {
     return asynError;
   }
   status |= setIntegerParam(PhotronMaxFrames, this->nMaxFrames);
+  
+  nRet = PDC_GetShutterSpeedFps(this->nDeviceNo, this->nChildNo, 
+                                &(this->shutterSpeedFps), &nErrorCode);
+  if (nRet = PDC_FAILED) {
+    printf("PDC_GetShutterSpeedFps failed %d\n", nErrorCode);
+    return asynError;
+  }
+  status |= setIntegerParam(PhotronShutterFps, this->shutterSpeedFps);
   
   /*
   PDC_GetTriggerMode succeeded

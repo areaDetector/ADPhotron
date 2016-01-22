@@ -312,6 +312,41 @@ record(calcout, "$(P)$(R)RecordRateSync")
    field(OUT,  "$(P)$(R)RecordRate PP")
 }
 
+record(longout, "$(P)$(R)ShutterFps")
+{
+   field(DTYP, "asynInt32")
+   field(PINI, "YES")
+   field(DESC, "Shutter Speed (FPS)")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SHUTTER_FPS")
+   info(asyn:READBACK, "1")
+}
+
+record(longin, "$(P)$(R)ShutterFps_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Shutter Speed (FPS)")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SHUTTER_FPS")
+   field(SCAN, "I/O Intr")
+}
+
+record(bo, "$(P)$(R)ChangeShutterFps")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Change Shutter Speed")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_SHUTTER_FPS")
+   field(ZNAM, "Decrease")
+   field(ONAM, "Increase")
+}
+
+record(bo, "$(P)$(R)JumpShutterFps")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Jump Shutter Speed")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_JUMP_SHUTTER_FPS")
+   field(ZNAM, "Minimum")
+   field(ONAM, "Maximum")
+}
+
 record(longout, "$(P)$(R)AfterFrames")
 {
    field(DTYP, "asynInt32")
