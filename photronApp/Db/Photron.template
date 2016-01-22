@@ -192,6 +192,30 @@ record(longin, "$(P)$(R)Status_RBV")
    field(SCAN, "I/O Intr")
 }
 
+record(mbbi, "$(P)$(R)StatusName_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Camera Status")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_STATUS_NAME")
+   field(ZRST, "Live")
+   field(ZRVL, "0")
+   field(ONST, "Playback")
+   field(ONVL, "1")
+   field(TWST, "Rec Ready")
+   field(TWVL, "2")
+   field(THST, "Endless")
+   field(THVL, "3")
+   field(FRST, "Record")
+   field(FRVL, "4")
+   field(FVST, "Save")
+   field(FVVL, "5")
+   field(SXST, "Load")
+   field(SXVL, "6")
+   field(SVST, "Pause")
+   field(SVVL, "7")
+   field(SCAN, "I/O Intr")
+}
+
 record(mbbi, "$(P)$(R)CamMode_RBV")
 {
    field(DTYP, "asynInt32")

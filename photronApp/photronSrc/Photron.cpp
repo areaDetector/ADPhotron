@@ -83,6 +83,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
 
   // CREATE PARAMS HERE
   createParam(PhotronStatusString,        asynParamInt32, &PhotronStatus);
+  createParam(PhotronStatusNameString,    asynParamInt32, &PhotronStatusName);
   createParam(PhotronCamModeString,       asynParamInt32, &PhotronCamMode);
   createParam(PhotronAcquireModeString,   asynParamInt32, &PhotronAcquireMode);
   createParam(PhotronOpModeString,        asynParamInt32, &PhotronOpMode);
@@ -608,6 +609,7 @@ void Photron::PhotronRecTask() {
   unsigned long nRet;
   unsigned long nErrorCode;
   int acqMode, previewMode;
+  int eStatus;
   
   const char *functionName = "PhotronRecTask";
 
@@ -644,6 +646,8 @@ void Photron::PhotronRecTask() {
       if (status == PDC_STATUS_REC) {
           setIntegerParam(ADStatus, ADStatusAcquire);
       }
+      eStatus = statusToEPICS(status);
+      setIntegerParam(PhotronStatusName, eStatus);
       callParamCallbacks();
       
       // Triggered acquisition is done when camera status returns to live
@@ -1742,6 +1746,43 @@ asynStatus Photron::createStaticEnums() {
 }
 
 
+int Photron::statusToEPICS(int apiStatus) {
+  int status;
+  
+  switch (apiStatus) {
+    case PDC_STATUS_LIVE:
+      status = 0;
+      break;
+    case PDC_STATUS_PLAYBACK:
+      status = 1;
+      break;
+    case PDC_STATUS_RECREADY:
+      status = 2;
+      break;
+    case PDC_STATUS_ENDLESS:
+      status = 3;
+      break;
+    case PDC_STATUS_REC:
+      status = 4;
+      break;
+    case PDC_STATUS_SAVE:
+      status = 5;
+      break;
+    case PDC_STATUS_LOAD:
+      status = 6;
+      break;
+    case PDC_STATUS_PAUSE:
+      status = 7;
+      break;
+    default:
+      status = 0;
+      break;
+  }
+  
+  return status;
+}
+
+
 int Photron::inputModeToEPICS(int apiMode) {
   int mode;
   
@@ -2127,7 +2168,7 @@ asynStatus Photron::setExternalOutMode(epicsInt32 port, epicsInt32 value) {
 
 asynStatus Photron::setPlayback() {
   asynStatus status = asynSuccess;
-  int acqMode;
+  int acqMode, eStatus;
   unsigned long nRet, nErrorCode, phostat;
   static const char *functionName = "setPlayback";
   
@@ -2151,6 +2192,8 @@ asynStatus Photron::setPlayback() {
     
     if (phostat == PDC_STATUS_PLAYBACK) {
       setIntegerParam(PhotronStatus, phostat);
+      eStatus = statusToEPICS(phostat);
+      setIntegerParam(PhotronStatusName, eStatus);
       setIntegerParam(ADStatus, ADStatusReadout);
       callParamCallbacks();
     }
@@ -3425,7 +3468,7 @@ asynStatus Photron::readParameters() {
   int status = asynSuccess;
   int tmode;
   int index;
-  int eVal;
+  int eVal, eStatus;
   int chan;
   //int opMode;
   char bitDepthChar;
@@ -3441,6 +3484,8 @@ asynStatus Photron::readParameters() {
     return asynError;
   }
   status |= setIntegerParam(PhotronStatus, this->nStatus);
+  eStatus = statusToEPICS(this->nStatus);
+  setIntegerParam(PhotronStatusName, eStatus);
   
   nRet = PDC_GetCamMode(this->nDeviceNo, this->nChildNo, &(this->camMode), &nErrorCode);
   if (nRet == PDC_FAILED) {

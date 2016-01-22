@@ -245,44 +245,33 @@ composite {
 		}
 	}
 }
-composite {
+"text update" {
+	object {
+		x=254
+		y=126
+		width=100
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)StatusName_RBV"
+		clr=14
+		bclr=4
+	}
+	format="string"
+	limits {
+	}
+}
+text {
 	object {
 		x=19
 		y=126
-		width=335
+		width=125
 		height=25
 	}
-	"composite name"=""
-	children {
-		"text update" {
-			object {
-				x=254
-				y=126
-				width=100
-				height=25
-			}
-			monitor {
-				chan="$(P)$(R)Status_RBV"
-				clr=14
-				bclr=4
-			}
-			format="hexadecimal"
-			limits {
-			}
-		}
-		text {
-			object {
-				x=19
-				y=126
-				width=125
-				height=25
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Status"
-		}
+	"basic attribute" {
+		clr=14
 	}
+	textix="Status"
 }
 composite {
 	object {
@@ -1485,4 +1474,20 @@ text {
 	}
 	clr=14
 	bclr=4
+}
+"text update" {
+	object {
+		x=149
+		y=126
+		width=100
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)Status_RBV"
+		clr=14
+		bclr=4
+	}
+	format="hexadecimal"
+	limits {
+	}
 }

@@ -120,6 +120,7 @@ public:
   
 protected:
     int PhotronStatus;
+    int PhotronStatusName;
     int PhotronCamMode;
     int PhotronAcquireMode;
     int PhotronOpMode;
@@ -220,6 +221,7 @@ private:
   asynStatus setSyncPriority(epicsInt32 value);
   asynStatus setExternalInMode(epicsInt32 port, epicsInt32 value);
   asynStatus setExternalOutMode(epicsInt32 port, epicsInt32 value);
+  int statusToEPICS(int apiStatus);
   int trigModeToEPICS(int apiMode);
   int trigModeToAPI(int mode);
   int inputModeToEPICS(int apiMode);
@@ -349,6 +351,7 @@ typedef struct {
 // Define param strings here
  /*                             String                  interface  access   */
 #define PhotronStatusString     "PHOTRON_STATUS"     /* (asynInt32,    rw)   */
+#define PhotronStatusNameString  "PHOTRON_STATUS_NAME" /* (asynInt32,   rw)   */
 #define PhotronCamModeString    "PHOTRON_CAM_MODE"   /* (asynInt32,    r)   */
 #define PhotronAcquireModeString "PHOTRON_ACQUIRE_MODE" /* (asynInt32,    w) */
 #define PhotronOpModeString     "PHOTRON_OP_MODE" /* (asynInt32,    w) */
