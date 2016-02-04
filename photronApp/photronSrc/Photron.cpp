@@ -1245,6 +1245,9 @@ asynStatus Photron::getCameraInfo() {
     return asynError;
   }
   
+  // Read variable restrictions (and print some info)
+  readVariableInfo();
+  
   // Query the trigger mode list
   // Is this necessary here?
   /*nRet = PDC_GetTriggerModeList(this->nDeviceNo, &(this->TriggerModeListSize),
@@ -1468,10 +1471,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronOpMode) {
     // What should be done when this mode is changed?
     if (value == 1) {
-      // Switch to Variable mode
-      readVariableInfo();
-      
-      // Apply the currently selected variable channel
+      // Switch to Variable mode by applying the currently selected variable channel
       getIntegerParam(PhotronVarChan, &chan);
       setVariableChannel(chan);
     } else {
@@ -3880,6 +3880,14 @@ asynStatus Photron::readVariableInfo() {
   printf("\tMin Height: %d\n", hMin);
   printf("\tFree Pos: %d\n", freePos);
   
+  setIntegerParam(PhotronVarChanWStep, wStep);
+  setIntegerParam(PhotronVarChanHStep, hStep);
+  setIntegerParam(PhotronVarChanXPosStep, xPosStep);
+  setIntegerParam(PhotronVarChanYPosStep, yPosStep);
+  setIntegerParam(PhotronVarChanWMin, wMin);
+  setIntegerParam(PhotronVarChanHMin, hMin);
+  setIntegerParam(PhotronVarChanFreePos, freePos);
+  
   printf("\nChannel\tRate\tWidth\tHeight\tXPos\tYPos\n");
   for (channel = 1; channel <= PDC_VARIABLE_NUM; channel++) {
     nRet = PDC_GetVariableChannelInfo(this->nDeviceNo, channel, &rate, &width,
@@ -3899,13 +3907,6 @@ asynStatus Photron::readVariableInfo() {
     // In Default mode, ch is 0
     printf("ch = %d\n", ch);
   }
-  
-  /*
-  nRet = PDC_SetVariableChannel(this->nDeviceNo, this->nChildNo, 2, &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_SetVariableChannel failed. Error %d\n", nErrorCode);
-  }
-  */
   
   return asynSuccess;
 }
