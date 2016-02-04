@@ -828,6 +828,8 @@ record(bo, "$(P)$(R)ChangeResIdx")
    field(ONAM, "Increment")
 }
 
+# Var chan selection
+
 record(longout, "$(P)$(R)VarChan")
 {
    field(DTYP, "asynInt32")
@@ -894,4 +896,154 @@ record(longin, "$(P)$(R)VarChanYPos_RBV")
    field(DESC, "Variable Chan Y Pos")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_Y_POS")
    field(SCAN, "I/O Intr")
+}
+
+# Var chan limits
+
+record(longin, "$(P)$(R)VarChanWStep_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Variable Chan W Step")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_W_STEP")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)VarChanHStep_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Variable Chan H Step")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_H_STEP")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)VarChanXPosStep_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Var Chan X Pos Step")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_X_POS_STEP")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)VarChanYPosStep_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Var Chan Y Pos Step")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_Y_POS_STEP")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)VarChanWMin_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Variable Chan W Min")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_W_MIN")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)VarChanHMin_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Variable Chan H Min")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_H_MIN")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)VarChanFreePos_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Var Chan Free Pos")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_FREE_POS")
+   field(SCAN, "I/O Intr")
+}
+
+# Var chan editing
+
+record(longout, "$(P)$(R)VarChanRate")
+{
+   field(DTYP, "asynInt32")
+   #field(PINI, "YES")
+   field(DESC, "Variable Chan Rate")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_EDIT_RATE")
+   info(asyn:READBACK, "1")
+}
+
+record(longout, "$(P)$(R)VarChanXSize")
+{
+   field(DTYP, "asynInt32")
+   #field(PINI, "YES")
+   field(DESC, "Variable Chan X Size")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_EDIT_X_SIZE")
+   info(asyn:READBACK, "1")
+}
+
+record(longout, "$(P)$(R)VarChanYSize")
+{
+   field(DTYP, "asynInt32")
+   #field(PINI, "YES")
+   field(DESC, "Variable Chan Y Size")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_EDIT_Y_SIZE")
+   info(asyn:READBACK, "1")
+}
+
+record(longout, "$(P)$(R)VarChanXPos")
+{
+   field(DTYP, "asynInt32")
+   #field(PINI, "YES")
+   field(DESC, "Variable Chan X Pos")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_EDIT_X_POS")
+   info(asyn:READBACK, "1")
+}
+
+record(longout, "$(P)$(R)VarChanYPos")
+{
+   field(DTYP, "asynInt32")
+   #field(PINI, "YES")
+   field(DESC, "Variable Chan Y Pos")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_EDIT_Y_POS")
+   info(asyn:READBACK, "1")
+}
+
+record(bo, "$(P)$(R)ChangeVarEditRate")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Change Var Edit Rate")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_VAR_EDIT_RATE")
+   field(ZNAM, "Decrease")
+   field(ONAM, "Increase")
+}
+
+record(bo, "$(P)$(R)ChangeVarEditXSize")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Change Var Edit Width")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_VAR_EDIT_X_SIZE")
+   field(ZNAM, "Decrease")
+   field(ONAM, "Increase")
+}
+
+record(bo, "$(P)$(R)ChangeVarEditYSize")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Change Var Edit Height")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_VAR_EDIT_Y_SIZE")
+   field(ZNAM, "Decrease")
+   field(ONAM, "Increase")
+}
+
+record(bo, "$(P)$(R)ChangeVarEditXPos")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Change Var Edit X Pos")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_VAR_EDIT_X_POS")
+   field(ZNAM, "Decrease")
+   field(ONAM, "Increase")
+}
+
+record(bo, "$(P)$(R)ChangeVarEditYPos")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Change Var Edit Y Pos")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CHANGE_VAR_EDIT_Y_POS")
+   field(ZNAM, "Decrease")
+   field(ONAM, "Increase")
 }

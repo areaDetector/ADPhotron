@@ -140,6 +140,25 @@ protected:
     int PhotronVarChanYSize;
     int PhotronVarChanXPos;
     int PhotronVarChanYPos;
+    int PhotronVarChanWStep;
+    int PhotronVarChanHStep;
+    int PhotronVarChanXPosStep;
+    int PhotronVarChanYPosStep;
+    int PhotronVarChanWMin;
+    int PhotronVarChanHMin;
+    int PhotronVarChanFreePos;
+    int PhotronVarEditRate;
+    int PhotronVarEditXSize;
+    int PhotronVarEditYSize;
+    int PhotronVarEditXPos;
+    int PhotronVarEditYPos;
+    int PhotronVarEditApply;
+    int PhotronVarEditErase;
+    int PhotronChangeVarEditRate;
+    int PhotronChangeVarEditXSize;
+    int PhotronChangeVarEditYSize;
+    int PhotronChangeVarEditXPos;
+    int PhotronChangeVarEditYPos;
     int PhotronAfterFrames;
     int PhotronRandomFrames;
     int PhotronRecCount;
@@ -380,6 +399,7 @@ typedef struct {
 #define PhotronShutterFpsString   "PHOTRON_SHUTTER_FPS"  /* (asynInt32, rw) */
 #define PhotronChangeShutterFpsString "PHOTRON_CHANGE_SHUTTER_FPS" /* (asynInt32, w) */
 #define PhotronJumpShutterFpsString "PHOTRON_JUMP_SHUTTER_FPS" /* (asynInt32, w) */
+// Var chan selection 
 #define PhotronVarChanString "PHOTRON_VAR_CHAN"   /* (asynInt32,    rw)   */
 #define PhotronChangeVarChanString "PHOTRON_CHANGE_VAR_CHAN" /* (asynInt32, w) */
 #define PhotronVarChanRateString "PHOTRON_VAR_CHAN_RATE" /* (asynInt32,  r) */
@@ -387,6 +407,28 @@ typedef struct {
 #define PhotronVarChanYSizeString "PHOTRON_VAR_CHAN_Y_SIZE" /* (asynInt32,  r) */
 #define PhotronVarChanXPosString "PHOTRON_VAR_CHAN_X_POS" /* (asynInt32,  r) */
 #define PhotronVarChanYPosString "PHOTRON_VAR_CHAN_Y_POS" /* (asynInt32,  r) */
+// Var chan limits (fixed for camera)
+#define PhotronVarChanWStepString "PHOTRON_VAR_CHAN_W_STEP" /* (asynInt32,  r) */
+#define PhotronVarChanHStepString "PHOTRON_VAR_CHAN_H_STEP" /* (asynInt32,  r) */
+#define PhotronVarChanXPosStepString "PHOTRON_VAR_CHAN_X_POS_STEP" /* (asynInt32,  r) */
+#define PhotronVarChanYPosStepString "PHOTRON_VAR_CHAN_Y_POS_STEP" /* (asynInt32,  r) */
+#define PhotronVarChanWMinString  "PHOTRON_VAR_CHAN_W_MIN" /* (asynInt32,  r) */
+#define PhotronVarChanHMinString  "PHOTRON_VAR_CHAN_H_MIN" /* (asynInt32,  r) */
+#define PhotronVarChanFreePosString "PHOTRON_VAR_CHAN_FREE_POS" /* (asynInt32, r) */
+// Var chan editing
+#define PhotronVarEditRateString "PHOTRON_VAR_EDIT_RATE" /* (asynInt32,  r) */
+#define PhotronVarEditXSizeString "PHOTRON_VAR_EDIT_X_SIZE" /* (asynInt32,  r) */
+#define PhotronVarEditYSizeString "PHOTRON_VAR_EDIT_Y_SIZE" /* (asynInt32,  r) */
+#define PhotronVarEditXPosString "PHOTRON_VAR_EDIT_X_POS" /* (asynInt32,  r) */
+#define PhotronVarEditYPosString "PHOTRON_VAR_EDIT_Y_POS" /* (asynInt32,  r) */
+#define PhotronVarEditApplyString "PHOTRON_VAR_EDIT_APPLY" /* (asynInt32, w) */
+#define PhotronVarEditEraseString "PHOTRON_VAR_EDIT_ERASE" /* (asynInt32, w) */
+#define PhotronChangeVarEditRateString "PHOTRON_CHANGE_VAR_EDIT_RATE" /* (asynInt32, w) */
+#define PhotronChangeVarEditXSizeString "PHOTRON_CHANGE_VAR_EDIT_X_SIZE" /* (asynInt32, w) */
+#define PhotronChangeVarEditYSizeString "PHOTRON_CHANGE_VAR_EDIT_Y_SIZE" /* (asynInt32, w) */
+#define PhotronChangeVarEditXPosString "PHOTRON_CHANGE_VAR_EDIT_X_POS" /* (asynInt32, w) */
+#define PhotronChangeVarEditYPosString "PHOTRON_CHANGE_VAR_EDIT_Y_POS" /* (asynInt32, w) */
+//
 #define PhotronAfterFramesString "PHOTRON_AFTER_FRAMES" /* (asynInt32,    rw) */
 #define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
 #define PhotronRecCountString   "PHOTRON_REC_COUNT"  /* (asynInt32,    rw)   */
