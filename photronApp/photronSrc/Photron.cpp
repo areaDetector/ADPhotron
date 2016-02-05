@@ -3782,7 +3782,16 @@ asynStatus Photron::readParameters() {
   if (nRet == PDC_FAILED) {
     printf("PDC_GetRecordRateList failed %d\n", nErrorCode);
     return asynError;
-  } 
+  }
+  
+  // Does this ever change?
+  nRet = PDC_GetVariableRecordRateList(this->nDeviceNo, this->nChildNo, 
+                               &(this->VariableRateListSize), 
+                               this->VariableRateList, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetVariableRecordRateList failed %d\n", nErrorCode);
+    return asynError;
+  }
   
   // Can this be moved to the setRecordRate method? Does anything else effect it?
   nRet = PDC_GetResolutionList(this->nDeviceNo, this->nChildNo, 

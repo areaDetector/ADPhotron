@@ -324,6 +324,8 @@ private:
   unsigned long RateListSize;
   unsigned long RateList[PDC_MAX_LIST_NUMBER];
   int recRateIndex;
+  unsigned long VariableRateListSize;
+  unsigned long VariableRateList[PDC_MAX_LIST_NUMBER];
   unsigned long ResolutionListSize;
   unsigned long ResolutionList[PDC_MAX_LIST_NUMBER];
   unsigned long TriggerModeListSize;
