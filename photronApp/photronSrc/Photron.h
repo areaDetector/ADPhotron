@@ -262,6 +262,7 @@ private:
   void timeDiff(PPDC_IRIG_INFO time1, PPDC_IRIG_INFO time2, PPDC_IRIG_INFO timeDiff);
   void timeDataToSec(PPDC_IRIG_INFO tData, double *seconds);
   asynStatus findNearestValue(epicsInt32* pValue, int* pListIndex, unsigned long listSize, unsigned long* listName);
+  int changeListIndex(epicsInt32 value, unsigned long listIndex, unsigned long listSize);
   
   /* These items are specific to the Photron driver */
   // constructor

@@ -3380,8 +3380,42 @@ asynStatus Photron::setShutterSpeedFps(epicsInt32 value) {
 }
 
 
+// Given a request to increment or decrement a list index, a list, a list size,
+// and a current list index, return the new list index
+int Photron::changeListIndex(epicsInt32 value, unsigned long listIndex,
+                             unsigned long listSize) {
+  epicsInt32 retVal;
+  
+  if (listSize > 1) {
+    if (value > 0) {
+      // Increase the index
+      if (listIndex < (listSize - 1)) {
+        // There is room to increment the index
+        retVal = listIndex + 1;
+      } else {
+        // We're already on the last element, return the current value
+        retVal = listIndex;
+      }
+    } else {
+      // Decrease the index
+      if (listIndex > 0) {
+        // There is room to decrement the index
+        retVal = listIndex - 1;
+      } else {
+        // We're already on the first element, return the current value
+        retVal = listIndex;
+      }
+    }
+  } else {
+    // list isn't long enough to change index, return the current value
+    retVal = listIndex;
+  }
+  
+  return retVal;
+}
+
+
 asynStatus Photron::changeShutterSpeedFps(epicsInt32 value) {
-  int status = asynSuccess;
   int newShutterSpeedFpsIndex;
   int newShutterSpeedFps;
   static const char *functionName = "changeShutterSpeedFps";
@@ -3391,27 +3425,16 @@ asynStatus Photron::changeShutterSpeedFps(epicsInt32 value) {
   // The record rate list is in order of incresting rate
   // Assumption: this->shutterSpeedFpsIndex is up-to-date
   
-  // By default the rec rate stays the same
-  newShutterSpeedFpsIndex = this->shutterSpeedFpsIndex;
+  newShutterSpeedFpsIndex = changeListIndex(value, this->shutterSpeedFpsIndex,
+                                            this->ShutterSpeedFpsListSize);
   
-  // Only attempt to to change the index if the list has 2 or more elements
-  if (this->ShutterSpeedFpsListSize > 1) {
-    if (value > 0) {
-      // Increase the shutter speed
-      if (this->shutterSpeedFpsIndex < ((int)this->ShutterSpeedFpsListSize-1)) {
-        newShutterSpeedFpsIndex = this->shutterSpeedFpsIndex + 1;
-      }
-    } else {
-      // Decrease the shutter speed
-      if (this->shutterSpeedFpsIndex > 0) {
-        newShutterSpeedFpsIndex = this->shutterSpeedFpsIndex - 1;
-      }
-    }
+  if (newShutterSpeedFpsIndex != (int)this->shutterSpeedFpsIndex) {
+    // A valid change has been requested
     newShutterSpeedFps = this->ShutterSpeedFpsList[newShutterSpeedFpsIndex];
     this->setShutterSpeedFps(newShutterSpeedFps);
   }
   
-  return (asynStatus)status;
+  return asynSuccess;
 }
 
 
@@ -3511,22 +3534,11 @@ asynStatus Photron::changeRecordRate(epicsInt32 value) {
     return asynSuccess;
   }
   
-  // By default the rec rate stays the same
-  newRecRateIndex = this->recRateIndex;
+  newRecRateIndex = changeListIndex(value, this->recRateIndex,
+                                    this->RateListSize);
   
-  // Only attempt to to change the index if the list has 2 or more elements
-  if (this->RateListSize > 1) {
-    if (value > 0) {
-      // Increase the record rate
-      if (this->recRateIndex < ((int)this->RateListSize-1)) {
-        newRecRateIndex = this->recRateIndex + 1;
-      }
-    } else {
-      // Decrease the record rate
-      if (this->recRateIndex > 0) {
-        newRecRateIndex = this->recRateIndex - 1;
-      }
-    }
+  if (newRecRateIndex != (int)this->recRateIndex) {
+    // A valid change has been requested
     newRecRate = this->RateList[newRecRateIndex];
     this->setRecordRate(newRecRate);
   }
