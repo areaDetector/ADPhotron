@@ -1487,6 +1487,9 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setVariableRecordRate(value);
   } else if (function == PhotronChangeVarEditRate) {
     changeVariableRecordRate(value);
+  } else if (function == PhotronVarEditXSize) {
+    // IAMHERE
+    //setVariableXSize(value);
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -3352,6 +3355,8 @@ asynStatus Photron::setVariableRecordRate(epicsInt32 value) {
     setIntegerParam(PhotronVarEditRate, value);
   }
   
+  // Update max width/height here?
+  
   return status;
 }
 
@@ -3376,6 +3381,13 @@ asynStatus Photron::changeVariableRecordRate(epicsInt32 value) {
   return asynSuccess;
 }
 
+/*
+asynStatus Photron::setVariableXSize(epicsInt32 value) {
+  static const char *functionName = "setVariableXSize";
+  
+  // IAMHERE
+}
+*/
 
 asynStatus Photron::setShutterSpeedFps(epicsInt32 value) {
   unsigned long nRet;
@@ -3595,6 +3607,7 @@ asynStatus Photron::changeVariableChannel(epicsInt32 value) {
 asynStatus Photron::setVariableChannel(epicsInt32 value) {
   unsigned long nRet;
   unsigned long nErrorCode;
+  epicsInt32 tempVal;
   int status = asynSuccess;
   int chan;
   int opMode;
@@ -3615,22 +3628,6 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
     chan = value;
   }
   
-  // Only apply the channel selection if the user is in variable mode
-  // This allows the user to examine the settings while in default mode
-  if (opMode == 1)
-  {
-    nRet = PDC_SetVariableChannel(this->nDeviceNo, this->nChildNo, chan, 
-                                  &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_SetVariableChannel Error %d\n", nErrorCode);
-      return asynError;
-    }
-  }
-  
-  // This is unecessary if the var change was changed directly, but the channel
-  // can also be incremented/decremented
-  setIntegerParam(PhotronVarChan, chan);
-  
   // Read the variable channel settings here instead of in readParameters
   // because we only want the values to change when a chan change is attempted
   if (chan > 0) {
@@ -3646,6 +3643,28 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
     this->varXPos = 0;
     this->varYPos = 0;
   }
+  
+  // Only apply the channel selection if the user is in variable mode
+  // This allows the user to examine the settings while in default mode
+  if (opMode == 1)
+  {
+    if (this->varRate < 60) {
+      // Don't set the variable channel if the channel is empty
+      return asynError;
+    }
+    
+    nRet = PDC_SetVariableChannel(this->nDeviceNo, this->nChildNo, chan, 
+                                  &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetVariableChannel Error %d\n", nErrorCode);
+      return asynError;
+    }
+  }
+  
+  // This is unecessary if the var change was changed directly, but the channel
+  // can also be incremented/decremented
+  setIntegerParam(PhotronVarChan, chan);
+  
   // set the variable channel readbacks
   setIntegerParam(PhotronVarChanRate, this->varRate);
   setIntegerParam(PhotronVarChanXSize, this->varWidth);
@@ -3653,14 +3672,30 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
   setIntegerParam(PhotronVarChanXPos, this->varXPos);
   setIntegerParam(PhotronVarChanYPos, this->varYPos);
   // also update the var chan edit fields
-  setIntegerParam(PhotronVarEditRate, this->varRate);
-  setIntegerParam(PhotronVarEditXSize, this->varWidth);
-  setIntegerParam(PhotronVarEditYSize, this->varHeight);
-  setIntegerParam(PhotronVarEditXPos, this->varXPos);
-  setIntegerParam(PhotronVarEditYPos, this->varYPos);
-  // Tweaking the var edit rate can only work if the index is kept up-to-date
-  this->varRecRateIndex = findListIndex(this->varRate, this->VariableRateListSize,
+  if (this->varRate > 59) {
+    // Channel is defined, use the same values as the readbacks
+    setIntegerParam(PhotronVarEditRate, this->varRate);
+    setIntegerParam(PhotronVarEditXSize, this->varWidth);
+    setIntegerParam(PhotronVarEditYSize, this->varHeight);
+    setIntegerParam(PhotronVarEditXPos, this->varXPos);
+    setIntegerParam(PhotronVarEditYPos, this->varYPos);
+    // Tweaking the var edit rate can only work if the index is kept up-to-date
+    this->varRecRateIndex = findListIndex(this->varRate, this->VariableRateListSize,
                                     this->VariableRateList);
+  } else {
+    // Channel is empty, populate the edit fields with valid settings
+    setIntegerParam(PhotronVarEditRate, this->nRate);
+    setIntegerParam(PhotronVarEditXSize, this->width);
+    setIntegerParam(PhotronVarEditYSize, this->height);
+    // Set image in the center
+    getIntegerParam(ADMinX, &tempVal);
+    setIntegerParam(PhotronVarEditXPos, tempVal);
+    getIntegerParam(ADMinY, &tempVal);
+    setIntegerParam(PhotronVarEditYPos, tempVal);
+    // Tweaking the var edit rate can only work if the index is kept up-to-date
+    this->varRecRateIndex = findListIndex(this->nRate, this->VariableRateListSize,
+                                    this->VariableRateList);
+  }
   
   return (asynStatus)status;
 }
