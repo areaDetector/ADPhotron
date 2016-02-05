@@ -3285,43 +3285,45 @@ asynStatus Photron::setTransferOption() {
 }
 
 
-asynStatus Photron::setVariableRecordRate(epicsInt32 value) {
+asynStatus Photron::findNearestValue(epicsInt32* pValue, int* pListIndex,
+                                     unsigned long listSize,
+                                     unsigned long* listName) {
   int index;
   epicsInt32 upperDiff, lowerDiff;
-  static const char *functionName = "setVariableRecordRate";
+  static const char *functionName = "findNearestValue";
   
-  if (this->VariableRateListSize == 0) {
-    printf("Error: VariableRateListSize is ZERO\n");
+  if (listSize == 0) {
+    printf("Error: List size is ZERO\n");
     return asynError;
   }
   
-  if (this->VariableRateListSize == 1) {
+  if (listSize == 1) {
     // Don't allow the value to be changed
-    value = this->VariableRateList[0];
-    this->varRecRateIndex = 0;
+    *pValue = listName[0];
+    *pListIndex = 0;
   } else {
     /* Choose the closest allowed rate 
-       NOTE: VariableRateList is in ascending order */
-    for (index=0; index<((int)this->VariableRateListSize-1); index++) {
-      if (value < (int)this->VariableRateList[index+1]) {
-        upperDiff = (epicsInt32)this->VariableRateList[index+1] - value;
-        lowerDiff = value - (epicsInt32)this->VariableRateList[index];
-        // One of the rates (index or index+1) is the best choice
+       NOTE: listName must be in ascending order */
+    for (index=0; index<((int)listSize-1); index++) {
+      if (*pValue < (int)listName[index+1]) {
+        upperDiff = (epicsInt32)listName[index+1] - *pValue;
+        lowerDiff = *pValue - (epicsInt32)listName[index];
+        // One of the values (index or index+1) is the best choice
         if (upperDiff < lowerDiff) {
-          value = this->VariableRateList[index+1];
-          this->varRecRateIndex = index + 1;
+          *pValue = listName[index+1];
+          *pListIndex = index + 1;
           break;
         } else {
-          value = this->VariableRateList[index];
-          this->varRecRateIndex = index;
+          *pValue = listName[index];
+          *pListIndex = index;
           break;
         }
       } else {
         // Are we at the end of the list?
-        if (index == this->VariableRateListSize-2) {
+        if (index == listSize-2) {
           // value is higher than the highest rate
-          value = this->VariableRateList[index+1];
-          this->varRecRateIndex = index + 1;
+          *pValue = listName[index+1];
+          *pListIndex = index + 1;
           break;
         } else {
           // We haven't found the closest rate yet
@@ -3331,74 +3333,50 @@ asynStatus Photron::setVariableRecordRate(epicsInt32 value) {
     }
   }
   
-  // Update the param now that a valid value has been selected
-  setIntegerParam(PhotronVarEditRate, value);
-  
   return asynSuccess;
+}
+
+
+asynStatus Photron::setVariableRecordRate(epicsInt32 value) {
+  asynStatus status;
+  static const char *functionName = "setVariableRecordRate";
+  
+  status = findNearestValue(&value, &(this->varRecRateIndex),
+                            this->VariableRateListSize,
+                            this->VariableRateList);
+  
+  if (status == asynSuccess) {
+    // Update the param now that a valid value has been selected
+    setIntegerParam(PhotronVarEditRate, value);
+  }
+  
+  return status;
 }
 
 
 asynStatus Photron::setShutterSpeedFps(epicsInt32 value) {
   unsigned long nRet;
   unsigned long nErrorCode;
-  int status = asynSuccess;
-  int index;
-  epicsInt32 upperDiff, lowerDiff;
-  
+  asynStatus status;
   static const char *functionName = "setShutterSpeedFps";
   
   //printf("setShutterSpeedFps: value = %d\n", value);
   
-  if (this->ShutterSpeedFpsListSize == 0) {
-    printf("Error: ShutterSpeedFpsListSize is ZERO\n");
-    return asynError;
-  }
+  status = findNearestValue(&value, &(this->shutterSpeedFpsIndex),
+                            this->ShutterSpeedFpsListSize,
+                            this->ShutterSpeedFpsList);
   
-  if (this->ShutterSpeedFpsListSize == 1) {
-    // Don't allow the value to be changed
-    value = this->ShutterSpeedFpsList[0];
-    this->shutterSpeedFpsIndex = 0;
-  } else {
-    /* Choose the closest allowed rate 
-       NOTE: ShutterSpeedFpsList is in ascending order */
-    for (index=0; index<((int)this->ShutterSpeedFpsListSize-1); index++) {
-      if (value < (int)this->ShutterSpeedFpsList[index+1]) {
-        upperDiff = (epicsInt32)this->ShutterSpeedFpsList[index+1] - value;
-        lowerDiff = value - (epicsInt32)this->ShutterSpeedFpsList[index];
-        // One of the rates (index or index+1) is the best choice
-        if (upperDiff < lowerDiff) {
-          value = this->ShutterSpeedFpsList[index+1];
-          this->shutterSpeedFpsIndex = index + 1;
-          break;
-        } else {
-          value = this->ShutterSpeedFpsList[index];
-          this->shutterSpeedFpsIndex = index;
-          break;
-        }
-      } else {
-        // Are we at the end of the list?
-        if (index == this->ShutterSpeedFpsListSize-2) {
-          // value is higher than the highest rate
-          value = this->ShutterSpeedFpsList[index+1];
-          this->shutterSpeedFpsIndex = index + 1;
-          break;
-        } else {
-          // We haven't found the closest rate yet
-          continue;
-        }
-      }
+  if (status == asynSuccess) {
+    nRet = PDC_SetShutterSpeedFps(this->nDeviceNo, this->nChildNo, value, &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetShutterSpeedFps Error %d\n", nErrorCode);
+      return asynError;
+    } else {
+      //printf("PDC_SetShutterSpeedFps succeeded. Rate = %d\n", value);
     }
   }
   
-  nRet = PDC_SetShutterSpeedFps(this->nDeviceNo, this->nChildNo, value, &nErrorCode);
-  if (nRet == PDC_FAILED) {
-    printf("PDC_SetShutterSpeedFps Error %d\n", nErrorCode);
-    return asynError;
-  } else {
-    //printf("PDC_SetShutterSpeedFps succeeded. Rate = %d\n", value);
-  }
-  
-  return asynSuccess;
+  return status;
 }
 
 
@@ -3467,11 +3445,9 @@ asynStatus Photron::jumpShutterSpeedFps(epicsInt32 value) {
 asynStatus Photron::setRecordRate(epicsInt32 value) {
   unsigned long nRet;
   unsigned long nErrorCode;
-  int status = asynSuccess;
-  int index;
+  asynStatus status;
   int opMode;
   double acqTime;
-  epicsInt32 upperDiff, lowerDiff;
   
   static const char *functionName = "setRecordRate";
   
@@ -3493,45 +3469,11 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
     return asynSuccess;
   }
   
-  if (this->RateListSize == 0) {
-    printf("Error: RateListSize is ZERO\n");
-    return asynError;
-  }
+  status = findNearestValue(&value, &(this->recRateIndex),
+                            this->RateListSize, this->RateList);
   
-  if (this->RateListSize == 1) {
-    // Don't allow the value to be changed
-    value = this->RateList[0];
-    this->recRateIndex = 0;
-  } else {
-    /* Choose the closest allowed rate 
-       NOTE: RateList is in ascending order */
-    for (index=0; index<((int)this->RateListSize-1); index++) {
-      if (value < (int)this->RateList[index+1]) {
-        upperDiff = (epicsInt32)this->RateList[index+1] - value;
-        lowerDiff = value - (epicsInt32)this->RateList[index];
-        // One of the rates (index or index+1) is the best choice
-        if (upperDiff < lowerDiff) {
-          value = this->RateList[index+1];
-          this->recRateIndex = index + 1;
-          break;
-        } else {
-          value = this->RateList[index];
-          this->recRateIndex = index;
-          break;
-        }
-      } else {
-        // Are we at the end of the list?
-        if (index == this->RateListSize-2) {
-          // value is higher than the highest rate
-          value = this->RateList[index+1];
-          this->recRateIndex = index + 1;
-          break;
-        } else {
-          // We haven't found the closest rate yet
-          continue;
-        }
-      }
-    }
+  if (status != asynSuccess) {
+    return status;
   }
   
   nRet = PDC_SetRecordRate(this->nDeviceNo, this->nChildNo, value, &nErrorCode);
@@ -3720,8 +3662,6 @@ asynStatus Photron::readParameters() {
   int tmode;
   int index;
   int eVal, eStatus;
-  int chan;
-  //int opMode;
   char bitDepthChar;
   static const char *functionName = "readParameters";    
   
