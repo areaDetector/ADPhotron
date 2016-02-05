@@ -1646,3 +1646,33 @@ text {
 	limits {
 	}
 }
+"message button" {
+	object {
+		x=399
+		y=356
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarEditRate.VAL"
+		clr=14
+		bclr=4
+	}
+	label="+"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=369
+		y=356
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarEditRate.VAL"
+		clr=14
+		bclr=4
+	}
+	label="-"
+	press_msg="0"
+}

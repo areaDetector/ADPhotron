@@ -1485,6 +1485,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     changeVariableChannel(value);
   } else if (function == PhotronVarEditRate) {
     setVariableRecordRate(value);
+  } else if (function == PhotronChangeVarEditRate) {
+    changeVariableRecordRate(value);
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -3354,6 +3356,27 @@ asynStatus Photron::setVariableRecordRate(epicsInt32 value) {
 }
 
 
+asynStatus Photron::changeVariableRecordRate(epicsInt32 value) {
+  int newVarRecRateIndex;
+  int newVarRecRate;
+  static const char *functionName = "changeVariableRecordRate";
+  
+  // The record rate list is in order of incresting rate
+  // Assumption: this->varRecRateIndex is up-to-date
+  
+  newVarRecRateIndex = changeListIndex(value, this->varRecRateIndex,
+                                            this->VariableRateListSize);
+  
+  if (newVarRecRateIndex != (int)this->varRecRateIndex) {
+    // A valid change has been requested
+    newVarRecRate = this->VariableRateList[newVarRecRateIndex];
+    this->setVariableRecordRate(newVarRecRate);
+  }
+  
+  return asynSuccess;
+}
+
+
 asynStatus Photron::setShutterSpeedFps(epicsInt32 value) {
   unsigned long nRet;
   unsigned long nErrorCode;
@@ -3635,8 +3658,28 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
   setIntegerParam(PhotronVarEditYSize, this->varHeight);
   setIntegerParam(PhotronVarEditXPos, this->varXPos);
   setIntegerParam(PhotronVarEditYPos, this->varYPos);
+  // Tweaking the var edit rate can only work if the index is kept up-to-date
+  this->varRecRateIndex = findListIndex(this->varRate, this->VariableRateListSize,
+                                    this->VariableRateList);
   
   return (asynStatus)status;
+}
+
+
+// Inefficiently find the index of a given value
+int Photron::findListIndex(epicsInt32 value, unsigned long listSize, 
+                       unsigned long* listName) {
+  int index;
+  int retVal = 0;
+  
+  for (index=0; index<(int)listSize; index++) {
+    if (value == listName[index]) {
+      retVal = index;
+      break;
+    }
+  }
+  
+  return retVal;
 }
 
 

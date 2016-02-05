@@ -223,6 +223,7 @@ private:
   asynStatus setRecordRate(epicsInt32 value);
   asynStatus changeRecordRate(epicsInt32 value);
   asynStatus setVariableRecordRate(epicsInt32 value);
+  asynStatus changeVariableRecordRate(epicsInt32 value);
   // IAMHERE
   asynStatus setShutterSpeedFps(epicsInt32 value);
   asynStatus changeShutterSpeedFps(epicsInt32 value);
@@ -263,6 +264,7 @@ private:
   void timeDataToSec(PPDC_IRIG_INFO tData, double *seconds);
   asynStatus findNearestValue(epicsInt32* pValue, int* pListIndex, unsigned long listSize, unsigned long* listName);
   int changeListIndex(epicsInt32 value, unsigned long listIndex, unsigned long listSize);
+  int findListIndex(epicsInt32 value, unsigned long listSize, unsigned long* listName);
   
   /* These items are specific to the Photron driver */
   // constructor
