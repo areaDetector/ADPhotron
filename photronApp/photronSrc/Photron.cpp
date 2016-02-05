@@ -1483,6 +1483,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setVariableChannel(value);
   } else if (function == PhotronChangeVarChan) {
     changeVariableChannel(value);
+  } else if (function == PhotronVarEditRate) {
+    setVariableRecordRate(value);
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -3278,6 +3280,59 @@ asynStatus Photron::setTransferOption() {
     printf("PDC_GetMaxResolution failed %d\n", nErrorCode);
     return asynError;
   }  
+  
+  return asynSuccess;
+}
+
+
+asynStatus Photron::setVariableRecordRate(epicsInt32 value) {
+  int index;
+  epicsInt32 upperDiff, lowerDiff;
+  static const char *functionName = "setVariableRecordRate";
+  
+  if (this->VariableRateListSize == 0) {
+    printf("Error: VariableRateListSize is ZERO\n");
+    return asynError;
+  }
+  
+  if (this->VariableRateListSize == 1) {
+    // Don't allow the value to be changed
+    value = this->VariableRateList[0];
+    this->varRecRateIndex = 0;
+  } else {
+    /* Choose the closest allowed rate 
+       NOTE: VariableRateList is in ascending order */
+    for (index=0; index<((int)this->VariableRateListSize-1); index++) {
+      if (value < (int)this->VariableRateList[index+1]) {
+        upperDiff = (epicsInt32)this->VariableRateList[index+1] - value;
+        lowerDiff = value - (epicsInt32)this->VariableRateList[index];
+        // One of the rates (index or index+1) is the best choice
+        if (upperDiff < lowerDiff) {
+          value = this->VariableRateList[index+1];
+          this->varRecRateIndex = index + 1;
+          break;
+        } else {
+          value = this->VariableRateList[index];
+          this->varRecRateIndex = index;
+          break;
+        }
+      } else {
+        // Are we at the end of the list?
+        if (index == this->VariableRateListSize-2) {
+          // value is higher than the highest rate
+          value = this->VariableRateList[index+1];
+          this->varRecRateIndex = index + 1;
+          break;
+        } else {
+          // We haven't found the closest rate yet
+          continue;
+        }
+      }
+    }
+  }
+  
+  // Update the param now that a valid value has been selected
+  setIntegerParam(PhotronVarEditRate, value);
   
   return asynSuccess;
 }

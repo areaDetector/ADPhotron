@@ -222,6 +222,8 @@ private:
   asynStatus setTransferOption();
   asynStatus setRecordRate(epicsInt32 value);
   asynStatus changeRecordRate(epicsInt32 value);
+  asynStatus setVariableRecordRate(epicsInt32 value);
+  // IAMHERE
   asynStatus setShutterSpeedFps(epicsInt32 value);
   asynStatus changeShutterSpeedFps(epicsInt32 value);
   asynStatus jumpShutterSpeedFps(epicsInt32 value);
@@ -326,6 +328,7 @@ private:
   int recRateIndex;
   unsigned long VariableRateListSize;
   unsigned long VariableRateList[PDC_MAX_LIST_NUMBER];
+  int varRecRateIndex;
   unsigned long ResolutionListSize;
   unsigned long ResolutionList[PDC_MAX_LIST_NUMBER];
   unsigned long TriggerModeListSize;
