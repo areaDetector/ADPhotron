@@ -3648,16 +3648,14 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
   // This allows the user to examine the settings while in default mode
   if (opMode == 1)
   {
-    if (this->varRate < 60) {
-      // Don't set the variable channel if the channel is empty
-      return asynError;
-    }
-    
-    nRet = PDC_SetVariableChannel(this->nDeviceNo, this->nChildNo, chan, 
-                                  &nErrorCode);
-    if (nRet == PDC_FAILED) {
-      printf("PDC_SetVariableChannel Error %d\n", nErrorCode);
-      return asynError;
+    if (this->varRate > 59) {
+      // Only set the variable channel if the channel is not empty
+      nRet = PDC_SetVariableChannel(this->nDeviceNo, this->nChildNo, chan, 
+                                    &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_SetVariableChannel Error %d\n", nErrorCode);
+        return asynError;
+      }
     }
   }
   
