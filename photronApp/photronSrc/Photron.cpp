@@ -3599,6 +3599,34 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
   // can also be incremented/decremented
   setIntegerParam(PhotronVarChan, chan);
   
+  // Read the variable channel settings here instead of in readParameters
+  // because we only want the values to change when a chan change is attempted
+  if (chan > 0) {
+    nRet = PDC_GetVariableChannelInfo(this->nDeviceNo, chan, &(this->varRate),
+                                      &(this->varWidth), &(this->varHeight),
+                                      &(this->varXPos), &(this->varYPos),
+                                      &nErrorCode);
+  } else {
+    // This should never happen. Move this to init instead?
+    this->varRate = 0;
+    this->varWidth = 0;
+    this->varHeight = 0;
+    this->varXPos = 0;
+    this->varYPos = 0;
+  }
+  // set the variable channel readbacks
+  setIntegerParam(PhotronVarChanRate, this->varRate);
+  setIntegerParam(PhotronVarChanXSize, this->varWidth);
+  setIntegerParam(PhotronVarChanYSize, this->varHeight);
+  setIntegerParam(PhotronVarChanXPos, this->varXPos);
+  setIntegerParam(PhotronVarChanYPos, this->varYPos);
+  // also update the var chan edit fields
+  setIntegerParam(PhotronVarEditRate, this->varRate);
+  setIntegerParam(PhotronVarEditXSize, this->varWidth);
+  setIntegerParam(PhotronVarEditYSize, this->varHeight);
+  setIntegerParam(PhotronVarEditXPos, this->varXPos);
+  setIntegerParam(PhotronVarEditYPos, this->varYPos);
+  
   return (asynStatus)status;
 }
 
@@ -3801,27 +3829,6 @@ asynStatus Photron::readParameters() {
     printf("PDC_GetResolutionList failed %d\n", nErrorCode);
     return asynError;
   }
-  
-  getIntegerParam(PhotronVarChan, &chan);
-  //getIntegerParam(PhotronOpMode, &opMode);
-  
-  if (chan > 0) {
-    nRet = PDC_GetVariableChannelInfo(this->nDeviceNo, chan, &(this->varRate),
-                                      &(this->varWidth), &(this->varHeight),
-                                      &(this->varXPos), &(this->varYPos),
-                                      &nErrorCode);
-  } else {
-    this->varRate = 0;
-    this->varWidth = 0;
-    this->varHeight = 0;
-    this->varXPos = 0;
-    this->varYPos = 0;
-  }
-  setIntegerParam(PhotronVarChanRate, this->varRate);
-  setIntegerParam(PhotronVarChanXSize, this->varWidth);
-  setIntegerParam(PhotronVarChanYSize, this->varHeight);
-  setIntegerParam(PhotronVarChanXPos, this->varXPos);
-  setIntegerParam(PhotronVarChanYPos, this->varYPos);
   
   nRet = PDC_GetShutterSpeedFpsList(this->nDeviceNo, this->nChildNo,
                                     &(this->ShutterSpeedFpsListSize),

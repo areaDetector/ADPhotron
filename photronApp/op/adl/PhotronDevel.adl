@@ -1571,3 +1571,78 @@ text {
 	label="|<"
 	press_msg="0"
 }
+"text entry" {
+	object {
+		x=152
+		y=358
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)VarChanRate"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+"text entry" {
+	object {
+		x=152
+		y=391
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)VarChanXSize"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+"text entry" {
+	object {
+		x=152
+		y=422
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)VarChanYSize"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+"text entry" {
+	object {
+		x=152
+		y=452
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)VarChanXPos"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+"text entry" {
+	object {
+		x=152
+		y=481
+		width=100
+		height=25
+	}
+	control {
+		chan="$(P)$(R)VarChanYPos"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
