@@ -225,6 +225,7 @@ private:
   asynStatus setVariableRecordRate(epicsInt32 value);
   asynStatus changeVariableRecordRate(epicsInt32 value);
   asynStatus setVariableXSize(epicsInt32 value);
+  asynStatus setVariableYSize(epicsInt32 value);
   // IAMHERE
   asynStatus setShutterSpeedFps(epicsInt32 value);
   asynStatus changeShutterSpeedFps(epicsInt32 value);

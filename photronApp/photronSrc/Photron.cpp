@@ -1489,6 +1489,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     changeVariableRecordRate(value);
   } else if (function == PhotronVarEditXSize) {
     setVariableXSize(value);
+  } else if (function == PhotronVarEditYSize) {
+    setVariableYSize(value);
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -3445,6 +3447,75 @@ asynStatus Photron::setVariableXSize(epicsInt32 value) {
   // update params
   setIntegerParam(PhotronVarEditXSize, newWidth);
   setIntegerParam(PhotronVarEditXPos, newXPos);
+  
+  return asynSuccess;
+}
+
+
+asynStatus Photron::setVariableYSize(epicsInt32 value) {
+  unsigned long nRet, nErrorCode;
+  unsigned long height;
+  epicsInt32 hMin, hStep, rate, width, freePos, sensorHeight, yPos;
+  epicsInt32 newHeight, newYPos, partialStep;
+  static const char *functionName = "setVariableYSize";
+  
+  // Get minimim width
+  getIntegerParam(PhotronVarChanHMin, &hMin);
+  // Get width step
+  getIntegerParam(PhotronVarChanHStep, &hStep);
+  // Get var rec rate
+  getIntegerParam(PhotronVarEditRate, &rate);
+  // Get var width
+  getIntegerParam(PhotronVarEditXSize, &width);
+  
+  // Get maximum height
+  nRet = PDC_GetVariableMaxHeight(this->nDeviceNo, rate, width, &height, 
+                                 &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetVariableMaxHeight Error %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  // Get free pos
+  getIntegerParam(PhotronVarChanFreePos, &freePos);
+  // Get sensor height
+  getIntegerParam(ADSizeY, &sensorHeight);
+  
+  // Find the nearest good value to the desired height
+  partialStep = value % hStep;
+  if (partialStep == 0) {
+    // value is a multiple of wStep
+    newHeight = value;
+  } else if (partialStep >= (hStep / 2.0)) {
+    // round up
+    newHeight = value - partialStep + hStep;
+  } else {
+    // round down
+    newHeight = value - partialStep;
+  }
+  
+  // A new width requires the YPos to be adjusted
+  if ((freePos & PDC_VARIABLE_FREE_Y) != 0) {
+    // Free to move in the Y
+    // Get YPos
+    getIntegerParam(PhotronVarEditYPos, &yPos);
+    
+    if ((yPos + newHeight) > sensorHeight) {
+      // The Y position needs to change
+      newYPos = sensorHeight - newHeight;
+    } else {
+      // The X position is OK
+      newYPos = yPos;
+    }
+  } else {
+    // Not free to move in Y
+    // YPos changes to accomodate new height
+    newYPos = (sensorHeight - newHeight) / 2;
+  }
+  
+  // update params
+  setIntegerParam(PhotronVarEditYSize, newHeight);
+  setIntegerParam(PhotronVarEditYPos, newYPos);
   
   return asynSuccess;
 }
