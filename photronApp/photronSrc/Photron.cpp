@@ -151,6 +151,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronMemIRIGUsecString,   asynParamInt32, &PhotronMemIRIGUsec);
   createParam(PhotronMemIRIGSigExString,  asynParamInt32, &PhotronMemIRIGSigEx);
   createParam(PhotronSyncPriorityString,  asynParamInt32, &PhotronSyncPriority);
+  createParam(PhotronTestString,          asynParamInt32, &PhotronTest);
   createParam(PhotronExtIn1SigString,     asynParamInt32, &PhotronExtIn1Sig);
   createParam(PhotronExtIn2SigString,     asynParamInt32, &PhotronExtIn2Sig);
   createParam(PhotronExtIn3SigString,     asynParamInt32, &PhotronExtIn3Sig);
@@ -1399,7 +1400,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   
   /* Set the parameter and readback in the parameter library.  This may be 
    * overwritten when we read back the status at the end, but that's OK */
-  status |= setIntegerParam(function, value);
+  //status |= setIntegerParam(function, value);
   
   if ((function == ADBinX) || (function == ADBinY) || (function == ADMinX) ||
      (function == ADMinY)) {
@@ -1640,6 +1641,22 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setExternalOutMode(3, value);
   } else if (function == PhotronExtOut4Sig) {
     setExternalOutMode(4, value);
+  } else if (function == PhotronTest) {
+    // Set status to asynSuccess if value is divisible by 4, asynError otherwise
+    if ((value % 4) == 0) {
+      // This sets the value in the parameter lib
+      setIntegerParam(function, value);
+      // This post the change so the _RBV record sees it
+      callParamCallbacks();
+      return asynSuccess;
+    } else {
+      // This doesn't result in the value being set in the param lib and it
+      // sets the severity of the output record to INVALID
+      return asynError;
+      // This doesn't result in the value being set in the param lib and it
+      // doesn't change the severity of the output record
+      //return asynSuccess;
+    }
   } else {
     /* If this is not a parameter we have handled call the base class */
     status = ADDriver::writeInt32(pasynUser, value);

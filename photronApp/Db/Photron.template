@@ -1047,3 +1047,22 @@ record(bo, "$(P)$(R)ChangeVarEditYPos")
    field(ZNAM, "Decrease")
    field(ONAM, "Increase")
 }
+
+# Records for asynError testing
+record(longout, "$(P)$(R)Test")
+{
+   field(DTYP, "asynInt32")
+   field(PINI, "YES")
+   field(DESC, "Test")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_TEST")
+   field(VAL,  "4")
+   info(asyn:READBACK, "1")
+}
+
+record(longin, "$(P)$(R)Test_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Test RBV")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_TEST")
+   field(SCAN, "I/O Intr")
+}

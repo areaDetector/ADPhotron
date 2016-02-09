@@ -1676,3 +1676,33 @@ text {
 	label="-"
 	press_msg="0"
 }
+"text entry" {
+	object {
+		x=395
+		y=640
+		width=50
+		height=25
+	}
+	control {
+		chan="$(P)$(R)Test"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=450
+		y=640
+		width=50
+		height=25
+	}
+	monitor {
+		chan="$(P)$(R)Test_RBV"
+		clr=14
+		bclr=4
+	}
+	limits {
+	}
+}

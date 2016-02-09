@@ -188,6 +188,7 @@ protected:
     int PhotronMemIRIGUsec;
     int PhotronMemIRIGSigEx;
     int PhotronSyncPriority;
+    int PhotronTest;
     int PhotronExtIn1Sig;
     int PhotronExtIn2Sig;
     int PhotronExtIn3Sig;
@@ -471,6 +472,7 @@ typedef struct {
 #define PhotronMemIRIGUsecString "PHOTRON_MEM_IRIG_USEC" /* (asynInt32,    r) */
 #define PhotronMemIRIGSigExString "PHOTRON_MEM_IRIG_SIGEX" /* (asynInt32,  r) */
 #define PhotronSyncPriorityString "PHOTRON_SYNC_PRIORITY" /* (asynInt32, rw)  */
+#define PhotronTestString       "PHOTRON_TEST"            /* (asynInt32, rw) */
 #define PhotronExtIn1SigString  "PHOTRON_EXT_IN_1_SIG" /* (asynInt32, rw)  */
 #define PhotronExtIn2SigString  "PHOTRON_EXT_IN_2_SIG" /* (asynInt32, rw)  */
 #define PhotronExtIn3SigString  "PHOTRON_EXT_IN_3_SIG" /* (asynInt32, rw)  */
