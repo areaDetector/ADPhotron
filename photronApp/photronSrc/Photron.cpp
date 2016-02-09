@@ -1394,13 +1394,17 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int adstatus, acqMode, chan;
   int index;
   int skipReadParams = 0;
+  epicsInt32 oldValue;
   static const char *functionName = "writeInt32";
   
   //printf("FUNCTION: %d - VALUE: %d\n", function, value);
   
+  // Save the old value. Don't |= it with status to avoid errors at startup
+  getIntegerParam(function, &oldValue);
+  
   /* Set the parameter and readback in the parameter library.  This may be 
    * overwritten when we read back the status at the end, but that's OK */
-  //status |= setIntegerParam(function, value);
+  status |= setIntegerParam(function, value);
   
   if ((function == ADBinX) || (function == ADBinY) || (function == ADMinX) ||
      (function == ADMinY)) {
@@ -1644,19 +1648,13 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronTest) {
     // Set status to asynSuccess if value is divisible by 4, asynError otherwise
     if ((value % 4) == 0) {
-      // This sets the value in the parameter lib
+      // The value is good
       setIntegerParam(function, value);
-      // This post the change so the _RBV record sees it
-      callParamCallbacks();
-      return asynSuccess;
     } else {
-      // This doesn't result in the value being set in the param lib and it
-      // sets the severity of the output record to INVALID
-      return asynError;
-      // This doesn't result in the value being set in the param lib and it
-      // doesn't change the severity of the output record
-      //return asynSuccess;
+      // The new value is bad; restore the old value
+      setIntegerParam(function, oldValue);
     }
+    skipReadParams = 1;
   } else {
     /* If this is not a parameter we have handled call the base class */
     status = ADDriver::writeInt32(pasynUser, value);
