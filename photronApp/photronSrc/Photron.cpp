@@ -1491,6 +1491,10 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setVariableXSize(value);
   } else if (function == PhotronVarEditYSize) {
     setVariableYSize(value);
+  } else if (function == PhotronVarEditXPos) {
+    setVariableXPos(value);
+  } else if (function == PhotronVarEditYPos) {
+    setVariableYPos(value);
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -1640,6 +1644,11 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     /* If this is not a parameter we have handled call the base class */
     status = ADDriver::writeInt32(pasynUser, value);
   }
+  
+  // see if returning before calling param callbacks helps restore last good value
+  /*if (status != asynSuccess) {
+    return asynError;
+  }*/
   
   if (skipReadParams == 1) {
     // Don't call readParameters() for PVs that can be changed during preview
@@ -3385,9 +3394,9 @@ asynStatus Photron::changeVariableRecordRate(epicsInt32 value) {
 
 asynStatus Photron::setVariableXSize(epicsInt32 value) {
   unsigned long nRet, nErrorCode;
-  unsigned long width;
+  unsigned long wMax;
   epicsInt32 wMin, wStep, rate, height, freePos, sensorWidth, xPos;
-  epicsInt32 newWidth, newXPos, partialStep;
+  epicsInt32 roundWidth, newWidth, partialStep;
   static const char *functionName = "setVariableXSize";
   
   // Get minimim width
@@ -3400,7 +3409,7 @@ asynStatus Photron::setVariableXSize(epicsInt32 value) {
   getIntegerParam(PhotronVarEditYSize, &height);
   
   // Get maximum width
-  nRet = PDC_GetVariableMaxWidth(this->nDeviceNo, rate, height, &width, 
+  nRet = PDC_GetVariableMaxWidth(this->nDeviceNo, rate, height, &wMax, 
                                  &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetVariableMaxWidth Error %d\n", nErrorCode);
@@ -3416,36 +3425,83 @@ asynStatus Photron::setVariableXSize(epicsInt32 value) {
   partialStep = value % wStep;
   if (partialStep == 0) {
     // value is a multiple of wStep
-    newWidth = value;
+    roundWidth = value;
   } else if (partialStep >= (wStep / 2.0)) {
     // round up
-    newWidth = value - partialStep + wStep;
+    roundWidth = value - partialStep + wStep;
   } else {
     // round down
-    newWidth = value - partialStep;
+    roundWidth = value - partialStep;
   }
   
-  // A new width requires the XPos to be adjusted
-  if ((freePos & PDC_VARIABLE_FREE_X) != 0) {
-    // Free to move in the X
-    // Get XPos
-    getIntegerParam(PhotronVarEditXPos, &xPos);
-    
-    if ((xPos + newWidth) > sensorWidth) {
-      // The X position needs to change
-      newXPos = sensorWidth - newWidth;
-    } else {
-      // The X position is OK
-      newXPos = xPos;
-    }
+  // Enforce limits
+  if (roundWidth < wMin) {
+    newWidth = wMin;
+  } else if (roundWidth > (epicsInt32)wMax) {
+    newWidth = wMax;
   } else {
-    // Not free to move in X
-    // XPos changes to accomodate new width
-    newXPos = (sensorWidth - newWidth) / 2;
+    newWidth = roundWidth;
   }
   
   // update params
   setIntegerParam(PhotronVarEditXSize, newWidth);
+
+  // Is this necessary?
+  //callParamCallbacks();
+  
+  // Get current xPos
+  getIntegerParam(PhotronVarEditXPos, &xPos);
+  
+  // A new width requires the XPos to be adjusted
+  this->setVariableXPos(xPos);
+  
+  return asynSuccess;
+}
+
+
+asynStatus Photron::setVariableXPos(epicsInt32 value) {
+  epicsInt32 xPosStep, partialStep, roundXPos, newXPos;
+  epicsInt32 sensorWidth, width, freePos;
+  static const char *functionName = "setVariableXPos";
+  
+  //
+  getIntegerParam(PhotronVarChanFreePos, &freePos);
+  getIntegerParam(ADSizeX, &sensorWidth);
+  getIntegerParam(PhotronVarEditXSize, &width);
+  
+  if ((freePos & PDC_VARIABLE_FREE_X) != 0) {
+    // Free to move in the X
+    
+    //
+    getIntegerParam(PhotronVarChanXPosStep, &xPosStep);
+    
+    // Find the nearest good value to the desired XPos
+    partialStep = value % xPosStep;
+    if (partialStep == 0) {
+      // value is a multiple of hStep
+      roundXPos = value;
+    } else if (partialStep >= (xPosStep / 2.0)) {
+      // round up
+      roundXPos = value - partialStep + xPosStep;
+    } else {
+      // round down
+      roundXPos = value - partialStep;
+    }
+    
+    if ((roundXPos + width) > sensorWidth) {
+      // The X position needs to change
+      newXPos = sensorWidth - width;
+    } else {
+      // The X position is OK
+      newXPos = roundXPos;
+    }
+  } else {
+    // Not free to move in X
+    // XPos changes to accomodate new width
+    newXPos = (sensorWidth - width) / 2;
+  }
+  
+  // update params
   setIntegerParam(PhotronVarEditXPos, newXPos);
   
   return asynSuccess;
@@ -3454,9 +3510,9 @@ asynStatus Photron::setVariableXSize(epicsInt32 value) {
 
 asynStatus Photron::setVariableYSize(epicsInt32 value) {
   unsigned long nRet, nErrorCode;
-  unsigned long height;
+  unsigned long hMax;
   epicsInt32 hMin, hStep, rate, width, freePos, sensorHeight, yPos;
-  epicsInt32 newHeight, newYPos, partialStep;
+  epicsInt32 roundHeight, newHeight, partialStep;
   static const char *functionName = "setVariableYSize";
   
   // Get minimim width
@@ -3469,7 +3525,7 @@ asynStatus Photron::setVariableYSize(epicsInt32 value) {
   getIntegerParam(PhotronVarEditXSize, &width);
   
   // Get maximum height
-  nRet = PDC_GetVariableMaxHeight(this->nDeviceNo, rate, width, &height, 
+  nRet = PDC_GetVariableMaxHeight(this->nDeviceNo, rate, width, &hMax, 
                                  &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_GetVariableMaxHeight Error %d\n", nErrorCode);
@@ -3484,38 +3540,36 @@ asynStatus Photron::setVariableYSize(epicsInt32 value) {
   // Find the nearest good value to the desired height
   partialStep = value % hStep;
   if (partialStep == 0) {
-    // value is a multiple of wStep
-    newHeight = value;
+    // value is a multiple of hStep
+    roundHeight = value;
   } else if (partialStep >= (hStep / 2.0)) {
     // round up
-    newHeight = value - partialStep + hStep;
+    roundHeight = value - partialStep + hStep;
   } else {
     // round down
-    newHeight = value - partialStep;
+    roundHeight = value - partialStep;
   }
   
-  // A new width requires the YPos to be adjusted
-  if ((freePos & PDC_VARIABLE_FREE_Y) != 0) {
-    // Free to move in the Y
-    // Get YPos
-    getIntegerParam(PhotronVarEditYPos, &yPos);
-    
-    if ((yPos + newHeight) > sensorHeight) {
-      // The Y position needs to change
-      newYPos = sensorHeight - newHeight;
-    } else {
-      // The X position is OK
-      newYPos = yPos;
-    }
+  // Enforce limits
+  if (roundHeight < hMin) {
+    newHeight = hMin;
+  } else if (roundHeight > (epicsInt32)hMax) {
+    newHeight = hMax;
   } else {
-    // Not free to move in Y
-    // YPos changes to accomodate new height
-    newYPos = (sensorHeight - newHeight) / 2;
+    newHeight = roundHeight;
   }
   
   // update params
   setIntegerParam(PhotronVarEditYSize, newHeight);
-  setIntegerParam(PhotronVarEditYPos, newYPos);
+  
+  // Is this necessary?
+  //callParamCallbacks();
+  
+  // Get current yPos
+  getIntegerParam(PhotronVarEditYPos, &yPos);
+  
+  // A new width requires the YPos to be adjusted
+  this->setVariableYPos(yPos);
   
   return asynSuccess;
 }
@@ -3533,6 +3587,54 @@ asynStatus Photron::setVariableYSize(epicsInt32 value) {
   */
 
 // IAMHERE
+
+asynStatus Photron::setVariableYPos(epicsInt32 value) {
+  epicsInt32 yPosStep, partialStep, roundYPos, newYPos;
+  epicsInt32 sensorHeight, height, freePos;
+  static const char *functionName = "setVariableYPos";
+  
+  //
+  getIntegerParam(PhotronVarChanFreePos, &freePos);
+  getIntegerParam(ADSizeY, &sensorHeight);
+  getIntegerParam(PhotronVarEditYSize, &height);
+  
+  if ((freePos & PDC_VARIABLE_FREE_Y) != 0) {
+    // Free to move in the Y
+    
+    //
+    getIntegerParam(PhotronVarChanYPosStep, &yPosStep);
+    
+    // Find the nearest good value to the desired YPos
+    partialStep = value % yPosStep;
+    if (partialStep == 0) {
+      // value is a multiple of yPosStep
+      roundYPos = value;
+    } else if (partialStep >= (yPosStep / 2.0)) {
+      // round up
+      roundYPos = value - partialStep + yPosStep;
+    } else {
+      // round down
+      roundYPos = value - partialStep;
+    }
+    
+    if ((roundYPos + height) > sensorHeight) {
+      // The Y position needs to change
+      newYPos = sensorHeight - height;
+    } else {
+      // The Y position is OK
+      newYPos = roundYPos;
+    }
+  } else {
+    // Not free to move in Y
+    // YPos changes to accomodate new height
+    newYPos = (sensorHeight - height) / 2;
+  }
+  
+  // update params
+  setIntegerParam(PhotronVarEditYPos, newYPos);
+  
+  return asynSuccess;
+}
 
 
 asynStatus Photron::setShutterSpeedFps(epicsInt32 value) {
@@ -3828,6 +3930,7 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
                                     this->VariableRateList);
   } else {
     // Channel is empty, populate the edit fields with valid settings
+    // (settings from live mode or last var chan)
     setIntegerParam(PhotronVarEditRate, this->nRate);
     setIntegerParam(PhotronVarEditXSize, this->width);
     setIntegerParam(PhotronVarEditYSize, this->height);
