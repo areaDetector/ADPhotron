@@ -1488,8 +1488,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronChangeVarEditRate) {
     changeVariableRecordRate(value);
   } else if (function == PhotronVarEditXSize) {
-    // IAMHERE
-    //setVariableXSize(value);
+    setVariableXSize(value);
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -3381,13 +3380,89 @@ asynStatus Photron::changeVariableRecordRate(epicsInt32 value) {
   return asynSuccess;
 }
 
-/*
+
 asynStatus Photron::setVariableXSize(epicsInt32 value) {
+  unsigned long nRet, nErrorCode;
+  unsigned long width;
+  epicsInt32 wMin, wStep, rate, height, freePos, sensorWidth, xPos;
+  epicsInt32 newWidth, newXPos, partialStep;
   static const char *functionName = "setVariableXSize";
   
-  // IAMHERE
+  // Get minimim width
+  getIntegerParam(PhotronVarChanWMin, &wMin);
+  // Get width step
+  getIntegerParam(PhotronVarChanWStep, &wStep);
+  // Get var rec rate
+  getIntegerParam(PhotronVarEditRate, &rate);
+  // Get var height
+  getIntegerParam(PhotronVarEditYSize, &height);
+  
+  // Get maximum width
+  nRet = PDC_GetVariableMaxWidth(this->nDeviceNo, rate, height, &width, 
+                                 &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetVariableMaxWidth Error %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  // Get free pos
+  getIntegerParam(PhotronVarChanFreePos, &freePos);
+  // Get sensor width
+  getIntegerParam(ADSizeX, &sensorWidth);
+  
+  // Find the nearest good value to the desired width
+  partialStep = value % wStep;
+  if (partialStep == 0) {
+    // value is a multiple of wStep
+    newWidth = value;
+  } else if (partialStep >= (wStep / 2.0)) {
+    // round up
+    newWidth = value - partialStep + wStep;
+  } else {
+    // round down
+    newWidth = value - partialStep;
+  }
+  
+  // A new width requires the XPos to be adjusted
+  if ((freePos & PDC_VARIABLE_FREE_X) != 0) {
+    // Free to move in the X
+    // Get XPos
+    getIntegerParam(PhotronVarEditXPos, &xPos);
+    
+    if ((xPos + newWidth) > sensorWidth) {
+      // The X position needs to change
+      newXPos = sensorWidth - newWidth;
+    } else {
+      // The X position is OK
+      newXPos = xPos;
+    }
+  } else {
+    // Not free to move in X
+    // XPos changes to accomodate new width
+    newXPos = (sensorWidth - newWidth) / 2;
+  }
+  
+  // update params
+  setIntegerParam(PhotronVarEditXSize, newWidth);
+  setIntegerParam(PhotronVarEditXPos, newXPos);
+  
+  return asynSuccess;
 }
-*/
+
+
+  /*
+  printf("\nVariable restrictions:\n");
+  printf("\tWidth Step: %d\n", wStep);
+  printf("\tHeight Step: %d\n", hStep);
+  printf("\tX Pos Step: %d\n", xPosStep);
+  printf("\tY Pos Step: %d\n", yPosStep);
+  printf("\tMin Width: %d\n", wMin);
+  printf("\tMin Height: %d\n", hMin);
+  printf("\tFree Pos: %d\n", freePos);
+  */
+
+// IAMHERE
+
 
 asynStatus Photron::setShutterSpeedFps(epicsInt32 value) {
   unsigned long nRet;
