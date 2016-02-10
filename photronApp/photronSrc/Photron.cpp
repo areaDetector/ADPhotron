@@ -3428,7 +3428,7 @@ asynStatus Photron::changeVariableXSize(epicsInt32 value) {
     newWidth = width - wStep;
   }
   
-  printf("width=%d\twStep=%d\tnewWidth=%d\n", width, wStep, newWidth);
+  //printf("width=%d\twStep=%d\tnewWidth=%d\n", width, wStep, newWidth);
   
   // setVariableXSize restricts the width to acceptable values
   this->setVariableXSize(newWidth);
@@ -3566,7 +3566,7 @@ asynStatus Photron::changeVariableXPos(epicsInt32 value) {
     newXPos = xPos - xPosStep;
   }
   
-  printf("xPos=%d\txPosStep=%d\tnewXPos=%d\n", xPos, xPosStep, newXPos);
+  //printf("xPos=%d\txPosStep=%d\tnewXPos=%d\n", xPos, xPosStep, newXPos);
   
   this->setVariableXPos(newXPos);
   
@@ -3587,7 +3587,7 @@ asynStatus Photron::changeVariableYSize(epicsInt32 value) {
     newHeight = height - hStep;
   }
   
-  printf("height=%d\thStep=%d\tnewHeight=%d\n", height, hStep, newHeight);
+  //printf("height=%d\thStep=%d\tnewHeight=%d\n", height, hStep, newHeight);
   
   // setVariableYSize restricts the width to acceptable values
   this->setVariableYSize(newHeight);
@@ -3663,19 +3663,6 @@ asynStatus Photron::setVariableYSize(epicsInt32 value) {
 }
 
 
-  /*
-  printf("\nVariable restrictions:\n");
-  printf("\tWidth Step: %d\n", wStep);
-  printf("\tHeight Step: %d\n", hStep);
-  printf("\tX Pos Step: %d\n", xPosStep);
-  printf("\tY Pos Step: %d\n", yPosStep);
-  printf("\tMin Width: %d\n", wMin);
-  printf("\tMin Height: %d\n", hMin);
-  printf("\tFree Pos: %d\n", freePos);
-  */
-
-// IAMHERE
-
 asynStatus Photron::setVariableYPos(epicsInt32 value) {
   epicsInt32 yPosStep, partialStep, roundYPos, newYPos;
   epicsInt32 sensorHeight, height, freePos;
@@ -3738,7 +3725,7 @@ asynStatus Photron::changeVariableYPos(epicsInt32 value) {
     newYPos = yPos - yPosStep;
   }
   
-  printf("yPos=%d\tyPosStep=%d\tnewYPos=%d\n", yPos, yPosStep, newYPos);
+  //printf("yPos=%d\tyPosStep=%d\tnewYPos=%d\n", yPos, yPosStep, newYPos);
   
   this->setVariableYPos(newYPos);
   
