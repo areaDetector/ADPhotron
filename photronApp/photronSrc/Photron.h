@@ -147,14 +147,14 @@ protected:
     int PhotronVarChanWMin;
     int PhotronVarChanHMin;
     int PhotronVarChanFreePos;
+    int PhotronVarChanApply;
+    int PhotronVarChanErase;
     int PhotronVarEditRate;
     int PhotronVarEditXSize;
     int PhotronVarEditYSize;
     int PhotronVarEditXPos;
     int PhotronVarEditYPos;
     int PhotronVarEditMaxRes;
-    int PhotronVarEditApply;
-    int PhotronVarEditErase;
     int PhotronChangeVarEditRate;
     int PhotronChangeVarEditXSize;
     int PhotronChangeVarEditYSize;
@@ -241,6 +241,8 @@ private:
   asynStatus jumpShutterSpeedFps(epicsInt32 value);
   asynStatus setVariableChannel(epicsInt32 value);
   asynStatus changeVariableChannel(epicsInt32 value);
+  asynStatus applyVariableChannel();
+  asynStatus eraseVariableChannel();
   asynStatus setStatus(epicsInt32 value);
   asynStatus parseResolutionList();
   void printResOptions();
@@ -436,14 +438,14 @@ typedef struct {
 #define PhotronVarChanHMinString  "PHOTRON_VAR_CHAN_H_MIN" /* (asynInt32,  r) */
 #define PhotronVarChanFreePosString "PHOTRON_VAR_CHAN_FREE_POS" /* (asynInt32, r) */
 // Var chan editing
+#define PhotronVarChanApplyString "PHOTRON_VAR_CHAN_APPLY" /* (asynInt32, w) */
+#define PhotronVarChanEraseString "PHOTRON_VAR_CHAN_ERASE" /* (asynInt32, w) */
 #define PhotronVarEditRateString "PHOTRON_VAR_EDIT_RATE" /* (asynInt32,  r) */
 #define PhotronVarEditXSizeString "PHOTRON_VAR_EDIT_X_SIZE" /* (asynInt32,  r) */
 #define PhotronVarEditYSizeString "PHOTRON_VAR_EDIT_Y_SIZE" /* (asynInt32,  r) */
 #define PhotronVarEditXPosString "PHOTRON_VAR_EDIT_X_POS" /* (asynInt32,  r) */
 #define PhotronVarEditYPosString "PHOTRON_VAR_EDIT_Y_POS" /* (asynInt32,  r) */
 #define PhotronVarEditMaxResString "PHOTRON_VAR_EDIT_MAX_RES" /* (asynInt32,  r) */
-#define PhotronVarEditApplyString "PHOTRON_VAR_EDIT_APPLY" /* (asynInt32, w) */
-#define PhotronVarEditEraseString "PHOTRON_VAR_EDIT_ERASE" /* (asynInt32, w) */
 #define PhotronChangeVarEditRateString "PHOTRON_CHANGE_VAR_EDIT_RATE" /* (asynInt32, w) */
 #define PhotronChangeVarEditXSizeString "PHOTRON_CHANGE_VAR_EDIT_X_SIZE" /* (asynInt32, w) */
 #define PhotronChangeVarEditYSizeString "PHOTRON_CHANGE_VAR_EDIT_Y_SIZE" /* (asynInt32, w) */

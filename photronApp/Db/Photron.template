@@ -958,6 +958,24 @@ record(longin, "$(P)$(R)VarChanFreePos_RBV")
 
 # Var chan editing
 
+record(bo, "$(P)$(R)VarChanApply")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Apply var chan settings")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_APPLY")
+   field(ZNAM, "Done")
+   field(ONAM, "Apply")
+}
+
+record(bo, "$(P)$(R)VarChanErase")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Erase var chan settings")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_CHAN_ERASE")
+   field(ZNAM, "Done")
+   field(ONAM, "Erase")
+}
+
 record(longout, "$(P)$(R)VarChanRate")
 {
    field(DTYP, "asynInt32")

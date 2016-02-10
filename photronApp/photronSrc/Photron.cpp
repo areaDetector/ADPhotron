@@ -110,14 +110,14 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronVarChanWMinString,  asynParamInt32, &PhotronVarChanWMin);
   createParam(PhotronVarChanHMinString,  asynParamInt32, &PhotronVarChanHMin);
   createParam(PhotronVarChanFreePosString,  asynParamInt32, &PhotronVarChanFreePos);
+  createParam(PhotronVarChanApplyString,  asynParamInt32, &PhotronVarChanApply);
+  createParam(PhotronVarChanEraseString,  asynParamInt32, &PhotronVarChanErase);
   createParam(PhotronVarEditRateString,  asynParamInt32, &PhotronVarEditRate);
   createParam(PhotronVarEditXSizeString,  asynParamInt32, &PhotronVarEditXSize);
   createParam(PhotronVarEditYSizeString,  asynParamInt32, &PhotronVarEditYSize);
   createParam(PhotronVarEditXPosString,  asynParamInt32, &PhotronVarEditXPos);
   createParam(PhotronVarEditYPosString,  asynParamInt32, &PhotronVarEditYPos);
   createParam(PhotronVarEditMaxResString,  asynParamInt32, &PhotronVarEditMaxRes);
-  createParam(PhotronVarEditApplyString,  asynParamInt32, &PhotronVarEditApply);
-  createParam(PhotronVarEditEraseString,  asynParamInt32, &PhotronVarEditErase);
   createParam(PhotronChangeVarEditRateString,  asynParamInt32, &PhotronChangeVarEditRate);
   createParam(PhotronChangeVarEditXSizeString,  asynParamInt32, &PhotronChangeVarEditXSize);
   createParam(PhotronChangeVarEditYSizeString,  asynParamInt32, &PhotronChangeVarEditYSize);
@@ -1493,6 +1493,10 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setVariableRecordRate(value);
   } else if (function == PhotronChangeVarEditRate) {
     changeVariableRecordRate(value);
+  } else if (function == PhotronVarChanApply) {
+    applyVariableChannel();
+  } else if (function == PhotronVarChanErase) {
+    eraseVariableChannel();
   } else if (function == PhotronVarEditXSize) {
     setVariableXSize(value);
   } else if (function == PhotronVarEditYSize) {
@@ -3378,6 +3382,27 @@ asynStatus Photron::findNearestValue(epicsInt32* pValue, int* pListIndex,
 }
 
 
+asynStatus Photron::changeVariableRecordRate(epicsInt32 value) {
+  int newVarRecRateIndex;
+  int newVarRecRate;
+  static const char *functionName = "changeVariableRecordRate";
+  
+  // The record rate list is in order of incresting rate
+  // Assumption: this->varRecRateIndex is up-to-date
+  
+  newVarRecRateIndex = changeListIndex(value, this->varRecRateIndex,
+                                            this->VariableRateListSize);
+  
+  if (newVarRecRateIndex != (int)this->varRecRateIndex) {
+    // A valid change has been requested
+    newVarRecRate = this->VariableRateList[newVarRecRateIndex];
+    this->setVariableRecordRate(newVarRecRate);
+  }
+  
+  return asynSuccess;
+}
+
+
 asynStatus Photron::setVariableRecordRate(epicsInt32 value) {
   asynStatus status;
   static const char *functionName = "setVariableRecordRate";
@@ -3424,27 +3449,6 @@ asynStatus Photron::setVariableMaxRes() {
   setVariableXPos(xPos);
   getIntegerParam(PhotronVarEditYPos, &yPos);
   setVariableYPos(yPos);
-  
-  return asynSuccess;
-}
-
-
-asynStatus Photron::changeVariableRecordRate(epicsInt32 value) {
-  int newVarRecRateIndex;
-  int newVarRecRate;
-  static const char *functionName = "changeVariableRecordRate";
-  
-  // The record rate list is in order of incresting rate
-  // Assumption: this->varRecRateIndex is up-to-date
-  
-  newVarRecRateIndex = changeListIndex(value, this->varRecRateIndex,
-                                            this->VariableRateListSize);
-  
-  if (newVarRecRateIndex != (int)this->varRecRateIndex) {
-    // A valid change has been requested
-    newVarRecRate = this->VariableRateList[newVarRecRateIndex];
-    this->setVariableRecordRate(newVarRecRate);
-  }
   
   return asynSuccess;
 }
@@ -4076,6 +4080,52 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
   }
   
   return (asynStatus)status;
+}
+
+
+asynStatus Photron::applyVariableChannel() {
+  epicsInt32 chan, rate, width, height, xPos, yPos;
+  unsigned long nRet, nErrorCode;
+  asynStatus status = asynSuccess;
+  static const char *functionName = "applyVariableChannel";
+  
+  getIntegerParam(PhotronVarChan, &chan);
+  getIntegerParam(PhotronVarEditRate, &rate);
+  getIntegerParam(PhotronVarEditXSize, &width);
+  getIntegerParam(PhotronVarEditYSize, &height);
+  getIntegerParam(PhotronVarEditXPos, &xPos);
+  getIntegerParam(PhotronVarEditYPos, &yPos);
+  
+  nRet = PDC_SetVariableChannelInfo(this->nDeviceNo, (unsigned long)chan,
+                                    (unsigned long) rate,
+                                    (unsigned long) width,
+                                    (unsigned long) height,
+                                    (unsigned long) xPos,
+                                    (unsigned long) yPos,
+                                    &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetVariableChannelInfo Error %d\n", nErrorCode);
+    status = asynError;
+  }
+  
+  return status;
+}
+
+
+asynStatus Photron::eraseVariableChannel() {
+  epicsInt32 chan;
+  unsigned long nRet, nErrorCode;
+  asynStatus status = asynSuccess;
+  static const char *functionName = "eraseVariableChannel";
+  
+  nRet = PDC_EraseVariableChannel(this->nDeviceNo, (unsigned long)chan,
+                                  &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_EraseVariableChannel Error %d\n", nErrorCode);
+    status = asynError;
+  }
+  
+  return status;
 }
 
 
