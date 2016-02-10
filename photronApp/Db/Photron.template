@@ -1075,6 +1075,24 @@ record(bo, "$(P)$(R)ChangeVarEditYPos")
    field(ONAM, "Increase")
 }
 
+# Shading
+record(mbbo, "$(P)$(R)ShadingMode")
+{
+   field(DTYP, "asynInt32")
+   #!field(PINI, "YES")
+   field(DESC, "Shading Mode")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SHADING_MODE")
+   info(asyn:READBACK, "1")
+}
+
+record(mbbi, "$(P)$(R)ShadingMode_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Shading Mode RBV")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SHADING_MODE")
+   field(SCAN, "I/O Intr")
+}
+
 # Records for asynError testing
 record(longout, "$(P)$(R)Test")
 {

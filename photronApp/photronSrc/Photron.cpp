@@ -161,6 +161,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronExtOut2SigString,    asynParamInt32, &PhotronExtOut2Sig);
   createParam(PhotronExtOut3SigString,    asynParamInt32, &PhotronExtOut3Sig);
   createParam(PhotronExtOut4SigString,    asynParamInt32, &PhotronExtOut4Sig);
+  createParam(PhotronShadingModeString,   asynParamInt32, &PhotronShadingMode);
   
   PhotronExtInSig[0] = &PhotronExtIn1Sig;
   PhotronExtInSig[1] = &PhotronExtIn2Sig;
@@ -1225,6 +1226,16 @@ asynStatus Photron::getCameraInfo() {
     }
   }
   
+  if (functionList[PDC_EXIST_SHADING] == PDC_EXIST_SUPPORTED) {
+    nRet = PDC_GetShadingModeList(this->nDeviceNo, this->nChildNo,
+                                  &(this->ShadingModeListSize),
+                                  this->ShadingModeList, &nErrorCode);
+    if (nRet = PDC_FAILED) {
+      printf("PDC_GetShadingModeList failed. error = %d\n", nErrorCode);
+      return asynError;
+    }
+  }
+  
   // Is this always the same or should it be moved to readParameters?
   nRet = PDC_GetSyncPriorityList(this->nDeviceNo, &(this->SyncPriorityListSize),
                                  this->SyncPriorityList, &nErrorCode);
@@ -1660,6 +1671,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setExternalOutMode(3, value);
   } else if (function == PhotronExtOut4Sig) {
     setExternalOutMode(4, value);
+  } else if (function == PhotronShadingMode) {
+    setShadingMode(value);
   } else if (function == PhotronTest) {
     // Set status to asynSuccess if value is divisible by 4, asynError otherwise
     if ((value % 4) == 0) {
@@ -1735,6 +1748,9 @@ asynStatus Photron::readEnum(asynUser *pasynUser, char *strings[], int values[],
   } else if (function == PhotronExtOut4Sig) {
     pEnum = outputModeEnums_[3];
     numEnums = numValidOutputModes_[3];
+  } else if (function == PhotronShadingMode) {
+    pEnum = shadingModeEnums_;
+    numEnums = numValidShadingModes_;
   } else {
     *nIn = 0;
     return asynError;
@@ -1829,6 +1845,15 @@ asynStatus Photron::createStaticEnums() {
       pEnum->value = mode;
       numValidOutputModes_[port]++;
     }
+  }
+  
+  numValidShadingModes_ = 0;
+  for (index=0; index<(int)this->ShadingModeListSize; index++)  {
+    pEnum = shadingModeEnums_ + numValidShadingModes_;
+    mode = shadingModeToEPICS(this->ShadingModeList[index]);
+    strcpy(pEnum->string, shadingModeStrings[mode]);
+    pEnum->value = mode;
+    numValidShadingModes_++;
   }
   
   return asynSuccess;
@@ -2026,6 +2051,22 @@ int Photron::trigModeToAPI(int mode) {
       apiMode = mode << 24;
       break;
   }
+  
+  return apiMode;
+}
+
+int Photron::shadingModeToEPICS(int apiMode) {
+  int mode;
+  
+  mode = apiMode - 1;
+  
+  return mode;
+}
+
+int Photron::shadingModeToAPI(int mode) {
+  int apiMode;
+  
+  apiMode = mode + 1;
   
   return apiMode;
 }
@@ -2249,6 +2290,31 @@ asynStatus Photron::setExternalOutMode(epicsInt32 port, epicsInt32 value) {
     }
   } else {
     //printf("Don't actually call PDC_SetExternalOutMode; port %d doesn't exist\n", port);
+  }
+  
+  return status;
+}
+
+
+asynStatus Photron::setShadingMode(epicsInt32 value) {
+  asynStatus status = asynSuccess;
+  unsigned long nRet, nErrorCode;
+  int apiMode;
+  static const char *functionName = "setShadingMode";
+  
+  if (functionList[PDC_EXIST_SHADING] == PDC_EXIST_SUPPORTED) {
+    // convert mbbo index to api
+    apiMode = this->shadingModeToAPI(value);
+    
+    nRet = PDC_SetShadingMode(this->nDeviceNo, this->nChildNo, apiMode,
+                              &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_SetShadingMode failed %d\n", nErrorCode);
+      status = asynError;
+    }
+  } else {
+    // Function isn't supported, return an error for user feedback
+    status = asynError;
   }
   
   return status;
@@ -4212,7 +4278,7 @@ asynStatus Photron::readParameters() {
   unsigned long nRet;
   unsigned long nErrorCode;
   int status = asynSuccess;
-  int tmode;
+  int tmode, smode;
   int index;
   int eVal, eStatus;
   char bitDepthChar;
@@ -4284,6 +4350,18 @@ asynStatus Photron::readParameters() {
   status |= setIntegerParam(PhotronAfterFrames, this->trigAFrames);
   status |= setIntegerParam(PhotronRandomFrames, this->trigRFrames);
   status |= setIntegerParam(PhotronRecCount, this->trigRCount);
+  
+  if (functionList[PDC_EXIST_SHADING] == PDC_EXIST_SUPPORTED) {
+    nRet = PDC_GetShadingMode(this->nDeviceNo, this->nChildNo, &(this->shadingMode),
+                              &nErrorCode);
+    if (nRet == PDC_FAILED) {
+      printf("PDC_GetShadingMode failed %d\n", nErrorCode);
+      return asynError;
+    } else {
+      smode = this->shadingModeToEPICS(this->shadingMode);
+      status |= setIntegerParam(PhotronShadingMode, smode);
+    }
+  }
   
   if (this->functionList[PDC_EXIST_BITDEPTH] == PDC_EXIST_SUPPORTED) {
     nRet = PDC_GetBitDepth(this->nDeviceNo, this->nChildNo, &bitDepthChar,
@@ -4383,14 +4461,6 @@ asynStatus Photron::readParameters() {
                                     this->ShutterSpeedFpsList, &nErrorCode);
   if (nRet = PDC_FAILED) {
     printf("PDC_GetShutterSpeedFpsList failed. error = %d\n", nErrorCode);
-    return asynError;
-  }
-  
-  nRet = PDC_GetShadingModeList(this->nDeviceNo, this->nChildNo,
-                                &(this->ShadingModeListSize),
-                                this->ShadingModeList, &nErrorCode);
-  if (nRet = PDC_FAILED) {
-    printf("PDC_GetShadingModeList failed. error = %d\n", nErrorCode);
     return asynError;
   }
   
@@ -4540,9 +4610,13 @@ void Photron::printShutterSpeeds() {
 void Photron::printShadingModes() {
   int index;
   
-  printf("\n  Shading Modes:\n");
-  for (index=0; index<(int)this->ShadingModeListSize; index++) {
-    printf("\t%d:\t%d\n", index, ShadingModeList[index]);
+  if (functionList[PDC_EXIST_SHADING] == PDC_EXIST_SUPPORTED) {
+    printf("\n  Shading Modes:\n");
+    for (index=0; index<(int)this->ShadingModeListSize; index++) {
+      printf("\t%d:\t%d\n", index, ShadingModeList[index]);
+    }
+  } else {
+    printf("\n  Shading not supported\n");
   }
 }
 

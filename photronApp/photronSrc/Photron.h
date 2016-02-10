@@ -6,6 +6,7 @@
 #define NUM_TRIGGER_MODES 14
 #define NUM_INPUT_MODES 17
 #define NUM_OUTPUT_MODES 35
+#define NUM_SHADING_MODES 7
 #define MAX_ENUM_STRING_SIZE 26
 #define NUM_VAR_CHANS 20
 
@@ -89,7 +90,15 @@ static const char *outputModeStrings[NUM_OUTPUT_MODES] = {
   "Encoder Re Timing"
 };
 
-
+static const char *shadingModeStrings[NUM_SHADING_MODES] = {
+  "Off",
+  "On",
+  "Save",
+  "Load",
+  "Update",
+  "Save File",
+  "Load File"
+};
 
 /** Photron driver */
 class epicsShareClass Photron : public ADDriver {
@@ -198,8 +207,9 @@ protected:
     int PhotronExtOut2Sig;
     int PhotronExtOut3Sig;
     int PhotronExtOut4Sig;
+    int PhotronShadingMode;
     #define FIRST_PHOTRON_PARAM PhotronStatus
-    #define LAST_PHOTRON_PARAM PhotronExtOut4Sig
+    #define LAST_PHOTRON_PARAM PhotronShadingMode
     
     int* PhotronExtInSig[PDC_EXTIO_MAX_PORT];
     int* PhotronExtOutSig[PDC_EXTIO_MAX_PORT];
@@ -265,9 +275,12 @@ private:
   asynStatus setSyncPriority(epicsInt32 value);
   asynStatus setExternalInMode(epicsInt32 port, epicsInt32 value);
   asynStatus setExternalOutMode(epicsInt32 port, epicsInt32 value);
+  asynStatus setShadingMode(epicsInt32 value);
   int statusToEPICS(int apiStatus);
   int trigModeToEPICS(int apiMode);
   int trigModeToAPI(int mode);
+  int shadingModeToEPICS(int apiMode);
+  int shadingModeToAPI(int mode);
   int inputModeToEPICS(int apiMode);
   int inputModeToAPI(int mode);
   int outputModeToEPICS(int apiMode);
@@ -339,6 +352,7 @@ private:
   unsigned long trigAFrames;
   unsigned long trigRFrames;
   unsigned long trigRCount;
+  unsigned long shadingMode;
   unsigned long IRIG;
   unsigned long syncPriority;
   unsigned long RateListSize;
@@ -388,9 +402,11 @@ private:
   /* Our data */
   NDArray *pRaw;
   int numValidTriggerModes_;
+  int numValidShadingModes_;
   int numValidInputModes_[PDC_EXTIO_MAX_PORT];
   int numValidOutputModes_[PDC_EXTIO_MAX_PORT];
   enumStruct_t triggerModeEnums_[NUM_TRIGGER_MODES];
+  enumStruct_t shadingModeEnums_[NUM_SHADING_MODES];
   enumStruct_t inputModeEnums_[PDC_EXTIO_MAX_PORT][NUM_INPUT_MODES];
   enumStruct_t outputModeEnums_[PDC_EXTIO_MAX_PORT][NUM_OUTPUT_MODES];
 };
@@ -491,5 +507,6 @@ typedef struct {
 #define PhotronExtOut2SigString  "PHOTRON_EXT_OUT_2_SIG" /* (asynInt32, rw)  */
 #define PhotronExtOut3SigString  "PHOTRON_EXT_OUT_3_SIG" /* (asynInt32, rw)  */
 #define PhotronExtOut4SigString  "PHOTRON_EXT_OUT_4_SIG" /* (asynInt32, rw)  */
+#define PhotronShadingModeString "PHOTRON_SHADING_MODE" /* (asynInt32, rw)  */
 
 #define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM-&FIRST_PHOTRON_PARAM+1))
