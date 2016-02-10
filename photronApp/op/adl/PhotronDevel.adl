@@ -1440,8 +1440,8 @@ text {
 }
 "related display" {
 	object {
-		x=424
-		y=444
+		x=430
+		y=447
 		width=25
 		height=25
 	}
@@ -1705,4 +1705,124 @@ text {
 	}
 	limits {
 	}
+}
+"message button" {
+	object {
+		x=399
+		y=389
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarEditXSize.VAL"
+		clr=14
+		bclr=4
+	}
+	label="+"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=369
+		y=389
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarEditXSize.VAL"
+		clr=14
+		bclr=4
+	}
+	label="-"
+	press_msg="0"
+}
+"message button" {
+	object {
+		x=399
+		y=421
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarEditYSize.VAL"
+		clr=14
+		bclr=4
+	}
+	label="+"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=369
+		y=421
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarEditYSize.VAL"
+		clr=14
+		bclr=4
+	}
+	label="-"
+	press_msg="0"
+}
+"message button" {
+	object {
+		x=399
+		y=451
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarEditXPos.VAL"
+		clr=14
+		bclr=4
+	}
+	label="+"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=369
+		y=451
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarEditXPos.VAL"
+		clr=14
+		bclr=4
+	}
+	label="-"
+	press_msg="0"
+}
+"message button" {
+	object {
+		x=399
+		y=483
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarEditYPos.VAL"
+		clr=14
+		bclr=4
+	}
+	label="+"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=369
+		y=483
+		width=25
+		height=25
+	}
+	control {
+		chan="$(P)$(R)ChangeVarEditYPos.VAL"
+		clr=14
+		bclr=4
+	}
+	label="-"
+	press_msg="0"
 }

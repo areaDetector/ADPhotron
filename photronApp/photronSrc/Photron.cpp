@@ -1500,6 +1500,14 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setVariableXPos(value);
   } else if (function == PhotronVarEditYPos) {
     setVariableYPos(value);
+  } else if (function == PhotronChangeVarEditXSize) {
+    changeVariableXSize(value);
+  } else if (function == PhotronChangeVarEditYSize) {
+    changeVariableYSize(value);
+  } else if (function == PhotronChangeVarEditXPos) {
+    changeVariableXPos(value);
+  } else if (function == PhotronChangeVarEditYPos) {
+    changeVariableYPos(value);
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -3407,6 +3415,28 @@ asynStatus Photron::changeVariableRecordRate(epicsInt32 value) {
 }
 
 
+asynStatus Photron::changeVariableXSize(epicsInt32 value) {
+  epicsInt32 wStep, width, newWidth;
+  static const char *functionName = "changeVariableXSize";
+  
+  getIntegerParam(PhotronVarChanWStep, &wStep);
+  getIntegerParam(PhotronVarEditXSize, &width);
+  
+  if (value == 1) {
+    newWidth = width + wStep;
+  } else {
+    newWidth = width - wStep;
+  }
+  
+  printf("width=%d\twStep=%d\tnewWidth=%d\n", width, wStep, newWidth);
+  
+  // setVariableXSize restricts the width to acceptable values
+  this->setVariableXSize(newWidth);
+  
+  return asynSuccess;
+}
+
+
 asynStatus Photron::setVariableXSize(epicsInt32 value) {
   unsigned long nRet, nErrorCode;
   unsigned long wMax;
@@ -3518,6 +3548,49 @@ asynStatus Photron::setVariableXPos(epicsInt32 value) {
   
   // update params
   setIntegerParam(PhotronVarEditXPos, newXPos);
+  
+  return asynSuccess;
+}
+
+
+asynStatus Photron::changeVariableXPos(epicsInt32 value) {
+  epicsInt32 xPosStep, xPos, newXPos;
+  static const char *functionName = "changeVariableXPos";
+  
+  getIntegerParam(PhotronVarChanXPosStep, &xPosStep);
+  getIntegerParam(PhotronVarEditXPos, &xPos);
+  
+  if (value == 1) {
+    newXPos = xPos + xPosStep;
+  } else {
+    newXPos = xPos - xPosStep;
+  }
+  
+  printf("xPos=%d\txPosStep=%d\tnewXPos=%d\n", xPos, xPosStep, newXPos);
+  
+  this->setVariableXPos(newXPos);
+  
+  return asynSuccess;
+}
+
+
+asynStatus Photron::changeVariableYSize(epicsInt32 value) {
+  epicsInt32 hStep, height, newHeight;
+  static const char *functionName = "changeVariableYSize";
+  
+  getIntegerParam(PhotronVarChanHStep, &hStep);
+  getIntegerParam(PhotronVarEditYSize, &height);
+  
+  if (value == 1) {
+    newHeight = height + hStep;
+  } else {
+    newHeight = height - hStep;
+  }
+  
+  printf("height=%d\thStep=%d\tnewHeight=%d\n", height, hStep, newHeight);
+  
+  // setVariableYSize restricts the width to acceptable values
+  this->setVariableYSize(newHeight);
   
   return asynSuccess;
 }
@@ -3647,6 +3720,27 @@ asynStatus Photron::setVariableYPos(epicsInt32 value) {
   
   // update params
   setIntegerParam(PhotronVarEditYPos, newYPos);
+  
+  return asynSuccess;
+}
+
+
+asynStatus Photron::changeVariableYPos(epicsInt32 value) {
+  epicsInt32 yPosStep, yPos, newYPos;
+  static const char *functionName = "changeVariableYPos";
+  
+  getIntegerParam(PhotronVarChanYPosStep, &yPosStep);
+  getIntegerParam(PhotronVarEditYPos, &yPos);
+  
+  if (value == 1) {
+    newYPos = yPos + yPosStep;
+  } else {
+    newYPos = yPos - yPosStep;
+  }
+  
+  printf("yPos=%d\tyPosStep=%d\tnewYPos=%d\n", yPos, yPosStep, newYPos);
+  
+  this->setVariableYPos(newYPos);
   
   return asynSuccess;
 }

@@ -229,6 +229,10 @@ private:
   asynStatus setVariableYSize(epicsInt32 value);
   asynStatus setVariableXPos(epicsInt32 value);
   asynStatus setVariableYPos(epicsInt32 value);
+  asynStatus changeVariableXSize(epicsInt32 value);
+  asynStatus changeVariableYSize(epicsInt32 value);
+  asynStatus changeVariableXPos(epicsInt32 value);
+  asynStatus changeVariableYPos(epicsInt32 value);
   // IAMHERE
   asynStatus setShutterSpeedFps(epicsInt32 value);
   asynStatus changeShutterSpeedFps(epicsInt32 value);
