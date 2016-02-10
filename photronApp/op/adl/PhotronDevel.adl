@@ -1826,3 +1826,18 @@ text {
 	label="-"
 	press_msg="0"
 }
+"message button" {
+	object {
+		x=369
+		y=333
+		width=50
+		height=20
+	}
+	control {
+		chan="$(P)$(R)VarChanMaxRes.VAL"
+		clr=14
+		bclr=4
+	}
+	label="MAX"
+	press_msg="1"
+}

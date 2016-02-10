@@ -152,6 +152,7 @@ protected:
     int PhotronVarEditYSize;
     int PhotronVarEditXPos;
     int PhotronVarEditYPos;
+    int PhotronVarEditMaxRes;
     int PhotronVarEditApply;
     int PhotronVarEditErase;
     int PhotronChangeVarEditRate;
@@ -229,6 +230,7 @@ private:
   asynStatus setVariableYSize(epicsInt32 value);
   asynStatus setVariableXPos(epicsInt32 value);
   asynStatus setVariableYPos(epicsInt32 value);
+  asynStatus setVariableMaxRes();
   asynStatus changeVariableXSize(epicsInt32 value);
   asynStatus changeVariableYSize(epicsInt32 value);
   asynStatus changeVariableXPos(epicsInt32 value);
@@ -439,6 +441,7 @@ typedef struct {
 #define PhotronVarEditYSizeString "PHOTRON_VAR_EDIT_Y_SIZE" /* (asynInt32,  r) */
 #define PhotronVarEditXPosString "PHOTRON_VAR_EDIT_X_POS" /* (asynInt32,  r) */
 #define PhotronVarEditYPosString "PHOTRON_VAR_EDIT_Y_POS" /* (asynInt32,  r) */
+#define PhotronVarEditMaxResString "PHOTRON_VAR_EDIT_MAX_RES" /* (asynInt32,  r) */
 #define PhotronVarEditApplyString "PHOTRON_VAR_EDIT_APPLY" /* (asynInt32, w) */
 #define PhotronVarEditEraseString "PHOTRON_VAR_EDIT_ERASE" /* (asynInt32, w) */
 #define PhotronChangeVarEditRateString "PHOTRON_CHANGE_VAR_EDIT_RATE" /* (asynInt32, w) */

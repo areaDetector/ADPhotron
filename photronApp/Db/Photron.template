@@ -1003,6 +1003,15 @@ record(longout, "$(P)$(R)VarChanYPos")
    info(asyn:READBACK, "1")
 }
 
+record(bo, "$(P)$(R)VarChanMaxRes")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Set Var Edit Max Res")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_VAR_EDIT_MAX_RES")
+   field(ZNAM, "Done")
+   field(ONAM, "Set")
+}
+
 record(bo, "$(P)$(R)ChangeVarEditRate")
 {
    field(DTYP, "asynInt32")

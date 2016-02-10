@@ -115,6 +115,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronVarEditYSizeString,  asynParamInt32, &PhotronVarEditYSize);
   createParam(PhotronVarEditXPosString,  asynParamInt32, &PhotronVarEditXPos);
   createParam(PhotronVarEditYPosString,  asynParamInt32, &PhotronVarEditYPos);
+  createParam(PhotronVarEditMaxResString,  asynParamInt32, &PhotronVarEditMaxRes);
   createParam(PhotronVarEditApplyString,  asynParamInt32, &PhotronVarEditApply);
   createParam(PhotronVarEditEraseString,  asynParamInt32, &PhotronVarEditErase);
   createParam(PhotronChangeVarEditRateString,  asynParamInt32, &PhotronChangeVarEditRate);
@@ -1508,6 +1509,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     changeVariableXPos(value);
   } else if (function == PhotronChangeVarEditYPos) {
     changeVariableYPos(value);
+  } else if (function == PhotronVarEditMaxRes) {
+    setVariableMaxRes();
   } else if (function == Photron8BitSel) {
     /* Specifies the bit position during 8-bit transfer from a device of more 
        than 8 bits. */
@@ -3386,11 +3389,43 @@ asynStatus Photron::setVariableRecordRate(epicsInt32 value) {
   if (status == asynSuccess) {
     // Update the param now that a valid value has been selected
     setIntegerParam(PhotronVarEditRate, value);
+  
+    // Set the largest valid resolution for the new record rate
+    status = this->setVariableMaxRes();
   }
   
-  // Update max width/height here?
-  
   return status;
+}
+
+
+asynStatus Photron::setVariableMaxRes() {
+  unsigned long nRet, nErrorCode;
+  unsigned long width, height;
+  epicsInt32 rate, xPos, yPos;
+  static const char *functionName = "setVariableMaxRes";
+  
+  getIntegerParam(PhotronVarEditRate, &rate);
+  
+  // Get maximum width
+  nRet = PDC_GetVariableMaxResolution(this->nDeviceNo, (unsigned long)rate,  
+                                      &width, &height, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetVariableMaxResolution Error %d\n", nErrorCode);
+    return asynError;
+  }
+  
+  // The returned width and hight are already valid
+  setIntegerParam(PhotronVarEditXSize, (epicsInt32)width);
+  setIntegerParam(PhotronVarEditYSize, (epicsInt32)height);
+  
+  // The X and Y positions may need to change; call the set methods with the 
+  // current X and Y positions to force them to be corrected
+  getIntegerParam(PhotronVarEditXPos, &xPos);
+  setVariableXPos(xPos);
+  getIntegerParam(PhotronVarEditYPos, &yPos);
+  setVariableYPos(yPos);
+  
+  return asynSuccess;
 }
 
 
