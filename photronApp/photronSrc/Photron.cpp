@@ -1368,7 +1368,7 @@ asynStatus Photron::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
       else {
         tempVal = 1.0 / value;
       }
-      setRecordRate((int)tempVal);
+      setRecordRate((int)tempVal, 0);
     } else {
       /* If this parameter belongs to a base class call its method */
       if (function < FIRST_PHOTRON_PARAM) status = ADDriver::writeFloat64(pasynUser, value);
@@ -1482,8 +1482,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       setVariableChannel(chan);
     } else {
       // Switch to Default mode
-      // TODO: remember desired rec rate
-      setRecordRate(this->desiredRate);
+      // Force the rate to be set, even if it is the current rate
+      setRecordRate(this->desiredRate, 1);
     }
   } else if (function == PhotronVarChan) {
     setVariableChannel(value);
@@ -1520,7 +1520,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
        than 8 bits. */
     setTransferOption();
   } else if (function == PhotronRecRate) {
-    setRecordRate(value);
+    setRecordRate(value, 0);
   } else if (function == PhotronChangeRecRate) {
     changeRecordRate(value);
   } else if (function == PhotronShutterFps) {
@@ -3883,7 +3883,11 @@ asynStatus Photron::jumpShutterSpeedFps(epicsInt32 value) {
 }
 
 
-asynStatus Photron::setRecordRate(epicsInt32 value) {
+// Setting the record rate changes the resolution, so it isn't always desirable
+// to send the PDC_SetRecordRate command:
+//   flag = 0 -> don't set record rate if new value == current value
+//   flag = 1 -> always set the record rate
+asynStatus Photron::setRecordRate(epicsInt32 value, epicsInt32 flag) {
   unsigned long nRet;
   unsigned long nErrorCode;
   asynStatus status;
@@ -3904,10 +3908,12 @@ asynStatus Photron::setRecordRate(epicsInt32 value) {
     return asynSuccess;
   }
   
-  if (this->nRate == value) {
-    // New value is the same as the current value, do nothing so that the
-    // current resolution settings are not lost
-    return asynSuccess;
+  if (flag == 0) {
+    if (this->nRate == value) {
+      // New value is the same as the current value, do nothing so that the
+      // current resolution settings are not lost
+      return asynSuccess;
+    }
   }
   
   status = findNearestValue(&value, &(this->recRateIndex),
@@ -3958,7 +3964,7 @@ asynStatus Photron::changeRecordRate(epicsInt32 value) {
   if (newRecRateIndex != (int)this->recRateIndex) {
     // A valid change has been requested
     newRecRate = this->RateList[newRecRateIndex];
-    this->setRecordRate(newRecRate);
+    this->setRecordRate(newRecRate, 0);
   }
   
   return (asynStatus)status;

@@ -222,7 +222,7 @@ private:
   asynStatus readMemImage(epicsInt32 value);
   asynStatus readImageRange();
   asynStatus setTransferOption();
-  asynStatus setRecordRate(epicsInt32 value);
+  asynStatus setRecordRate(epicsInt32 value, epicsInt32 flag);
   asynStatus changeRecordRate(epicsInt32 value);
   asynStatus setVariableRecordRate(epicsInt32 value);
   asynStatus changeVariableRecordRate(epicsInt32 value);
