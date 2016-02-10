@@ -3503,7 +3503,7 @@ asynStatus Photron::setVariableXSize(epicsInt32 value) {
   // Get free pos
   getIntegerParam(PhotronVarChanFreePos, &freePos);
   // Get sensor width
-  getIntegerParam(ADSizeX, &sensorWidth);
+  getIntegerParam(ADMaxSizeX, &sensorWidth);
   
   // Find the nearest good value to the desired width
   partialStep = value % wStep;
@@ -3550,7 +3550,7 @@ asynStatus Photron::setVariableXPos(epicsInt32 value) {
   
   //
   getIntegerParam(PhotronVarChanFreePos, &freePos);
-  getIntegerParam(ADSizeX, &sensorWidth);
+  getIntegerParam(ADMaxSizeX, &sensorWidth);
   getIntegerParam(PhotronVarEditXSize, &width);
   
   if ((freePos & PDC_VARIABLE_FREE_X) != 0) {
@@ -3662,7 +3662,7 @@ asynStatus Photron::setVariableYSize(epicsInt32 value) {
   // Get free pos
   getIntegerParam(PhotronVarChanFreePos, &freePos);
   // Get sensor height
-  getIntegerParam(ADSizeY, &sensorHeight);
+  getIntegerParam(ADMaxSizeY, &sensorHeight);
   
   // Find the nearest good value to the desired height
   partialStep = value % hStep;
@@ -3709,7 +3709,7 @@ asynStatus Photron::setVariableYPos(epicsInt32 value) {
   
   //
   getIntegerParam(PhotronVarChanFreePos, &freePos);
-  getIntegerParam(ADSizeY, &sensorHeight);
+  getIntegerParam(ADMaxSizeY, &sensorHeight);
   getIntegerParam(PhotronVarEditYSize, &height);
   
   if ((freePos & PDC_VARIABLE_FREE_Y) != 0) {
