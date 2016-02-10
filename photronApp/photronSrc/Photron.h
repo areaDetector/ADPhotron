@@ -239,6 +239,7 @@ private:
   asynStatus setShutterSpeedFps(epicsInt32 value);
   asynStatus changeShutterSpeedFps(epicsInt32 value);
   asynStatus jumpShutterSpeedFps(epicsInt32 value);
+  asynStatus readVariableChannelInfo();
   asynStatus setVariableChannel(epicsInt32 value);
   asynStatus changeVariableChannel(epicsInt32 value);
   asynStatus applyVariableChannel();

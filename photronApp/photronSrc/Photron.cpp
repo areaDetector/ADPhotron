@@ -3987,6 +3987,41 @@ asynStatus Photron::changeVariableChannel(epicsInt32 value) {
 }
 
 
+asynStatus Photron::readVariableChannelInfo() {
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  int status = asynSuccess;
+  epicsInt32 chan;
+  static const char *functionName = "readVariableChannelInfo";
+  
+  // Read the currently-selected channel. Checks are done when it is set so
+  // we assume the value is valid
+  getIntegerParam(PhotronVarChan, &chan);
+  
+  if (chan > 0) {
+    nRet = PDC_GetVariableChannelInfo(this->nDeviceNo, chan, &(this->varRate),
+                                      &(this->varWidth), &(this->varHeight),
+                                      &(this->varXPos), &(this->varYPos),
+                                      &nErrorCode);
+  } else {
+    // This should never happen. Move this to init instead?
+    this->varRate = 0;
+    this->varWidth = 0;
+    this->varHeight = 0;
+    this->varXPos = 0;
+    this->varYPos = 0;
+  }
+  // set the variable channel readbacks
+  setIntegerParam(PhotronVarChanRate, this->varRate);
+  setIntegerParam(PhotronVarChanXSize, this->varWidth);
+  setIntegerParam(PhotronVarChanYSize, this->varHeight);
+  setIntegerParam(PhotronVarChanXPos, this->varXPos);
+  setIntegerParam(PhotronVarChanYPos, this->varYPos);
+  
+  return asynSuccess;
+}
+
+
 asynStatus Photron::setVariableChannel(epicsInt32 value) {
   unsigned long nRet;
   unsigned long nErrorCode;
@@ -4011,21 +4046,13 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
     chan = value;
   }
   
+  // This is unecessary if the var change was changed directly, but the channel
+  // can also be incremented/decremented
+  setIntegerParam(PhotronVarChan, chan);
+  
   // Read the variable channel settings here instead of in readParameters
-  // because we only want the values to change when a chan change is attempted
-  if (chan > 0) {
-    nRet = PDC_GetVariableChannelInfo(this->nDeviceNo, chan, &(this->varRate),
-                                      &(this->varWidth), &(this->varHeight),
-                                      &(this->varXPos), &(this->varYPos),
-                                      &nErrorCode);
-  } else {
-    // This should never happen. Move this to init instead?
-    this->varRate = 0;
-    this->varWidth = 0;
-    this->varHeight = 0;
-    this->varXPos = 0;
-    this->varYPos = 0;
-  }
+  // because we only want the values to change when a releveant action is taken
+  this->readVariableChannelInfo();
   
   // Only apply the channel selection if the user is in variable mode
   // This allows the user to examine the settings while in default mode
@@ -4042,17 +4069,7 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
     }
   }
   
-  // This is unecessary if the var change was changed directly, but the channel
-  // can also be incremented/decremented
-  setIntegerParam(PhotronVarChan, chan);
-  
-  // set the variable channel readbacks
-  setIntegerParam(PhotronVarChanRate, this->varRate);
-  setIntegerParam(PhotronVarChanXSize, this->varWidth);
-  setIntegerParam(PhotronVarChanYSize, this->varHeight);
-  setIntegerParam(PhotronVarChanXPos, this->varXPos);
-  setIntegerParam(PhotronVarChanYPos, this->varYPos);
-  // also update the var chan edit fields
+  // Update the var chan edit fields
   if (this->varRate > 59) {
     // Channel is defined, use the same values as the readbacks
     setIntegerParam(PhotronVarEditRate, this->varRate);
@@ -4108,6 +4125,9 @@ asynStatus Photron::applyVariableChannel() {
     status = asynError;
   }
   
+  // Update the variable channel readbacks
+  this->readVariableChannelInfo();
+  
   return status;
 }
 
@@ -4118,12 +4138,21 @@ asynStatus Photron::eraseVariableChannel() {
   asynStatus status = asynSuccess;
   static const char *functionName = "eraseVariableChannel";
   
+  getIntegerParam(PhotronVarChan, &chan);
+  
   nRet = PDC_EraseVariableChannel(this->nDeviceNo, (unsigned long)chan,
                                   &nErrorCode);
   if (nRet == PDC_FAILED) {
     printf("PDC_EraseVariableChannel Error %d\n", nErrorCode);
     status = asynError;
   }
+  
+  // Update the variable channel readbacks
+  this->readVariableChannelInfo();
+  
+  // The variable edit parameters are intentionally left unchanged here,
+  // which allows the user to reapply the old settings in the event the
+  // channel was accidentally erased.
   
   return status;
 }
