@@ -4,6 +4,7 @@ record(mbbo, "$(P)$(R)ExtIn$(N)")
    field(PINI, "YES")
    field(DESC, "Ext In $(N)")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_EXT_IN_$(N)_SIG")
+   info(asyn:READBACK, "1")
 }
 
 record(mbbi, "$(P)$(R)ExtIn$(N)_RBV")
@@ -20,6 +21,7 @@ record(mbbo, "$(P)$(R)ExtOut$(N)")
    field(PINI, "YES")
    field(DESC, "Ext Out $(N)")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_EXT_OUT_$(N)_SIG")
+   info(asyn:READBACK, "1")
 }  
 
 record(mbbi, "$(P)$(R)ExtOut$(N)_RBV")
