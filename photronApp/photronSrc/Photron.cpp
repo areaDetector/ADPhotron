@@ -1490,6 +1490,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       if (oldValue == 2) {
         // Turn off sync input; Camera will return to default mode (5400 FPS)
         setExternalInMode(1, 0);
+        // calling setRecordRate with flag=1 can restore the target rate,
+        // but the readback still reads 5400. Leave it at 5400 for now.
       } else {
         // Force the rate to be set, even if it is the current rate
         setRecordRate(this->desiredRate, 1);
