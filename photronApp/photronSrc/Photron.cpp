@@ -1403,7 +1403,7 @@ asynStatus Photron::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int function = pasynUser->reason;
   int status = asynSuccess;
-  int adstatus, acqMode, chan;
+  int adstatus, acqMode, chan, camMode;
   int index;
   int skipReadParams = 0;
   epicsInt32 oldValue;
@@ -1486,15 +1486,27 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       epicsEventSignal(this->startRecEventId);
     }
   } else if (function == PhotronOpMode) {
-    // What should be done when this mode is changed?
-    if (value == 1) {
+    if (value == 0) {
+      // Switch to Default mode is requested. How to switch depends on camMode
+      getIntegerParam(PhotronCamMode, &camMode);
+      if (camMode == 2) {
+        // Turn off sync input; Camera will return to default mode (5400 FPS)
+        setExternalInMode(1, value);
+        // Keep Op mode in sync with cam mode?
+      } else {
+        // Force the rate to be set, even if it is the current rate
+        setRecordRate(this->desiredRate, 1);
+      }
+    } else if (value == 1) {
       // Switch to Variable mode by applying the currently selected variable channel
       getIntegerParam(PhotronVarChan, &chan);
       setVariableChannel(chan);
     } else {
-      // Switch to Default mode
-      // Force the rate to be set, even if it is the current rate
-      setRecordRate(this->desiredRate, 1);
+      // Switch to External mode requested
+      // Switch to External mode requested
+      // We can't know if the user wants other sync pos or neg, so revert to old value
+      setIntegerParam(PhotronOpMode, oldValue);
+      skipReadParams = 1;
     }
   } else if (function == PhotronVarChan) {
     setVariableChannel(value);
@@ -3968,9 +3980,9 @@ asynStatus Photron::setRecordRate(epicsInt32 value, epicsInt32 flag) {
   getIntegerParam(PhotronOpMode, &opMode);
   
   // Only allow the record rate to be set in Default mode
-  // Setting the record rate in Variable mode exits Variable mode, but the
-  // OpMode PV can't be easily kept in sync.
-  if (opMode == 1) {
+  // Setting the record rate in Variable mode exits Variable mode
+  // Setting the record rate in External mode changes the res unexpectedly
+  if (opMode > 0) {
     return asynSuccess;
   }
   
@@ -3998,6 +4010,7 @@ asynStatus Photron::setRecordRate(epicsInt32 value, epicsInt32 flag) {
   }
   
   // Keep the exposure time in sync with the record rate
+  // TODO: move this to readParameters
   acqTime = 1.0 / value;
   setDoubleParam(ADAcquireTime, acqTime);
   

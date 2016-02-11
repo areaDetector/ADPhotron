@@ -183,6 +183,9 @@ record(mbbo, "$(P)$(R)OpMode")
    field(ZRVL, "0")
    field(ONST, "Variable")
    field(ONVL, "1")
+   field(TWST, "External")
+   field(TWVL, "2")
+   info(asyn:READBACK, "1")
 }
 
 record(longin, "$(P)$(R)Status_RBV")
@@ -219,7 +222,7 @@ record(mbbi, "$(P)$(R)StatusName_RBV")
 record(mbbi, "$(P)$(R)CamMode_RBV")
 {
    field(DTYP, "asynInt32")
-   field(DESC, "8 Bit Select")
+   field(DESC, "Camera mode")
    field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CAM_MODE")
    field(ZRST, "Default")
    field(ZRVL, "0")
