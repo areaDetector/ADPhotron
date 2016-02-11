@@ -171,23 +171,6 @@ record(mbbo, "$(P)$(R)AcquireMode")
    field(VAL,  "0")
 }
 
-# OpMode has similar values to CamMode_RBV. It isn't called CamMode because 
-# there is no way to directly set the CamMode.
-record(mbbo, "$(P)$(R)OpMode")
-{
-   field(DTYP, "asynInt32")
-   field(PINI, "YES")
-   field(DESC, "Operating Mode")
-   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_OP_MODE")
-   field(ZRST, "Default")
-   field(ZRVL, "0")
-   field(ONST, "Variable")
-   field(ONVL, "1")
-   field(TWST, "External")
-   field(TWVL, "2")
-   info(asyn:READBACK, "1")
-}
-
 record(longin, "$(P)$(R)Status_RBV")
 {
    field(DTYP, "asynInt32")
@@ -217,6 +200,21 @@ record(mbbi, "$(P)$(R)StatusName_RBV")
    field(SVST, "Pause")
    field(SVVL, "7")
    field(SCAN, "I/O Intr")
+}
+
+record(mbbo, "$(P)$(R)CamMode")
+{
+   field(DTYP, "asynInt32")
+   field(PINI, "YES")
+   field(DESC, "Operating Mode")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_CAM_MODE")
+   field(ZRST, "Default")
+   field(ZRVL, "0")
+   field(ONST, "Variable")
+   field(ONVL, "1")
+   field(TWST, "External")
+   field(TWVL, "2")
+   info(asyn:READBACK, "1")
 }
 
 record(mbbi, "$(P)$(R)CamMode_RBV")
@@ -305,7 +303,7 @@ record(bo, "$(P)$(R)ChangeRecRate")
 record(calcout, "$(P)$(R)RecordRateSync")
 {
    field(DESC, "Sync record rate")
-   field(INPA, "$(P)$(R)OpMode")
+   field(INPA, "$(P)$(R)CamMode")
    field(INPB, "$(P)$(R)CamMode_RBV")
    field(INPC, "$(P)$(R)RecordRate_RBV")
    field(CALC, "A=0&&B=0")

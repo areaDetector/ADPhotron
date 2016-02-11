@@ -86,7 +86,6 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronStatusNameString,    asynParamInt32, &PhotronStatusName);
   createParam(PhotronCamModeString,       asynParamInt32, &PhotronCamMode);
   createParam(PhotronAcquireModeString,   asynParamInt32, &PhotronAcquireMode);
-  createParam(PhotronOpModeString,        asynParamInt32, &PhotronOpMode);
   createParam(PhotronMaxFramesString,     asynParamInt32, &PhotronMaxFrames);
   createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
   createParam(PhotronRecordRateString,    asynParamInt32, &PhotronRecRate);
@@ -1403,7 +1402,7 @@ asynStatus Photron::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int function = pasynUser->reason;
   int status = asynSuccess;
-  int adstatus, acqMode, chan, camMode;
+  int adstatus, acqMode, chan;
   int index;
   int skipReadParams = 0;
   epicsInt32 oldValue;
@@ -1485,14 +1484,12 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       // Wake up the PhotronRecTask
       epicsEventSignal(this->startRecEventId);
     }
-  } else if (function == PhotronOpMode) {
+  } else if (function == PhotronCamMode) {
     if (value == 0) {
-      // Switch to Default mode is requested. How to switch depends on camMode
-      getIntegerParam(PhotronCamMode, &camMode);
-      if (camMode == 2) {
+      // Switch to Default mode is requested. How to switch depends on current mode
+      if (oldValue == 2) {
         // Turn off sync input; Camera will return to default mode (5400 FPS)
-        setExternalInMode(1, value);
-        // Keep Op mode in sync with cam mode?
+        setExternalInMode(1, 0);
       } else {
         // Force the rate to be set, even if it is the current rate
         setRecordRate(this->desiredRate, 1);
@@ -1503,9 +1500,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       setVariableChannel(chan);
     } else {
       // Switch to External mode requested
-      // Switch to External mode requested
       // We can't know if the user wants other sync pos or neg, so revert to old value
-      setIntegerParam(PhotronOpMode, oldValue);
+      setIntegerParam(PhotronCamMode, oldValue);
       skipReadParams = 1;
     }
   } else if (function == PhotronVarChan) {
@@ -3969,7 +3965,7 @@ asynStatus Photron::setRecordRate(epicsInt32 value, epicsInt32 flag) {
   unsigned long nRet;
   unsigned long nErrorCode;
   asynStatus status;
-  int opMode;
+  int camMode;
   double acqTime;
   
   static const char *functionName = "setRecordRate";
@@ -3977,12 +3973,12 @@ asynStatus Photron::setRecordRate(epicsInt32 value, epicsInt32 flag) {
   // Remember the desired rate
   this->desiredRate = value;
   
-  getIntegerParam(PhotronOpMode, &opMode);
+  getIntegerParam(PhotronCamMode, &camMode);
   
   // Only allow the record rate to be set in Default mode
   // Setting the record rate in Variable mode exits Variable mode
   // Setting the record rate in External mode changes the res unexpectedly
-  if (opMode > 0) {
+  if (camMode > 0) {
     return asynSuccess;
   }
   
@@ -4024,7 +4020,7 @@ asynStatus Photron::changeRecordRate(epicsInt32 value) {
   int status = asynSuccess;
   int newRecRateIndex;
   int newRecRate;
-  int opMode;
+  int camMode;
   static const char *functionName = "changeRecordRate";
   
   // The record rate list is in order of incresting rate
@@ -4032,8 +4028,9 @@ asynStatus Photron::changeRecordRate(epicsInt32 value) {
   
   // If in variable mode, don't do anything, since there is no good way to
   // provide the user feedback they're changing the desired record rate
-  getIntegerParam(PhotronOpMode, &opMode);
-  if (opMode == 1) {
+  // In external mode attempting ot change the rec rate results in weird behavior
+  getIntegerParam(PhotronCamMode, &camMode);
+  if (camMode > 0) {
     return asynSuccess;
   }
   
@@ -4113,14 +4110,14 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
   epicsInt32 tempVal;
   int status = asynSuccess;
   int chan;
-  int opMode;
+  int camMode;
   static const char *functionName = "setVariableChannel";
   
   //printf("setVariableChannel: value = %d\n", value);
   
   // Channel = 0 in default mode, but zero isn't a valid arguement to the set call
   
-  getIntegerParam(PhotronOpMode, &opMode);
+  getIntegerParam(PhotronCamMode, &camMode);
   
   // Channel has a range of 1-20
   if (value < 1) {
@@ -4140,8 +4137,8 @@ asynStatus Photron::setVariableChannel(epicsInt32 value) {
   this->readVariableChannelInfo();
   
   // Only apply the channel selection if the user is in variable mode
-  // This allows the user to examine the settings while in default mode
-  if (opMode == 1)
+  // This allows the user to examine the settings while in other modes
+  if (camMode == 1)
   {
     if (this->varRate > 59) {
       // Only set the variable channel if the channel is not empty

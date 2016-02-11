@@ -1005,28 +1005,16 @@ composite {
 }
 menu {
 	object {
-		x=151
-		y=33
+		x=148
+		y=64
 		width=100
 		height=25
 	}
 	control {
-		chan="$(P)$(R)OpMode"
+		chan="$(P)$(R)CamMode"
 		clr=14
 		bclr=4
 	}
-}
-text {
-	object {
-		x=21
-		y=33
-		width=125
-		height=25
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="Op Mode"
 }
 "message button" {
 	object {
