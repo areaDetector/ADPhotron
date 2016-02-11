@@ -1,4 +1,5 @@
 # The order in which these PVs appear in this file is VERY IMPORTANT
+$(P)$(R)SyncPulse
 $(P)$(R)CamMode
 $(P)$(R)AcquireMode
 $(P)$(R)8BitSel

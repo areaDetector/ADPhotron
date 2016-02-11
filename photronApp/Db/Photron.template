@@ -231,6 +231,16 @@ record(mbbi, "$(P)$(R)CamMode_RBV")
    field(SCAN, "I/O Intr")
 }
 
+record(bo, "$(P)$(R)SyncPulse")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Othersync pulse pref")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SYNC_PULSE")
+   field(ZNAM, "Neg")
+   field(ONAM, "Pos")
+   field(VAL,  "1")
+}
+
 record(longin, "$(P)$(R)MaxFrames_RBV")
 {
    field(DTYP, "asynInt32")

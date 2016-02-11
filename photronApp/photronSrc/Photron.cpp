@@ -85,6 +85,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronStatusString,        asynParamInt32, &PhotronStatus);
   createParam(PhotronStatusNameString,    asynParamInt32, &PhotronStatusName);
   createParam(PhotronCamModeString,       asynParamInt32, &PhotronCamMode);
+  createParam(PhotronSyncPulseString,     asynParamInt32, &PhotronSyncPulse);
   createParam(PhotronAcquireModeString,   asynParamInt32, &PhotronAcquireMode);
   createParam(PhotronMaxFramesString,     asynParamInt32, &PhotronMaxFrames);
   createParam(Photron8BitSelectString,    asynParamInt32, &Photron8BitSel);
@@ -1402,7 +1403,7 @@ asynStatus Photron::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int function = pasynUser->reason;
   int status = asynSuccess;
-  int adstatus, acqMode, chan;
+  int adstatus, acqMode, chan, syncPulse;
   int index;
   int skipReadParams = 0;
   epicsInt32 oldValue;
@@ -1502,10 +1503,20 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       setVariableChannel(chan);
     } else {
       // Switch to External mode requested
-      // We can't know if the user wants other sync pos or neg, so revert to old value
-      setIntegerParam(PhotronCamMode, oldValue);
-      skipReadParams = 1;
+      // TODO: check for existence of othersync options
+      getIntegerParam(PhotronSyncPulse, &syncPulse);
+      if (syncPulse == 1) {
+        // Set sync input to "On Others Pos"
+        setExternalInMode(1, 3);
+      } else {
+        // Set sync input to "On Others Neg"
+        setExternalInMode(1, 4);
+      }
     }
+  } else if (function == PhotronSyncPulse) {
+    // Do nothing. This param only exists so that the user has control over what
+    // happens when "External" mode is selected
+    skipReadParams = 1;
   } else if (function == PhotronVarChan) {
     setVariableChannel(value);
   } else if (function == PhotronChangeVarChan) {

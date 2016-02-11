@@ -131,6 +131,7 @@ protected:
     int PhotronStatus;
     int PhotronStatusName;
     int PhotronCamMode;
+    int PhotronSyncPulse;
     int PhotronAcquireMode;
     int PhotronMaxFrames;
     int Photron8BitSel;
@@ -426,6 +427,7 @@ typedef struct {
 #define PhotronStatusString     "PHOTRON_STATUS"     /* (asynInt32,    rw)   */
 #define PhotronStatusNameString  "PHOTRON_STATUS_NAME" /* (asynInt32,   rw)   */
 #define PhotronCamModeString    "PHOTRON_CAM_MODE"   /* (asynInt32,    r)   */
+#define PhotronSyncPulseString    "PHOTRON_SYNC_PULSE"   /* (asynInt32,    r)   */
 #define PhotronAcquireModeString "PHOTRON_ACQUIRE_MODE" /* (asynInt32,    w) */
 #define PhotronMaxFramesString  "PHOTRON_MAX_FRAMES" /* (asynInt32,    r)   */
 #define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
