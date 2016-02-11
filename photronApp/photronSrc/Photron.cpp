@@ -199,6 +199,21 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
     return;
   }
   
+  /* Create the epicsEvents for signaling to the save task when 
+     shading data is saved */
+  this->startSaveEventId = epicsEventCreate(epicsEventEmpty);
+  if (!this->startSaveEventId) {
+    printf("%s:%s epicsEventCreate failure for start save event\n",
+           driverName, functionName);
+    return;
+  }
+  this->stopSaveEventId = epicsEventCreate(epicsEventEmpty);
+  if (!this->stopSaveEventId) {
+    printf("%s:%s epicsEventCreate failure for stop save event\n",
+           driverName, functionName);
+    return;
+  }
+  
   /* Create the epicsEvents for signaling to the recording task when 
      to start watching the camera status */
   this->startRecEventId = epicsEventCreate(epicsEventEmpty);
@@ -243,6 +258,16 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   status = (epicsThreadCreate("PhotronTask", epicsThreadPriorityMedium,
                 epicsThreadGetStackSize(epicsThreadStackMedium),
                 (EPICSTHREADFUNC)PhotronTaskC, this) == NULL);
+  if (status) {
+    printf("%s:%s epicsThreadCreate failure for image task\n",
+           driverName, functionName);
+    return;
+  }
+  
+  /* Create the thread that polls status while saving shading data */
+  status = (epicsThreadCreate("PhotronSaveTask", epicsThreadPriorityMedium,
+                epicsThreadGetStackSize(epicsThreadStackMedium),
+                (EPICSTHREADFUNC)PhotronSaveTaskC, this) == NULL);
   if (status) {
     printf("%s:%s epicsThreadCreate failure for image task\n",
            driverName, functionName);
@@ -621,11 +646,66 @@ void Photron::PhotronPlayTask() {
 }
 
 
+static void PhotronSaveTaskC(void *drvPvt) {
+  Photron *pPvt = (Photron *)drvPvt;
+  pPvt->PhotronSaveTask();
+}
+
+/** Saving the shading data takes a long time. Spawn a task to poll the status
+  */
+void Photron::PhotronSaveTask() {
+  unsigned long status = 0;
+  unsigned long nRet;
+  unsigned long nErrorCode;
+  int eStatus;
+  const char *functionName = "PhotronSaveTask";
+  
+  this->lock();
+  /* Loop forever */
+  while (1) {
+    /* Wait for a semaphore that is given when shading data is being saved */
+    /* Release the lock while we wait for an event that says acquire has 
+       started, then lock again */
+    asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
+              "%s:%s: waiting for saving shading data to start\n", driverName, 
+              functionName);
+    this->unlock();
+    epicsEventWait(this->startSaveEventId);
+    this->lock();
+    
+    // Wait until saving is done
+    while (1) {
+      printf("Waiting for saving to be done...\n");
+      // Get camera status
+      nRet = PDC_GetStatus(this->nDeviceNo, &status, &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetStatus failed %d\n", nErrorCode);
+      }
+      setIntegerParam(PhotronStatus, status);
+      eStatus = statusToEPICS(status);
+      setIntegerParam(PhotronStatusName, eStatus);
+      callParamCallbacks();
+      
+      if (status != PDC_STATUS_SAVE) {
+        break;
+      }
+      
+      // release the lock so other things can happen, even though they shouldn't
+      this->unlock();
+      epicsEventWaitWithTimeout(this->stopSaveEventId, 0.5);
+      this->lock();
+    }
+    
+    // update parameters here since they weren't updated in writeInt32
+    readParameters();
+  }
+}
+
+
 static void PhotronRecTaskC(void *drvPvt) {
   Photron *pPvt = (Photron *)drvPvt;
   pPvt->PhotronRecTask();
 }
-
 
 /** This thread puts the camera in playback mode and reads recorded image data
   * from the camera after recording is done.
@@ -1694,6 +1774,10 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setExternalOutMode(4, value);
   } else if (function == PhotronShadingMode) {
     setShadingMode(value);
+    if (value == 2) {
+      // Don't read parameters if "Save" is selected; the save task will do that
+      skipReadParams = 1;
+    }
   } else if (function == PhotronTest) {
     // Set status to asynSuccess if value is divisible by 4, asynError otherwise
     if ((value % 4) == 0) {
@@ -2331,8 +2415,15 @@ asynStatus Photron::setShadingMode(epicsInt32 value) {
                               &nErrorCode);
     if (nRet == PDC_FAILED) {
       printf("PDC_SetShadingMode failed %d\n", nErrorCode);
-      status = asynError;
+      return asynError;
     }
+    
+    if (apiMode == PDC_SHADING_SAVE) {
+      // The "Save" operation takes a long time; wake up the save task to 
+      // poll the camera status in a separate thread
+      epicsEventSignal(this->startSaveEventId);
+    }
+    
   } else {
     // Function isn't supported, return an error for user feedback
     status = asynError;
