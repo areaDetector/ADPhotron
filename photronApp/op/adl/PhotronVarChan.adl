@@ -149,26 +149,11 @@ text {
 	textix="Y"
 	align="horiz. right"
 }
-"text entry" {
-	object {
-		x=115
-		y=35
-		width=60
-		height=20
-	}
-	control {
-		chan="$(P)$(R)VarChan"
-		clr=14
-		bclr=51
-	}
-	limits {
-	}
-}
 "text update" {
 	object {
-		x=240
+		x=115
 		y=36
-		width=61
+		width=60
 		height=18
 	}
 	monitor {
@@ -195,9 +180,9 @@ text {
 }
 "text update" {
 	object {
-		x=240
+		x=115
 		y=61
-		width=61
+		width=60
 		height=18
 	}
 	monitor {
@@ -225,7 +210,7 @@ text {
 text {
 	object {
 		x=5
-		y=130
+		y=117
 		width=80
 		height=20
 	}
@@ -239,7 +224,7 @@ text {
 	object {
 		x=115
 		y=110
-		width=61
+		width=60
 		height=18
 	}
 	monitor {
@@ -255,7 +240,7 @@ text {
 	object {
 		x=240
 		y=110
-		width=61
+		width=60
 		height=18
 	}
 	monitor {
@@ -270,7 +255,7 @@ text {
 text {
 	object {
 		x=5
-		y=175
+		y=162
 		width=80
 		height=20
 	}
@@ -284,7 +269,7 @@ text {
 	object {
 		x=115
 		y=155
-		width=61
+		width=60
 		height=18
 	}
 	monitor {
@@ -300,7 +285,7 @@ text {
 	object {
 		x=240
 		y=155
-		width=61
+		width=60
 		height=18
 	}
 	monitor {
@@ -310,98 +295,6 @@ text {
 	}
 	align="horiz. centered"
 	limits {
-	}
-}
-"message button" {
-	object {
-		x=180
-		y=35
-		width=20
-		height=20
-	}
-	control {
-		chan="$(P)$(R)ChangeVarChan.VAL"
-		clr=14
-		bclr=51
-	}
-	label="+"
-	press_msg="1"
-}
-"message button" {
-	object {
-		x=90
-		y=35
-		width=20
-		height=20
-	}
-	control {
-		chan="$(P)$(R)ChangeVarChan.VAL"
-		clr=14
-		bclr=51
-	}
-	label="-"
-	press_msg="0"
-}
-composite {
-	object {
-		x=90
-		y=60
-		width=20
-		height=20
-	}
-	"composite name"=""
-	children {
-		"message button" {
-			object {
-				x=90
-				y=60
-				width=20
-				height=20
-			}
-			control {
-				chan="$(P)$(R)ChangeVarEditRate.VAL"
-				clr=14
-				bclr=51
-			}
-			label="-"
-			press_msg="0"
-		}
-	}
-	"dynamic attribute" {
-		vis="if zero"
-		calc="A"
-		chan="$(P)$(R)CamMode_RBV"
-	}
-}
-composite {
-	object {
-		x=180
-		y=60
-		width=20
-		height=20
-	}
-	"composite name"=""
-	children {
-		"message button" {
-			object {
-				x=180
-				y=60
-				width=20
-				height=20
-			}
-			control {
-				chan="$(P)$(R)ChangeVarEditRate.VAL"
-				clr=14
-				bclr=51
-			}
-			label="+"
-			press_msg="1"
-		}
-	}
-	"dynamic attribute" {
-		vis="if zero"
-		calc="A"
-		chan="$(P)$(R)CamMode_RBV"
 	}
 }
 composite {
@@ -530,8 +423,8 @@ composite {
 }
 composite {
 	object {
-		x=192
-		y=152
+		x=5
+		y=162
 		width=30
 		height=20
 	}
@@ -539,8 +432,8 @@ composite {
 	children {
 		"message button" {
 			object {
-				x=192
-				y=152
+				x=5
+				y=162
 				width=30
 				height=20
 			}
@@ -678,6 +571,8 @@ composite {
 		}
 	}
 	"dynamic attribute" {
+		vis="if zero"
+		calc="A"
 		chan="$(P)$(R)CamMode_RBV"
 	}
 }
@@ -735,37 +630,6 @@ composite {
 			}
 			label="Erase"
 			press_msg="1"
-		}
-	}
-	"dynamic attribute" {
-		vis="if zero"
-		calc="A"
-		chan="$(P)$(R)CamMode_RBV"
-	}
-}
-composite {
-	object {
-		x=115
-		y=60
-		width=60
-		height=20
-	}
-	"composite name"=""
-	children {
-		"text entry" {
-			object {
-				x=115
-				y=60
-				width=60
-				height=20
-			}
-			control {
-				chan="$(P)$(R)VarChanRate"
-				clr=14
-				bclr=51
-			}
-			limits {
-			}
 		}
 	}
 	"dynamic attribute" {
@@ -897,4 +761,165 @@ composite {
 		calc="A"
 		chan="$(P)$(R)CamMode_RBV"
 	}
+}
+"text entry" {
+	object {
+		x=240
+		y=35
+		width=60
+		height=20
+	}
+	control {
+		chan="$(P)$(R)VarChan"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+"message button" {
+	object {
+		x=305
+		y=35
+		width=20
+		height=20
+	}
+	control {
+		chan="$(P)$(R)ChangeVarChan.VAL"
+		clr=14
+		bclr=51
+	}
+	label="+"
+	press_msg="1"
+}
+"message button" {
+	object {
+		x=215
+		y=35
+		width=20
+		height=20
+	}
+	control {
+		chan="$(P)$(R)ChangeVarChan.VAL"
+		clr=14
+		bclr=51
+	}
+	label="-"
+	press_msg="0"
+}
+composite {
+	object {
+		x=215
+		y=60
+		width=110
+		height=20
+	}
+	"composite name"=""
+	children {
+		composite {
+			object {
+				x=215
+				y=60
+				width=20
+				height=20
+			}
+			"composite name"=""
+			children {
+				"message button" {
+					object {
+						x=215
+						y=60
+						width=20
+						height=20
+					}
+					control {
+						chan="$(P)$(R)ChangeVarEditRate.VAL"
+						clr=14
+						bclr=51
+					}
+					label="-"
+					press_msg="0"
+				}
+			}
+			"dynamic attribute" {
+				vis="if zero"
+				calc="A"
+				chan="$(P)$(R)CamMode_RBV"
+			}
+		}
+		composite {
+			object {
+				x=305
+				y=60
+				width=20
+				height=20
+			}
+			"composite name"=""
+			children {
+				"message button" {
+					object {
+						x=305
+						y=60
+						width=20
+						height=20
+					}
+					control {
+						chan="$(P)$(R)ChangeVarEditRate.VAL"
+						clr=14
+						bclr=51
+					}
+					label="+"
+					press_msg="1"
+				}
+			}
+			"dynamic attribute" {
+				vis="if zero"
+				calc="A"
+				chan="$(P)$(R)CamMode_RBV"
+			}
+		}
+		composite {
+			object {
+				x=240
+				y=60
+				width=60
+				height=20
+			}
+			"composite name"=""
+			children {
+				"text entry" {
+					object {
+						x=240
+						y=60
+						width=60
+						height=20
+					}
+					control {
+						chan="$(P)$(R)VarChanRate"
+						clr=14
+						bclr=51
+					}
+					limits {
+					}
+				}
+			}
+			"dynamic attribute" {
+				vis="if zero"
+				calc="A"
+				chan="$(P)$(R)CamMode_RBV"
+			}
+		}
+	}
+}
+text {
+	object {
+		x=180
+		y=61
+		width=25
+		height=18
+	}
+	"basic attribute" {
+		clr=54
+	}
+	textix="FPS"
 }
