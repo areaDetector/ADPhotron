@@ -143,13 +143,13 @@ composite {
 }
 composite {
 	object {
-		x=360
-		y=719
+		x=714
+		y=503
 		width=350
 		height=60
 	}
 	"composite name"=""
-	"composite file"="PhotronIO.adl;P=$(P),R=$(R)"
+	"composite file"="PhotronIO.adl"
 }
 composite {
 	object {
@@ -164,9 +164,9 @@ composite {
 composite {
 	object {
 		x=360
-		y=205
+		y=324
 		width=350
-		height=510
+		height=435
 	}
 	"composite name"=""
 	"composite file"="PhotronCollect.adl"
@@ -199,7 +199,7 @@ composite {
 		height=230
 	}
 	"composite name"=""
-	"composite file"="PhotronVarChan.adl;P=$(P),R=$(R)"
+	"composite file"="PhotronVarChan.adl"
 }
 composite {
 	object {
@@ -209,5 +209,15 @@ composite {
 		height=155
 	}
 	"composite name"=""
-	"composite file"="PhotronTrig.adl;P=$(P),R=$(R)"
+	"composite file"="PhotronTrig.adl"
+}
+composite {
+	object {
+		x=360
+		y=204
+		width=350
+		height=115
+	}
+	"composite name"=""
+	"composite file"="PhotronMode.adl"
 }
