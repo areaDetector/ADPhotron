@@ -99,6 +99,16 @@ display {
 		name="ADBase.adl"
 		args="P=$(P),R=$(R)"
 	}
+	display[1] {
+		label="Photron Trig"
+		name="PhotronTrig.adl"
+		args="P=$(P),R=$(R)"
+	}
+	display[2] {
+		label="Photron I/O"
+		name="PhotronIO.adl"
+		args="P=$(P),R=$(R)"
+	}
 	clr=14
 	bclr=4
 }
