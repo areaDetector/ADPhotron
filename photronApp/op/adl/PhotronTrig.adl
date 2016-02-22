@@ -116,7 +116,7 @@ text {
 	object {
 		x=180
 		y=105
-		width=60
+		width=80
 		height=20
 	}
 	control {
@@ -129,7 +129,7 @@ text {
 }
 "text update" {
 	object {
-		x=245
+		x=265
 		y=106
 		width=80
 		height=18
@@ -159,7 +159,7 @@ text {
 	object {
 		x=180
 		y=55
-		width=60
+		width=80
 		height=20
 	}
 	control {
@@ -172,7 +172,7 @@ text {
 }
 "text update" {
 	object {
-		x=245
+		x=265
 		y=56
 		width=80
 		height=18
@@ -202,7 +202,7 @@ text {
 	object {
 		x=180
 		y=80
-		width=60
+		width=80
 		height=20
 	}
 	control {
@@ -215,7 +215,7 @@ text {
 }
 "text update" {
 	object {
-		x=245
+		x=265
 		y=81
 		width=80
 		height=18
@@ -228,57 +228,46 @@ text {
 	limits {
 	}
 }
-composite {
+text {
 	object {
 		x=5
 		y=30
-		width=330
+		width=90
 		height=20
 	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=5
-				y=30
-				width=120
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Trigger mode"
-			align="horiz. right"
-		}
-		menu {
-			object {
-				x=130
-				y=30
-				width=120
-				height=20
-			}
-			control {
-				chan="$(P)$(R)TriggerMode"
-				clr=14
-				bclr=51
-			}
-		}
-		"text update" {
-			object {
-				x=255
-				y=31
-				width=80
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)TriggerMode_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Trig mode"
+	align="horiz. right"
+}
+menu {
+	object {
+		x=100
+		y=30
+		width=120
+		height=20
+	}
+	control {
+		chan="$(P)$(R)TriggerMode"
+		clr=14
+		bclr=51
+	}
+}
+"text update" {
+	object {
+		x=225
+		y=31
+		width=110
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)TriggerMode_RBV"
+		clr=54
+		bclr=4
+	}
+	format="string"
+	limits {
 	}
 }
 rectangle {
@@ -305,42 +294,31 @@ text {
 	textix="Trigger"
 	align="horiz. centered"
 }
-composite {
+"message button" {
+	object {
+		x=180
+		y=130
+		width=80
+		height=20
+	}
+	control {
+		chan="$(P)$(R)SoftwareTrigger.VAL"
+		clr=14
+		bclr=51
+	}
+	label="Trigger"
+	press_msg="1"
+}
+text {
 	object {
 		x=5
 		y=130
-		width=234
+		width=170
 		height=20
 	}
-	"composite name"=""
-	children {
-		"message button" {
-			object {
-				x=180
-				y=130
-				width=59
-				height=20
-			}
-			control {
-				chan="$(P)$(R)SoftwareTrigger.VAL"
-				clr=14
-				bclr=51
-			}
-			label="Trig"
-			press_msg="1"
-		}
-		text {
-			object {
-				x=5
-				y=130
-				width=170
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Software Trigger"
-			align="horiz. right"
-		}
+	"basic attribute" {
+		clr=14
 	}
+	textix="Software Trigger"
+	align="horiz. right"
 }
