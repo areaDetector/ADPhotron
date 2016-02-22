@@ -1391,6 +1391,11 @@ text {
 		name="PhotronPMSlider.adl"
 		args="P=$(P),R=$(R)"
 	}
+	display[1] {
+		label="New Slider"
+		name="PhotronPlaybackControls.adl"
+		args="P=$(P),R=$(R)"
+	}
 	clr=14
 	bclr=4
 	label="-Slider"
