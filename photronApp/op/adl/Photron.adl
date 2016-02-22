@@ -144,7 +144,7 @@ composite {
 composite {
 	object {
 		x=360
-		y=755
+		y=719
 		width=350
 		height=60
 	}
@@ -166,10 +166,10 @@ composite {
 		x=360
 		y=205
 		width=350
-		height=405
+		height=510
 	}
 	"composite name"=""
-	"composite file"="ADCollect.adl"
+	"composite file"="PhotronCollect.adl"
 }
 composite {
 	object {
@@ -183,7 +183,7 @@ composite {
 }
 composite {
 	object {
-		x=360
+		x=714
 		y=615
 		width=350
 		height=135
