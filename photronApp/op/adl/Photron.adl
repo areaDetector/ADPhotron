@@ -8,7 +8,7 @@ display {
 		x=371
 		y=72
 		width=1070
-		height=802
+		height=735
 	}
 	clr=14
 	bclr=4
@@ -123,18 +123,8 @@ composite {
 }
 composite {
 	object {
-		x=714
-		y=35
-		width=350
-		height=165
-	}
-	"composite name"=""
-	"composite file"="ADShutter.adl"
-}
-composite {
-	object {
 		x=5
-		y=689
+		y=669
 		width=350
 		height=60
 	}
@@ -146,7 +136,7 @@ composite {
 		x=5
 		y=340
 		width=350
-		height=345
+		height=325
 	}
 	"composite name"=""
 	"composite file"="PhotronReadout.adl"
@@ -173,16 +163,6 @@ composite {
 }
 composite {
 	object {
-		x=714
-		y=204
-		width=350
-		height=60
-	}
-	"composite name"=""
-	"composite file"="PhotronIO.adl"
-}
-composite {
-	object {
 		x=360
 		y=279
 		width=350
@@ -204,30 +184,67 @@ composite {
 composite {
 	object {
 		x=714
-		y=661
+		y=35
 		width=350
-		height=135
+		height=265
 	}
 	"composite name"=""
-	"composite file"="ADBuffers.adl"
+	"composite file"="PhotronIOdetail.adl"
 }
 composite {
 	object {
 		x=714
-		y=427
+		y=304
 		width=350
-		height=230
+		height=414
 	}
 	"composite name"=""
-	"composite file"="PhotronVarChan.adl"
+	children {
+		composite {
+			object {
+				x=714
+				y=488
+				width=350
+				height=230
+			}
+			"composite name"=""
+			"composite file"="PhotronVarChan.adl"
+		}
+		composite {
+			object {
+				x=714
+				y=304
+				width=350
+				height=180
+			}
+			"composite name"=""
+			"composite file"="PhotronTrig.adl"
+		}
+	}
 }
-composite {
+"related display" {
 	object {
-		x=714
-		y=268
-		width=350
-		height=155
+		x=1004
+		y=8
+		width=60
+		height=20
 	}
-	"composite name"=""
-	"composite file"="PhotronTrig.adl"
+	display[0] {
+		label="Shutter Control"
+		name="ADShutter.adl"
+		args="P=$(P),R=$(R)"
+	}
+	display[1] {
+		label="Buffer Info"
+		name="ADBuffers.adl"
+		args="P=$(P),R=$(R)"
+	}
+	display[15] {
+		label="ADBase"
+		name="ADBase.adl"
+		args="P=$(P),R=$(R)"
+	}
+	clr=1
+	bclr=17
+	label="-More"
 }

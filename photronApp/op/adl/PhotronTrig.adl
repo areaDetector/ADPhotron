@@ -8,7 +8,7 @@ display {
 		x=44
 		y=221
 		width=350
-		height=155
+		height=180
 	}
 	clr=14
 	bclr=4
@@ -92,7 +92,7 @@ rectangle {
 		x=0
 		y=0
 		width=350
-		height=155
+		height=180
 	}
 	"basic attribute" {
 		clr=14
@@ -297,7 +297,7 @@ text {
 "message button" {
 	object {
 		x=180
-		y=130
+		y=155
 		width=80
 		height=20
 	}
@@ -312,7 +312,7 @@ text {
 text {
 	object {
 		x=5
-		y=130
+		y=155
 		width=170
 		height=20
 	}
@@ -321,4 +321,33 @@ text {
 	}
 	textix="Software Trigger"
 	align="horiz. right"
+}
+text {
+	object {
+		x=5
+		y=130
+		width=170
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Max Frames"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=180
+		y=131
+		width=80
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)MaxFrames_RBV"
+		clr=54
+		bclr=4
+	}
+	align="horiz. centered"
+	limits {
+	}
 }

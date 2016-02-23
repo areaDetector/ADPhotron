@@ -5,10 +5,10 @@ file {
 }
 display {
 	object {
-		x=955
-		y=672
+		x=480
+		y=194
 		width=350
-		height=345
+		height=325
 	}
 	clr=14
 	bclr=4
@@ -103,7 +103,7 @@ rectangle {
 		x=0
 		y=0
 		width=350
-		height=345
+		height=325
 	}
 	"basic attribute" {
 		clr=14
@@ -418,35 +418,6 @@ text {
 	limits {
 	}
 }
-text {
-	object {
-		x=12
-		y=220
-		width=120
-		height=20
-	}
-	"basic attribute" {
-		clr=14
-	}
-	textix="Max Frames"
-	align="horiz. right"
-}
-"text update" {
-	object {
-		x=143
-		y=221
-		width=61
-		height=18
-	}
-	monitor {
-		chan="$(P)$(R)MaxFrames_RBV"
-		clr=54
-		bclr=4
-	}
-	align="horiz. centered"
-	limits {
-	}
-}
 "message button" {
 	object {
 		x=210
@@ -480,7 +451,7 @@ text {
 composite {
 	object {
 		x=12
-		y=245
+		y=225
 		width=303
 		height=95
 	}
@@ -489,7 +460,7 @@ composite {
 		composite {
 			object {
 				x=12
-				y=270
+				y=250
 				width=303
 				height=20
 			}
@@ -498,7 +469,7 @@ composite {
 				text {
 					object {
 						x=12
-						y=270
+						y=250
 						width=120
 						height=20
 					}
@@ -511,7 +482,7 @@ composite {
 				menu {
 					object {
 						x=138
-						y=270
+						y=250
 						width=80
 						height=20
 					}
@@ -524,7 +495,7 @@ composite {
 				"text update" {
 					object {
 						x=236
-						y=271
+						y=251
 						width=79
 						height=18
 					}
@@ -543,7 +514,7 @@ composite {
 		composite {
 			object {
 				x=12
-				y=295
+				y=275
 				width=303
 				height=20
 			}
@@ -552,7 +523,7 @@ composite {
 				text {
 					object {
 						x=12
-						y=295
+						y=275
 						width=120
 						height=20
 					}
@@ -565,7 +536,7 @@ composite {
 				menu {
 					object {
 						x=138
-						y=295
+						y=275
 						width=80
 						height=20
 					}
@@ -578,7 +549,7 @@ composite {
 				"text update" {
 					object {
 						x=236
-						y=296
+						y=276
 						width=79
 						height=18
 					}
@@ -597,7 +568,7 @@ composite {
 		composite {
 			object {
 				x=12
-				y=245
+				y=225
 				width=303
 				height=20
 			}
@@ -606,7 +577,7 @@ composite {
 				text {
 					object {
 						x=12
-						y=245
+						y=225
 						width=120
 						height=20
 					}
@@ -619,7 +590,7 @@ composite {
 				menu {
 					object {
 						x=138
-						y=245
+						y=225
 						width=80
 						height=20
 					}
@@ -632,7 +603,7 @@ composite {
 				"text update" {
 					object {
 						x=236
-						y=246
+						y=226
 						width=79
 						height=18
 					}
@@ -651,7 +622,7 @@ composite {
 		composite {
 			object {
 				x=12
-				y=320
+				y=300
 				width=303
 				height=20
 			}
@@ -660,7 +631,7 @@ composite {
 				text {
 					object {
 						x=12
-						y=320
+						y=300
 						width=120
 						height=20
 					}
@@ -673,7 +644,7 @@ composite {
 				menu {
 					object {
 						x=138
-						y=320
+						y=300
 						width=80
 						height=20
 					}
@@ -686,7 +657,7 @@ composite {
 				"text update" {
 					object {
 						x=236
-						y=321
+						y=301
 						width=79
 						height=18
 					}
