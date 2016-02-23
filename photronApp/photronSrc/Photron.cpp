@@ -692,7 +692,7 @@ void Photron::PhotronSaveTask() {
       
       // release the lock so other things can happen, even though they shouldn't
       this->unlock();
-      epicsEventWaitWithTimeout(this->stopSaveEventId, 0.5);
+      epicsEventWaitWithTimeout(this->stopSaveEventId, 1.0);
       this->lock();
     }
     
@@ -1504,7 +1504,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   getIntegerParam(PhotronPreviewMode, &previewMode);
   // 1 = Playback
   getIntegerParam(PhotronStatus, &phostat);
-  if ((previewMode == 1) && (phostat == 1)) {
+  if ((previewMode == 1) && (phostat == PDC_STATUS_PLAYBACK)) {
     previewInProgress = 1;
   } else {
     previewInProgress = 0;
@@ -1515,7 +1515,13 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   functionToAllow = ((function >= PhotronPMStart) && (function <= PhotronPMRepeat));
   functionToReject = ((function >= PhotronPMStart) && (function <= PhotronPMCancel));
   
-  if (previewInProgress && (!functionToAllow)) {
+  if (phostat == PDC_STATUS_SAVE) {
+    // Don't allow any PVs to change while camera is in the save state
+    printf("Save in progress: function = %d\tvalue = %d\toldValue = %d\n", function, value, oldValue);
+    // Revert requested change
+    setIntegerParam(function, oldValue);
+    skipReadParams = 1;
+  } else if (previewInProgress && (!functionToAllow)) {
     // Only allow preview-mode PVs to be changed during preview mode
     printf("Preview in progress: function = %d\tvalue = %d\toldValue = %d\n", function, value, oldValue);
     // Revert requested change
