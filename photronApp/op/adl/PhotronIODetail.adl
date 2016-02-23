@@ -1,6 +1,6 @@
 
 file {
-	name="D:\epics\AD-2-4\areaDetector-R2-4\ADPhotron\photronApp\op\adl\PhotronIO.adl"
+	name="D:\epics\AD-2-4\areaDetector-R2-4\ADPhotron\photronApp\op\adl\PhotronIODetail.adl"
 	version=030109
 }
 display {
@@ -8,7 +8,7 @@ display {
 		x=44
 		y=221
 		width=350
-		height=230
+		height=265
 	}
 	clr=14
 	bclr=4
@@ -92,7 +92,7 @@ rectangle {
 		x=0
 		y=0
 		width=350
-		height=230
+		height=265
 	}
 	"basic attribute" {
 		clr=14
@@ -485,6 +485,59 @@ composite {
 			}
 			monitor {
 				chan="$(P)$(R)ExtOut4_RBV"
+				clr=54
+				bclr=4
+			}
+			format="string"
+			limits {
+			}
+		}
+	}
+}
+composite {
+	object {
+		x=5
+		y=240
+		width=340
+		height=20
+	}
+	"composite name"=""
+	children {
+		text {
+			object {
+				x=5
+				y=240
+				width=130
+				height=20
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="Sync Priority"
+			align="horiz. right"
+		}
+		menu {
+			object {
+				x=140
+				y=240
+				width=120
+				height=20
+			}
+			control {
+				chan="$(P)$(R)SyncPriority"
+				clr=14
+				bclr=51
+			}
+		}
+		"text update" {
+			object {
+				x=265
+				y=242
+				width=80
+				height=18
+			}
+			monitor {
+				chan="$(P)$(R)SyncPriority_RBV"
 				clr=54
 				bclr=4
 			}

@@ -7,8 +7,8 @@ display {
 	object {
 		x=371
 		y=72
-		width=1075
-		height=825
+		width=1070
+		height=802
 	}
 	clr=14
 	bclr=4
@@ -143,16 +143,6 @@ composite {
 }
 composite {
 	object {
-		x=360
-		y=644
-		width=350
-		height=60
-	}
-	"composite name"=""
-	"composite file"="PhotronIO.adl"
-}
-composite {
-	object {
 		x=5
 		y=340
 		width=350
@@ -160,16 +150,6 @@ composite {
 	}
 	"composite name"=""
 	"composite file"="PhotronReadout.adl"
-}
-composite {
-	object {
-		x=360
-		y=255
-		width=350
-		height=385
-	}
-	"composite name"=""
-	"composite file"="PhotronCollect.adl"
 }
 composite {
 	object {
@@ -183,8 +163,48 @@ composite {
 }
 composite {
 	object {
+		x=360
+		y=35
+		width=350
+		height=240
+	}
+	"composite name"=""
+	"composite file"="PhotronMode.adl"
+}
+composite {
+	object {
 		x=714
-		y=597
+		y=204
+		width=350
+		height=60
+	}
+	"composite name"=""
+	"composite file"="PhotronIO.adl"
+}
+composite {
+	object {
+		x=360
+		y=279
+		width=350
+		height=385
+	}
+	"composite name"=""
+	"composite file"="PhotronCollect.adl"
+}
+composite {
+	object {
+		x=360
+		y=668
+		width=350
+		height=60
+	}
+	"composite name"=""
+	"composite file"="PhotronIRIG.adl"
+}
+composite {
+	object {
+		x=714
+		y=661
 		width=350
 		height=135
 	}
@@ -193,18 +213,8 @@ composite {
 }
 composite {
 	object {
-		x=360
-		y=35
-		width=350
-		height=215
-	}
-	"composite name"=""
-	"composite file"="PhotronMode.adl"
-}
-composite {
-	object {
 		x=714
-		y=363
+		y=427
 		width=350
 		height=230
 	}
@@ -214,7 +224,7 @@ composite {
 composite {
 	object {
 		x=714
-		y=204
+		y=268
 		width=350
 		height=155
 	}
