@@ -11,6 +11,6 @@ set PATH=%PATH%;C:\Program Files\EPICS Windows Tools
 echo %EPICS_DISPLAY_PATH%
 
 REM launch medm
-start medm -x -macro "P=kmp5:, R=cam1:" PhotronDevel.adl
+start medm -x -macro "P=kmp5:, R=cam1:" Photron.adl
 
 ENDLOCAL
