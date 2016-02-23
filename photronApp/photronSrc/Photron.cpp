@@ -2649,12 +2649,13 @@ asynStatus Photron::readMem() {
 
 asynStatus Photron::setPreviewRange(epicsInt32 function, epicsInt32 value) {
   asynStatus status = asynSuccess;
-  //int index;
-  int start, end, frameStart, frameEnd;
+  epicsInt32 index;
+  epicsInt32 start, end, frameStart, frameEnd;
   static const char *functionName = "setPreviewRange";
   
-  // Should the index be changed here or left to be checked the next time it is changed?
-  //getIntegerParam(PhotronPMIndex, &index);
+  // Note: value isn't currently used here, so it should probably be removed
+  
+  getIntegerParam(PhotronPMIndex, &index);
   getIntegerParam(PhotronPMStart, &start);
   getIntegerParam(PhotronPMEnd, &end);
   getIntegerParam(PhotronFrameStart, &frameStart);
@@ -2662,6 +2663,7 @@ asynStatus Photron::setPreviewRange(epicsInt32 function, epicsInt32 value) {
   
   if (function == PhotronPMStart) {
     printf("PhotronPMStart: value = %d\n", value);
+    // Correct the starting value, if necessary
     if (start > end) {
       start = end;
     }
@@ -2669,8 +2671,14 @@ asynStatus Photron::setPreviewRange(epicsInt32 function, epicsInt32 value) {
       start = frameStart;
     }
     setIntegerParam(PhotronPMStart, start);
+    // Correct the current index, if necessary
+    if (index < start) {
+      index = start;
+    }
+    setIntegerParam(PhotronPMIndex, index);
   } else if (function == PhotronPMEnd) {
     printf("PhotronPMEnd: value = %d\n", value);
+    // Correct the ending value, if necessary
     if (end < start) {
       end = start;
     }
@@ -2678,6 +2686,11 @@ asynStatus Photron::setPreviewRange(epicsInt32 function, epicsInt32 value) {
       end = frameEnd;
     }
     setIntegerParam(PhotronPMEnd, end);
+    // Correct the current index, if necessary
+    if (index > end) {
+      index = end;
+    }
+    setIntegerParam(PhotronPMIndex, index);
   }
   
   return asynSuccess;
