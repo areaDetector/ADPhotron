@@ -139,11 +139,11 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronPMLastString,        asynParamInt32, &PhotronPMLast);
   createParam(PhotronPMPlayString,        asynParamInt32, &PhotronPMPlay);
   createParam(PhotronPMPlayRevString,     asynParamInt32, &PhotronPMPlayRev);
+  createParam(PhotronPMSaveString,        asynParamInt32, &PhotronPMSave);
+  createParam(PhotronPMCancelString,      asynParamInt32, &PhotronPMCancel);
   createParam(PhotronPMPlayFPSString,     asynParamInt32, &PhotronPMPlayFPS);
   createParam(PhotronPMPlayMultString,    asynParamInt32, &PhotronPMPlayMult);
   createParam(PhotronPMRepeatString,      asynParamInt32, &PhotronPMRepeat);
-  createParam(PhotronPMSaveString,        asynParamInt32, &PhotronPMSave);
-  createParam(PhotronPMCancelString,      asynParamInt32, &PhotronPMCancel);
   createParam(PhotronIRIGString,          asynParamInt32, &PhotronIRIG);
   createParam(PhotronMemIRIGDayString,    asynParamInt32, &PhotronMemIRIGDay);
   createParam(PhotronMemIRIGHourString,   asynParamInt32, &PhotronMemIRIGHour);
@@ -1487,6 +1487,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int index;
   int skipReadParams = 0;
   epicsInt32 oldValue;
+  epicsInt32 previewMode, phostat, previewInProgress, functionToAllow, functionToReject;
   static const char *functionName = "writeInt32";
   
   //printf("FUNCTION: %d - VALUE: %d\n", function, value);
@@ -1498,7 +1499,35 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
    * overwritten when we read back the status at the end, but that's OK */
   status |= setIntegerParam(function, value);
   
-  if ((function == ADBinX) || (function == ADBinY) || (function == ADMinX) ||
+  // Determine if preview is in progress
+  // 1 = ON
+  getIntegerParam(PhotronPreviewMode, &previewMode);
+  // 1 = Playback
+  getIntegerParam(PhotronStatus, &phostat);
+  if ((previewMode == 1) && (phostat == 1)) {
+    previewInProgress = 1;
+  } else {
+    previewInProgress = 0;
+  }
+  // Determine if function is one of the preview-mode functions
+  // NOTE: The ranges are carefully chosed so that PhotronPMPlayFPS, 
+  //       PhotronPMPlayMult and PhotronPMRepeat can be changed at any time
+  functionToAllow = ((function >= PhotronPMStart) && (function <= PhotronPMRepeat));
+  functionToReject = ((function >= PhotronPMStart) && (function <= PhotronPMCancel));
+  
+  if (previewInProgress && (!functionToAllow)) {
+    // Only allow preview-mode PVs to be changed during preview mode
+    printf("Preview in progress: function = %d\tvalue = %d\toldValue = %d\n", function, value, oldValue);
+    // Revert requested change
+    setIntegerParam(function, oldValue);
+    skipReadParams = 1;
+  } else if ((!previewInProgress) && functionToReject) {
+    // Don't allow preview-mode PVs to be changed outside of preview mode
+    printf("Preview NOT in progress: function = %d\tvalue = %d\toldValue = %d\n", function, value, oldValue);
+    // Revert requested change
+    setIntegerParam(function, oldValue);
+    skipReadParams = 1;
+  } else if ((function == ADBinX) || (function == ADBinY) || (function == ADMinX) ||
      (function == ADMinY)) {
     /* These commands change the chip readout geometry.  We need to cache them 
      * and apply them in the correct order */

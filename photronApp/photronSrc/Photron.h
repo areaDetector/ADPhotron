@@ -186,11 +186,11 @@ protected:
     int PhotronPMLast;
     int PhotronPMPlay;
     int PhotronPMPlayRev;
+    int PhotronPMSave;
+    int PhotronPMCancel;
     int PhotronPMPlayFPS;
     int PhotronPMPlayMult;
     int PhotronPMRepeat;
-    int PhotronPMSave;
-    int PhotronPMCancel;
     int PhotronIRIG;
     int PhotronMemIRIGDay;
     int PhotronMemIRIGHour;
@@ -489,11 +489,11 @@ typedef struct {
 #define PhotronPMLastString     "PHOTRON_PM_LAST"  /* (asynInt32,   rw) */
 #define PhotronPMPlayString     "PHOTRON_PM_PLAY"  /* (asynInt32,   rw) */
 #define PhotronPMPlayRevString  "PHOTRON_PM_PLAY_REV"  /* (asynInt32,   rw) */
+#define PhotronPMSaveString     "PHOTRON_PM_SAVE" /* (asynInt32,    w) */
+#define PhotronPMCancelString   "PHOTRON_PM_CANCEL"   /* (asynInt32,    w) */
 #define PhotronPMPlayFPSString  "PHOTRON_PM_PLAY_FPS"  /* (asynInt32,   rw) */
 #define PhotronPMPlayMultString "PHOTRON_PM_PLAY_MULT"  /* (asynInt32,   rw) */
 #define PhotronPMRepeatString   "PHOTRON_PM_REPEAT"  /* (asynInt32,   rw) */
-#define PhotronPMSaveString     "PHOTRON_PM_SAVE" /* (asynInt32,    w) */
-#define PhotronPMCancelString   "PHOTRON_PM_CANCEL"   /* (asynInt32,    w) */
 #define PhotronIRIGString       "PHOTRON_IRIG"   /* (asynInt32,    w) */
 #define PhotronMemIRIGDayString "PHOTRON_MEM_IRIG_DAY" /* (asynInt32,    r) */
 #define PhotronMemIRIGHourString "PHOTRON_MEM_IRIG_HOUR" /* (asynInt32,    r) */
