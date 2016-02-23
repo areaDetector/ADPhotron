@@ -5,7 +5,6 @@ Driver & Database
 -----------------
 
 Immediately:
-* Protect against changing any PVs while in playback mode (also disable records?)
 * Protect against changing any PVs while in save mode (also disable records?)
 * Create attributes xml file
 
@@ -20,7 +19,6 @@ Future:
 MEDM
 ----
 
-* Make all screens consistent with areaDetector style
 * Move dynamic content to dedicated adls
 * Hide PVs when they shouldn't be used or cause confusion
 
