@@ -5,7 +5,6 @@ Driver & Database
 -----------------
 
 Immediately:
-* Protect against changing any PVs while in save mode (also disable records?)
 * Create attributes xml file
 
 Future:
