@@ -1752,7 +1752,6 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     epicsEventSignal(this->resumeRecEventId);
     skipReadParams = 1;
   } else if (function == PhotronIRIG) {
-  } else if (function == PhotronIRIG) {
     setIRIG(value);
   } else if (function == PhotronSyncPriority) {
     setSyncPriority(value);
