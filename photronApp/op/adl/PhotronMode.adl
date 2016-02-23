@@ -5,10 +5,10 @@ file {
 }
 display {
 	object {
-		x=401
-		y=444
+		x=1061
+		y=666
 		width=350
-		height=115
+		height=215
 	}
 	clr=14
 	bclr=4
@@ -92,7 +92,7 @@ rectangle {
 		x=0
 		y=0
 		width=350
-		height=115
+		height=215
 	}
 	"basic attribute" {
 		clr=14
@@ -220,4 +220,221 @@ text {
 	}
 	textix="Camera status"
 	align="horiz. right"
+}
+text {
+	object {
+		x=5
+		y=115
+		width=170
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Record Rate (FPS)"
+}
+"text entry" {
+	object {
+		x=135
+		y=140
+		width=80
+		height=20
+	}
+	control {
+		chan="$(P)$(R)RecordRate"
+		clr=14
+		bclr=51
+	}
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=245
+		y=141
+		width=80
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)RecordRate_RBV"
+		clr=54
+		bclr=4
+	}
+	limits {
+	}
+}
+text {
+	object {
+		x=5
+		y=165
+		width=180
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Shutter Speed (Hz)"
+}
+composite {
+	object {
+		x=60
+		y=190
+		width=265
+		height=20
+	}
+	"composite name"=""
+	children {
+		"text entry" {
+			object {
+				x=110
+				y=190
+				width=80
+				height=20
+			}
+			control {
+				chan="$(P)$(R)ShutterFps"
+				clr=14
+				bclr=51
+			}
+			limits {
+			}
+		}
+		"message button" {
+			object {
+				x=195
+				y=190
+				width=20
+				height=20
+			}
+			control {
+				chan="$(P)$(R)ChangeShutterFps.VAL"
+				clr=14
+				bclr=51
+			}
+			label="+"
+			press_msg="1"
+		}
+		"message button" {
+			object {
+				x=85
+				y=190
+				width=20
+				height=20
+			}
+			control {
+				chan="$(P)$(R)ChangeShutterFps.VAL"
+				clr=14
+				bclr=51
+			}
+			label="-"
+			press_msg="0"
+		}
+		"message button" {
+			object {
+				x=220
+				y=190
+				width=20
+				height=20
+			}
+			control {
+				chan="$(P)$(R)JumpShutterFps.VAL"
+				clr=14
+				bclr=51
+			}
+			label=">|"
+			press_msg="1"
+		}
+		"message button" {
+			object {
+				x=60
+				y=190
+				width=20
+				height=20
+			}
+			control {
+				chan="$(P)$(R)JumpShutterFps.VAL"
+				clr=14
+				bclr=51
+			}
+			label="|<"
+			press_msg="0"
+		}
+		"text update" {
+			object {
+				x=245
+				y=191
+				width=80
+				height=18
+			}
+			monitor {
+				chan="$(P)$(R)ShutterFps_RBV"
+				clr=54
+				bclr=4
+			}
+			limits {
+			}
+		}
+	}
+}
+composite {
+	object {
+		x=110
+		y=140
+		width=20
+		height=20
+	}
+	"composite name"=""
+	children {
+		"message button" {
+			object {
+				x=110
+				y=140
+				width=20
+				height=20
+			}
+			control {
+				chan="$(P)$(R)ChangeRecRate.VAL"
+				clr=14
+				bclr=51
+			}
+			label="-"
+			press_msg="0"
+		}
+	}
+	"dynamic attribute" {
+		vis="if zero"
+		calc="A"
+		chan="$(P)$(R)CamMode_RBV"
+	}
+}
+composite {
+	object {
+		x=220
+		y=140
+		width=20
+		height=20
+	}
+	"composite name"=""
+	children {
+		"message button" {
+			object {
+				x=220
+				y=140
+				width=20
+				height=20
+			}
+			control {
+				chan="$(P)$(R)ChangeRecRate.VAL"
+				clr=14
+				bclr=51
+			}
+			label="+"
+			press_msg="1"
+		}
+	}
+	"dynamic attribute" {
+		vis="if zero"
+		calc="A"
+		chan="$(P)$(R)CamMode_RBV"
+	}
 }
