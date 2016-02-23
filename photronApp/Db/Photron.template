@@ -416,6 +416,22 @@ record(bo, "$(P)$(R)SoftwareTrigger") {
   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SOFT_TRIG")
 }
 
+record(longin, "$(P)$(R)FrameStart_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Mem Frame Start")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_FRAME_START")
+   field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P)$(R)FrameEnd_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Mem Frame End")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_FRAME_END")
+   field(SCAN, "I/O Intr")
+}
+
 record(bo, "$(P)$(R)LiveMode")
 {
    field(DTYP, "asynInt32")
@@ -569,6 +585,24 @@ record(bo, "$(P)$(R)PMCancel")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_PM_CANCEL")
    field(ZNAM, "Done")
    field(ONAM, "Do")
+}
+
+record(dfanout, "$(P)$(R)PMIdxToStart")
+{
+   field(DESC, "Set Start to Index")
+   field(DOL,  "$(P)$(R)PMIndex NPP NMS")
+   field(OMSL, "closed_loop")
+   field(OUTA, "$(P)$(R)PMStart PP NMS")
+   field(SCAN, "Passive")
+}
+
+record(dfanout, "$(P)$(R)PMIdxToEnd")
+{
+   field(DESC, "Set End to Index")
+   field(DOL,  "$(P)$(R)PMIndex NPP NMS")
+   field(OMSL, "closed_loop")
+   field(OUTA, "$(P)$(R)PMEnd PP NMS")
+   field(SCAN, "Passive")
 }
 
 record(longin, "$(P)$(R)MemIRIGDay_RBV")
