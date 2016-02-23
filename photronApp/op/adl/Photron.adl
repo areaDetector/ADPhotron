@@ -186,7 +186,7 @@ composite {
 		x=714
 		y=35
 		width=350
-		height=265
+		height=275
 	}
 	"composite name"=""
 	"composite file"="PhotronIOdetail.adl"
@@ -194,33 +194,22 @@ composite {
 composite {
 	object {
 		x=714
-		y=304
+		y=498
 		width=350
-		height=414
+		height=230
 	}
 	"composite name"=""
-	children {
-		composite {
-			object {
-				x=714
-				y=488
-				width=350
-				height=230
-			}
-			"composite name"=""
-			"composite file"="PhotronVarChan.adl"
-		}
-		composite {
-			object {
-				x=714
-				y=304
-				width=350
-				height=180
-			}
-			"composite name"=""
-			"composite file"="PhotronTrig.adl"
-		}
+	"composite file"="PhotronVarChan.adl"
+}
+composite {
+	object {
+		x=714
+		y=314
+		width=350
+		height=180
 	}
+	"composite name"=""
+	"composite file"="PhotronTrig.adl"
 }
 "related display" {
 	object {

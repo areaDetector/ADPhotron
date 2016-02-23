@@ -8,7 +8,7 @@ display {
 		x=44
 		y=221
 		width=350
-		height=265
+		height=275
 	}
 	clr=14
 	bclr=4
@@ -92,7 +92,7 @@ rectangle {
 		x=0
 		y=0
 		width=350
-		height=265
+		height=275
 	}
 	"basic attribute" {
 		clr=14
@@ -123,63 +123,100 @@ text {
 	textix="I/O"
 	align="horiz. centered"
 }
-composite {
+text {
 	object {
 		x=5
-		y=30
-		width=340
-		height=20
+		y=31
+		width=95
+		height=18
 	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=5
-				y=30
-				width=130
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Sync In"
-			align="horiz. right"
-		}
-		menu {
-			object {
-				x=140
-				y=30
-				width=120
-				height=20
-			}
-			control {
-				chan="$(P)$(R)ExtIn1"
-				clr=14
-				bclr=51
-			}
-		}
-		"text update" {
-			object {
-				x=265
-				y=32
-				width=80
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)ExtIn1_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Sync In"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=230
+		y=33
+		width=115
+		height=16
+	}
+	monitor {
+		chan="$(P)$(R)ExtIn1_RBV"
+		clr=54
+		bclr=4
+	}
+	align="horiz. centered"
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=5
+		y=56
+		width=95
+		height=18
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="General In"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=230
+		y=57
+		width=115
+		height=16
+	}
+	monitor {
+		chan="$(P)$(R)ExtIn2_RBV"
+		clr=54
+		bclr=4
+	}
+	align="horiz. centered"
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=5
+		y=81
+		width=95
+		height=18
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Trig TTL In"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=230
+		y=82
+		width=115
+		height=16
+	}
+	monitor {
+		chan="$(P)$(R)ExtIn3_RBV"
+		clr=54
+		bclr=4
+	}
+	align="horiz. centered"
+	format="string"
+	limits {
 	}
 }
 composite {
 	object {
 		x=5
-		y=55
+		y=225
 		width=340
 		height=20
 	}
@@ -188,325 +225,7 @@ composite {
 		text {
 			object {
 				x=5
-				y=55
-				width=130
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="General In"
-			align="horiz. right"
-		}
-		menu {
-			object {
-				x=140
-				y=55
-				width=120
-				height=20
-			}
-			control {
-				chan="$(P)$(R)ExtIn2"
-				clr=14
-				bclr=51
-			}
-		}
-		"text update" {
-			object {
-				x=265
-				y=56
-				width=80
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)ExtIn2_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-	}
-}
-composite {
-	object {
-		x=5
-		y=80
-		width=340
-		height=20
-	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=5
-				y=80
-				width=130
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Trig TTL In"
-			align="horiz. right"
-		}
-		menu {
-			object {
-				x=140
-				y=80
-				width=120
-				height=20
-			}
-			control {
-				chan="$(P)$(R)ExtIn3"
-				clr=14
-				bclr=51
-			}
-		}
-		"text update" {
-			object {
-				x=265
-				y=81
-				width=80
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)ExtIn3_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-	}
-}
-composite {
-	object {
-		x=5
-		y=130
-		width=340
-		height=20
-	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=5
-				y=130
-				width=130
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="General Out 1"
-			align="horiz. right"
-		}
-		menu {
-			object {
-				x=140
-				y=130
-				width=120
-				height=20
-			}
-			control {
-				chan="$(P)$(R)ExtOut1"
-				clr=14
-				bclr=51
-			}
-		}
-		"text update" {
-			object {
-				x=265
-				y=131
-				width=80
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)ExtOut1_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-	}
-}
-composite {
-	object {
-		x=5
-		y=155
-		width=340
-		height=20
-	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=5
-				y=155
-				width=130
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="General Out 2"
-			align="horiz. right"
-		}
-		menu {
-			object {
-				x=140
-				y=155
-				width=120
-				height=20
-			}
-			control {
-				chan="$(P)$(R)ExtOut2"
-				clr=14
-				bclr=51
-			}
-		}
-		"text update" {
-			object {
-				x=265
-				y=156
-				width=80
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)ExtOut2_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-	}
-}
-composite {
-	object {
-		x=5
-		y=180
-		width=340
-		height=20
-	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=5
-				y=180
-				width=130
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="General Out 3"
-			align="horiz. right"
-		}
-		menu {
-			object {
-				x=140
-				y=180
-				width=120
-				height=20
-			}
-			control {
-				chan="$(P)$(R)ExtOut3"
-				clr=14
-				bclr=51
-			}
-		}
-		"text update" {
-			object {
-				x=265
-				y=181
-				width=80
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)ExtOut3_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-	}
-}
-composite {
-	object {
-		x=5
-		y=205
-		width=340
-		height=20
-	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=5
-				y=205
-				width=130
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Trig TTL Out"
-			align="horiz. right"
-		}
-		menu {
-			object {
-				x=140
-				y=205
-				width=120
-				height=20
-			}
-			control {
-				chan="$(P)$(R)ExtOut4"
-				clr=14
-				bclr=51
-			}
-		}
-		"text update" {
-			object {
-				x=265
-				y=206
-				width=80
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)ExtOut4_RBV"
-				clr=54
-				bclr=4
-			}
-			format="string"
-			limits {
-			}
-		}
-	}
-}
-composite {
-	object {
-		x=5
-		y=240
-		width=340
-		height=20
-	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=5
-				y=240
+				y=225
 				width=130
 				height=20
 			}
@@ -519,7 +238,7 @@ composite {
 		menu {
 			object {
 				x=140
-				y=240
+				y=225
 				width=120
 				height=20
 			}
@@ -532,7 +251,7 @@ composite {
 		"text update" {
 			object {
 				x=265
-				y=242
+				y=227
 				width=80
 				height=18
 			}
@@ -545,5 +264,253 @@ composite {
 			limits {
 			}
 		}
+	}
+}
+text {
+	object {
+		x=5
+		y=116
+		width=95
+		height=18
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Gen Out 1"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=230
+		y=117
+		width=115
+		height=16
+	}
+	monitor {
+		chan="$(P)$(R)ExtOut1_RBV"
+		clr=54
+		bclr=4
+	}
+	align="horiz. centered"
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=5
+		y=141
+		width=95
+		height=18
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Gen Out 2"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=230
+		y=142
+		width=115
+		height=16
+	}
+	monitor {
+		chan="$(P)$(R)ExtOut2_RBV"
+		clr=54
+		bclr=4
+	}
+	align="horiz. centered"
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=5
+		y=166
+		width=95
+		height=18
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Gen Out 3"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=230
+		y=167
+		width=115
+		height=16
+	}
+	monitor {
+		chan="$(P)$(R)ExtOut3_RBV"
+		clr=54
+		bclr=4
+	}
+	align="horiz. centered"
+	format="string"
+	limits {
+	}
+}
+text {
+	object {
+		x=5
+		y=191
+		width=95
+		height=18
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Trig TTL Out"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=230
+		y=192
+		width=115
+		height=16
+	}
+	monitor {
+		chan="$(P)$(R)ExtOut4_RBV"
+		clr=54
+		bclr=4
+	}
+	align="horiz. centered"
+	format="string"
+	limits {
+	}
+}
+composite {
+	object {
+		x=5
+		y=250
+		width=255
+		height=20
+	}
+	"composite name"=""
+	children {
+		text {
+			object {
+				x=5
+				y=250
+				width=130
+				height=20
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="Ext Sync Pref"
+			align="horiz. right"
+		}
+		menu {
+			object {
+				x=140
+				y=250
+				width=120
+				height=20
+			}
+			control {
+				chan="$(P)$(R)SyncPulse"
+				clr=14
+				bclr=51
+			}
+		}
+	}
+}
+menu {
+	object {
+		x=105
+		y=30
+		width=120
+		height=20
+	}
+	control {
+		chan="$(P)$(R)ExtIn1"
+		clr=14
+		bclr=51
+	}
+}
+menu {
+	object {
+		x=105
+		y=55
+		width=120
+		height=20
+	}
+	control {
+		chan="$(P)$(R)ExtIn2"
+		clr=14
+		bclr=51
+	}
+}
+menu {
+	object {
+		x=105
+		y=80
+		width=120
+		height=20
+	}
+	control {
+		chan="$(P)$(R)ExtIn3"
+		clr=14
+		bclr=51
+	}
+}
+menu {
+	object {
+		x=105
+		y=115
+		width=120
+		height=20
+	}
+	control {
+		chan="$(P)$(R)ExtOut1"
+		clr=14
+		bclr=51
+	}
+}
+menu {
+	object {
+		x=105
+		y=140
+		width=120
+		height=20
+	}
+	control {
+		chan="$(P)$(R)ExtOut2"
+		clr=14
+		bclr=51
+	}
+}
+menu {
+	object {
+		x=105
+		y=165
+		width=120
+		height=20
+	}
+	control {
+		chan="$(P)$(R)ExtOut3"
+		clr=14
+		bclr=51
+	}
+}
+menu {
+	object {
+		x=105
+		y=190
+		width=120
+		height=20
+	}
+	control {
+		chan="$(P)$(R)ExtOut4"
+		clr=14
+		bclr=51
 	}
 }
