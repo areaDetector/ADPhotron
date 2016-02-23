@@ -37,6 +37,7 @@ record(longout, "$(P)$(R)MinY")
 record(ao, "$(P)$(R)AcquireTime")
 {
    field(PREC, "7")
+   info(asyn:READBACK, "1")
 }
 
 record(ai, "$(P)$(R)AcquireTime_RBV")
