@@ -6,6 +6,7 @@ Driver & Database
 
 Immediately:
 * Create attributes xml file
+* Determine whether trigger mode needs to be moved to a dedicated adl
 
 Future:
 * Programatically create data directories
@@ -19,7 +20,6 @@ MEDM
 ----
 
 * Move dynamic content to dedicated adls
-* Hide PVs when they shouldn't be used or cause confusion
 
 Documentation
 -------------
