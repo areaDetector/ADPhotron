@@ -1,5 +1,4 @@
 @echo ON
-REM start medm -x -macro "P=13PS1:, R=cam1:" Photron.adl
 
 SETLOCAL
 

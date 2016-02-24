@@ -7,7 +7,7 @@ dbLoadDatabase("$(TOP)/dbd/PhotronApp.dbd")
 photronApp_registerRecordDeviceDriver(pdbbase) 
 
 # Prefix for all records
-epicsEnvSet("PREFIX", "kmp5:")
+epicsEnvSet("PREFIX", "pho:")
 # The port name for the detector
 epicsEnvSet("PORT",   "PHO1")
 # The queue size for all plugins
@@ -43,7 +43,7 @@ asynSetMinTimerPeriod(0.001)
 #!PhotronConfig("$(PORT)", "192.168.0.10", 0, 2, 0, 0)
 # If plugins can't keep up and enabling blocking isn't ideal, increase the number of buffers
 PhotronConfig("$(PORT)", "192.168.0.10", 0, 20, 0, 0)
-# To have the rate calculation use a non-zero smoothing factor use the following line
+# Load the detector records
 dbLoadRecords("$(ADPHOTRON)/db/Photron.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
 dbLoadTemplate("photronExtIO.substitutions")
 
@@ -54,12 +54,8 @@ dbLoadTemplate("photronExtIO.substitutions")
 NDStdArraysConfigure("Image1", 3, 0, "$(PORT)", 0)
 
 # This creates a waveform large enough for 1024x1024x1 (e.g. monochrome) arrays.
-# This waveform only allows transporting 8-bit images
-#!dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int8,FTVL=UCHAR,NELEMENTS=1048576")
 # This waveform only allows transporting 16-bit images
 dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int16,FTVL=SHORT,NELEMENTS=1048576")
-# This waveform allows transporting 32-bit images
-#!dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,TIMEOUT=1,NDARRAY_PORT=$(PORT),TYPE=Int32,FTVL=LONG,NELEMENTS=1048576")
 
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd
@@ -76,6 +72,4 @@ iocInit()
 # save things every thirty seconds
 create_monitor_set("auto_settings.req", 30, "P=$(PREFIX)")
 
-# A small delay is needed before syncing the resolution targets
-epicsThreadSleep(1.0)
-dbpf "$(PREFIX)cam1:SyncFanout.PROC" "1"
+# IOC startup complete
