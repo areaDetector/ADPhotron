@@ -109,38 +109,13 @@ text {
 	"basic attribute" {
 		clr=14
 	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A<8"
+		chan="$(P)$(R)TriggerMode_RBV"
+	}
 	textix="After Frames"
 	align="horiz. right"
-}
-"text entry" {
-	object {
-		x=180
-		y=105
-		width=80
-		height=20
-	}
-	control {
-		chan="$(P)$(R)AfterFrames"
-		clr=14
-		bclr=51
-	}
-	limits {
-	}
-}
-"text update" {
-	object {
-		x=265
-		y=106
-		width=80
-		height=18
-	}
-	monitor {
-		chan="$(P)$(R)AfterFrames_RBV"
-		clr=54
-		bclr=4
-	}
-	limits {
-	}
 }
 text {
 	object {
@@ -151,40 +126,15 @@ text {
 	}
 	"basic attribute" {
 		clr=14
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A>3&&A<8"
+		chan="$(P)$(R)TriggerMode_RBV"
 	}
 	textix="Random Frames"
 	align="horiz. right"
 }
-"text entry" {
-	object {
-		x=180
-		y=55
-		width=80
-		height=20
-	}
-	control {
-		chan="$(P)$(R)RandomFrames"
-		clr=14
-		bclr=51
-	}
-	limits {
-	}
-}
-"text update" {
-	object {
-		x=265
-		y=56
-		width=80
-		height=18
-	}
-	monitor {
-		chan="$(P)$(R)RandomFrames_RBV"
-		clr=54
-		bclr=4
-	}
-	limits {
-	}
-}
 text {
 	object {
 		x=5
@@ -195,38 +145,13 @@ text {
 	"basic attribute" {
 		clr=14
 	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A>3&&A<8"
+		chan="$(P)$(R)TriggerMode_RBV"
+	}
 	textix="# Recordings"
 	align="horiz. right"
-}
-"text entry" {
-	object {
-		x=180
-		y=80
-		width=80
-		height=20
-	}
-	control {
-		chan="$(P)$(R)RecCount"
-		clr=14
-		bclr=51
-	}
-	limits {
-	}
-}
-"text update" {
-	object {
-		x=265
-		y=81
-		width=80
-		height=18
-	}
-	monitor {
-		chan="$(P)$(R)RecCount_RBV"
-		clr=54
-		bclr=4
-	}
-	limits {
-	}
 }
 text {
 	object {
@@ -349,5 +274,191 @@ text {
 	}
 	align="horiz. centered"
 	limits {
+	}
+}
+composite {
+	object {
+		x=180
+		y=55
+		width=80
+		height=20
+	}
+	"composite name"=""
+	children {
+		"text entry" {
+			object {
+				x=180
+				y=55
+				width=80
+				height=20
+			}
+			control {
+				chan="$(P)$(R)RandomFrames"
+				clr=14
+				bclr=51
+			}
+			limits {
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A>3&&A<8"
+		chan="$(P)$(R)TriggerMode_RBV"
+	}
+}
+composite {
+	object {
+		x=180
+		y=80
+		width=80
+		height=20
+	}
+	"composite name"=""
+	children {
+		"text entry" {
+			object {
+				x=180
+				y=80
+				width=80
+				height=20
+			}
+			control {
+				chan="$(P)$(R)RecCount"
+				clr=14
+				bclr=51
+			}
+			limits {
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A=6||A=7"
+		chan="$(P)$(R)TriggerMode_RBV"
+	}
+}
+composite {
+	object {
+		x=180
+		y=105
+		width=80
+		height=20
+	}
+	"composite name"=""
+	children {
+		"text entry" {
+			object {
+				x=180
+				y=105
+				width=80
+				height=20
+			}
+			control {
+				chan="$(P)$(R)AfterFrames"
+				clr=14
+				bclr=51
+			}
+			limits {
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A=3||A=7"
+		chan="$(P)$(R)TriggerMode_RBV"
+	}
+}
+composite {
+	object {
+		x=265
+		y=56
+		width=80
+		height=18
+	}
+	"composite name"=""
+	children {
+		"text update" {
+			object {
+				x=265
+				y=56
+				width=80
+				height=18
+			}
+			monitor {
+				chan="$(P)$(R)RandomFrames_RBV"
+				clr=54
+				bclr=4
+			}
+			limits {
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A>3&&A<8"
+		chan="$(P)$(R)TriggerMode_RBV"
+	}
+}
+composite {
+	object {
+		x=265
+		y=81
+		width=80
+		height=18
+	}
+	"composite name"=""
+	children {
+		"text update" {
+			object {
+				x=265
+				y=81
+				width=80
+				height=18
+			}
+			monitor {
+				chan="$(P)$(R)RecCount_RBV"
+				clr=54
+				bclr=4
+			}
+			limits {
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A>3&&A<8"
+		chan="$(P)$(R)TriggerMode_RBV"
+	}
+}
+composite {
+	object {
+		x=265
+		y=106
+		width=80
+		height=18
+	}
+	"composite name"=""
+	children {
+		"text update" {
+			object {
+				x=265
+				y=106
+				width=80
+				height=18
+			}
+			monitor {
+				chan="$(P)$(R)AfterFrames_RBV"
+				clr=54
+				bclr=4
+			}
+			limits {
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A<8"
+		chan="$(P)$(R)TriggerMode_RBV"
 	}
 }
