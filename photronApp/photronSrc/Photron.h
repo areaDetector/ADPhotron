@@ -402,6 +402,7 @@ private:
   int dirFlag;
   //
   int stopRecFlag;
+  int previewDone;
   /* Our data */
   NDArray *pRaw;
   int numValidTriggerModes_;

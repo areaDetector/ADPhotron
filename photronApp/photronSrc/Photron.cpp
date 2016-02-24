@@ -726,7 +726,10 @@ void Photron::PhotronRecTask() {
     /* Are we in record mode? */
     getIntegerParam(PhotronAcquireMode, &acqMode);
     //printf("is acquisition active?\n");
-
+    
+    // Set the preview-done flag
+    this->previewDone = 1;
+    
     /* If we are not in record mode then wait for a semaphore that is given when 
        record mode is requested */
     if ((acqMode != 1) || (this->stopRecFlag == 1)) {
@@ -780,11 +783,18 @@ void Photron::PhotronRecTask() {
         
         // Optionally enter preview mode here
         if (previewMode) {
-          // Wait until user is done previewing the data
           printf("Entering PREVIEW mode\n");
+          
+          // Signal that previewing is in progress
+          this->previewDone = 0;
+          
+          // Wait until user is done previewing the data
           this->unlock();
           epicsEventWait(this->resumeRecEventId);
           this->lock();
+        
+          // Signal that previewing is done
+          this->previewDone = 1;
         }
         
         // Re-zero the num images complete (num will = total saved this acq)
@@ -1487,7 +1497,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int index;
   int skipReadParams = 0;
   epicsInt32 oldValue;
-  epicsInt32 previewMode, phostat, previewInProgress, functionToAllow, functionToReject;
+  epicsInt32 phostat, functionToAllow, functionToReject;
   static const char *functionName = "writeInt32";
   
   //printf("FUNCTION: %d - VALUE: %d\n", function, value);
@@ -1499,16 +1509,9 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
    * overwritten when we read back the status at the end, but that's OK */
   status |= setIntegerParam(function, value);
   
-  // Determine if preview is in progress
-  // 1 = ON
-  getIntegerParam(PhotronPreviewMode, &previewMode);
-  // 1 = Playback
+  // Get the camera status
   getIntegerParam(PhotronStatus, &phostat);
-  if ((previewMode == 1) && (phostat == PDC_STATUS_PLAYBACK)) {
-    previewInProgress = 1;
-  } else {
-    previewInProgress = 0;
-  }
+  
   // Determine if function is one of the preview-mode functions
   // NOTE: The ranges are carefully chosed so that PhotronPMPlayFPS, 
   //       PhotronPMPlayMult and PhotronPMRepeat can be changed at any time
@@ -1521,15 +1524,21 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     // Revert requested change
     setIntegerParam(function, oldValue);
     skipReadParams = 1;
-  } else if (previewInProgress && (!functionToAllow)) {
+  } else if ((this->previewDone==0) && (!functionToAllow)) {
     // Only allow preview-mode PVs to be changed during preview mode
     printf("Preview in progress: function = %d\tvalue = %d\toldValue = %d\n", function, value, oldValue);
     // Revert requested change
     setIntegerParam(function, oldValue);
     skipReadParams = 1;
-  } else if ((!previewInProgress) && functionToReject) {
+  } else if ((this->previewDone==1) && functionToReject) {
     // Don't allow preview-mode PVs to be changed outside of preview mode
     printf("Preview NOT in progress: function = %d\tvalue = %d\toldValue = %d\n", function, value, oldValue);
+    // Revert requested change
+    setIntegerParam(function, oldValue);
+    skipReadParams = 1;
+  } else if ((this->previewDone==1) && (phostat == PDC_STATUS_PLAYBACK) && !((function == ADAcquire) && (value == 0))) {
+    // If not previewing, but cam is in playback mode, only allow stopping readout
+    printf("Readout in progress: function = %d\tvalue = %d\toldValue = %d\n", function, value, oldValue);
     // Revert requested change
     setIntegerParam(function, oldValue);
     skipReadParams = 1;
