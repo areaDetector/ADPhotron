@@ -18,6 +18,7 @@ $(P)$(R)VarChan
 $(P)$(R)ResIdx
 #
 $(P)$(R)ShutterFps
+$(P)$(R)BurstTransfer
 
 # Settings usually found in ADBase_settings.req
 # Need to omit some of them, so ADBase_settings.req can't be included

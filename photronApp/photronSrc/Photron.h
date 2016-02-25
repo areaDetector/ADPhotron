@@ -209,8 +209,9 @@ protected:
     int PhotronExtOut3Sig;
     int PhotronExtOut4Sig;
     int PhotronShadingMode;
+    int PhotronBurstTrans;
     #define FIRST_PHOTRON_PARAM PhotronStatus
-    #define LAST_PHOTRON_PARAM PhotronShadingMode
+    #define LAST_PHOTRON_PARAM PhotronBurstTrans
     
     int* PhotronExtInSig[PDC_EXTIO_MAX_PORT];
     int* PhotronExtOutSig[PDC_EXTIO_MAX_PORT];
@@ -277,6 +278,7 @@ private:
   asynStatus setExternalInMode(epicsInt32 port, epicsInt32 value);
   asynStatus setExternalOutMode(epicsInt32 port, epicsInt32 value);
   asynStatus setShadingMode(epicsInt32 value);
+  asynStatus setBurstTransfer(epicsInt32 value);
   int statusToEPICS(int apiStatus);
   int trigModeToEPICS(int apiMode);
   int trigModeToAPI(int mode);
@@ -375,6 +377,7 @@ private:
   unsigned long ShadingModeList[PDC_MAX_LIST_NUMBER];
   unsigned long pixelBits;
   unsigned long highSpeedMode;
+  unsigned long burstTransfer;
   unsigned long varRate;
   unsigned long varWidth;
   unsigned long varHeight;
@@ -513,5 +516,6 @@ typedef struct {
 #define PhotronExtOut3SigString  "PHOTRON_EXT_OUT_3_SIG" /* (asynInt32, rw)  */
 #define PhotronExtOut4SigString  "PHOTRON_EXT_OUT_4_SIG" /* (asynInt32, rw)  */
 #define PhotronShadingModeString "PHOTRON_SHADING_MODE" /* (asynInt32, rw)  */
+#define PhotronBurstTransString  "PHOTRON_BURST_TRANS"  /* (asynInt32, rw)  */
 
 #define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM-&FIRST_PHOTRON_PARAM+1))

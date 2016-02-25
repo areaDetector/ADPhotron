@@ -1139,6 +1139,28 @@ record(mbbi, "$(P)$(R)ShadingMode_RBV")
    field(SCAN, "I/O Intr")
 }
 
+record(bo, "$(P)$(R)BurstTransfer")
+{
+   field(PINI, "YES")
+   field(DTYP, "asynInt32")
+   field(DESC, "Burst Trans On/Off")
+   field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_BURST_TRANS")
+   field(ZNAM, "Off")
+   field(ONAM, "On")
+   field(VAL,  "1")
+   info(asyn:READBACK, "1")
+}
+
+record(bi, "$(P)$(R)BurstTransfer_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Burst Trans On/Off")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_BURST_TRANS")
+   field(ZNAM, "Off")
+   field(ONAM, "On")
+   field(SCAN, "I/O Intr")
+}
+
 # Records for asynError testing
 record(longout, "$(P)$(R)Test")
 {

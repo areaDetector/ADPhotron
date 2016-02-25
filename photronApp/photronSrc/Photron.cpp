@@ -162,6 +162,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   createParam(PhotronExtOut3SigString,    asynParamInt32, &PhotronExtOut3Sig);
   createParam(PhotronExtOut4SigString,    asynParamInt32, &PhotronExtOut4Sig);
   createParam(PhotronShadingModeString,   asynParamInt32, &PhotronShadingMode);
+  createParam(PhotronBurstTransString,    asynParamInt32, &PhotronBurstTrans);
   
   PhotronExtInSig[0] = &PhotronExtIn1Sig;
   PhotronExtInSig[1] = &PhotronExtIn2Sig;
@@ -1820,6 +1821,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       // Don't read parameters if "Save" is selected; the save task will do that
       skipReadParams = 1;
     }
+  } else if (function == PhotronBurstTrans) {
+    setBurstTransfer(value);
   } else if (function == PhotronTest) {
     // Set status to asynSuccess if value is divisible by 4, asynError otherwise
     if ((value % 4) == 0) {
@@ -2468,6 +2471,30 @@ asynStatus Photron::setShadingMode(epicsInt32 value) {
     
   } else {
     // Function isn't supported, return an error for user feedback
+    status = asynError;
+  }
+  
+  return status;
+}
+
+
+asynStatus Photron::setBurstTransfer(epicsInt32 value) {
+  asynStatus status = asynSuccess;
+  unsigned long nRet, nErrorCode, apiValue;
+  static const char *functionName = "setBurstTransfer";
+  
+  // The following if/else statement isn't necessary since value could just be
+  // cast as an unsigned long, however, it is good to have an example of one
+  // of the PDC functions that takes the generic on/off arguments.
+  if (value) {
+    apiValue = PDC_FUNCTION_ON;
+  } else {
+    apiValue = PDC_FUNCTION_OFF;
+  }
+  
+  nRet = PDC_SetBurstTransfer(this->nDeviceNo, apiValue, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_SetBurstTransfer failed %d\n", nErrorCode);
     status = asynError;
   }
   
@@ -4677,6 +4704,13 @@ asynStatus Photron::readParameters() {
       printf("PDC_GetHighSpeedMode failed. Error %d\n", nErrorCode);
       return asynError;
     } 
+  }
+  
+  nRet = PDC_GetBurstTransfer(this->nDeviceNo, &(this->burstTransfer), 
+                              &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetBurstTransfer failed. Error %d\n", nErrorCode);
+    return asynError;
   }
   
   // getGeometry needs to be called after the resolution list has been updated
