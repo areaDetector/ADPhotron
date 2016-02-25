@@ -183,7 +183,9 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
     }
     PDCLibInitialized = 1;
   }
-
+  
+  this->abortFlag = 0;
+  
   /* Create the epicsEvents for signaling to the acquisition task when 
      acquisition starts and stops */
   this->startEventId = epicsEventCreate(epicsEventEmpty);
@@ -679,7 +681,7 @@ void Photron::PhotronSaveTask() {
       // Get camera status
       nRet = PDC_GetStatus(this->nDeviceNo, &status, &nErrorCode);
       if (nRet == PDC_FAILED) {
-        printf("PDC_GetStatus failed %d\n", nErrorCode);
+        printf("PDC_GetStatus (#1) failed %d\n", nErrorCode);
       }
       setIntegerParam(PhotronStatus, status);
       eStatus = statusToEPICS(status);
@@ -746,17 +748,12 @@ void Photron::PhotronRecTask() {
       this->stopRecFlag = 0;
     }
     
-    if (this->stopRecFlag == 1) {
-      this->stopRecFlag = 0;
-      
-    }
-    
     // Wait for triggered recording
     while (acqMode == 1) {
       // Get camera status
       nRet = PDC_GetStatus(this->nDeviceNo, &status, &nErrorCode);
       if (nRet == PDC_FAILED) {
-        printf("PDC_GetStatus failed %d\n", nErrorCode);
+        printf("PDC_GetStatus (#2) failed %d\n", nErrorCode);
       }
       setIntegerParam(PhotronStatus, status);
       if (status == PDC_STATUS_REC) {
@@ -1119,7 +1116,7 @@ asynStatus Photron::connectCamera() {
      making the mode a PV */
   nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
   if (nRet == PDC_FAILED) {
-    printf("PDC_GetStatus failed %d\n", nErrorCode);
+    printf("PDC_GetStatus (#3) failed %d\n", nErrorCode);
     return asynError;
   } else {
     if (this->nStatus == PDC_STATUS_PLAYBACK) {
@@ -1588,6 +1585,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
             // Abort acquisition if it is in progress
             setLive();
           }
+          // calling readParameters() in this case results in a GetStatus error
+          skipReadParams = 1;
         }
       }
     }
@@ -2496,7 +2495,7 @@ asynStatus Photron::setPlayback() {
     // Confirm that the camera is in playback mode
     nRet = PDC_GetStatus(this->nDeviceNo, &phostat, &nErrorCode);
     if (nRet == PDC_FAILED) {
-      printf("PDC_GetStatus failed. error = %d\n", nErrorCode);
+      printf("PDC_GetStatus (#4) failed. error = %d\n", nErrorCode);
       return asynError;
     }
     
@@ -2939,6 +2938,14 @@ asynStatus Photron::readImageRange() {
   int start, end;
   static const char *functionName = "readImageRange";
   
+  // If the cancel button is pressed during preview mode, we need to avoid
+  // preloading a single image
+  if (this->abortFlag == 1) {
+    // reset the abort flag
+    this->abortFlag = 0;
+    return asynSuccess;
+  }
+  
   if (this->pixelBits == 8) {
     // 8 bits
     dataType = NDUInt8;
@@ -3010,7 +3017,7 @@ asynStatus Photron::readImageRange() {
     
     memcpy(pImage->pData, pBuf, dataSize);
     
-    // Allow user to abort acquisition
+    // Allow user to abort readout
     if (this->abortFlag == 1) {
       // reset the abort flag
       this->abortFlag = 0;
@@ -3083,6 +3090,7 @@ asynStatus Photron::readImageRange() {
     }
     
     if (abort == 1) {
+      // Is a sleep needed here?
       break;
     }
   }
@@ -4488,7 +4496,7 @@ asynStatus Photron::readParameters() {
   
   nRet = PDC_GetStatus(this->nDeviceNo, &(this->nStatus), &nErrorCode);
   if (nRet == PDC_FAILED) {
-    printf("PDC_GetStatus failed %d\n", nErrorCode);
+    printf("PDC_GetStatus (#5) failed %d\n", nErrorCode);
     return asynError;
   }
   status |= setIntegerParam(PhotronStatus, this->nStatus);
