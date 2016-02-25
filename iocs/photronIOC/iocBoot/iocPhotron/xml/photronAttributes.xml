@@ -9,15 +9,51 @@
     <Attribute name="RingCurrent_EGU"     type="EPICS_PV" source="S:SRcurrentAI.EGU"            dbrtype="DBR_NATIVE"  description="Storage ring current units"/>
     <Attribute name="ID_Energy"           type="EPICS_PV" source="ID34:Energy"                  dbrtype="DBR_NATIVE"  description="Undulator energy"/>
     <Attribute name="ID_Energy_EGU"       type="EPICS_PV" source="ID34:Energy.EGU"              dbrtype="DBR_NATIVE"  description="Undulator energy units"/-->
-    <Attribute name="ImageCounter"        type="PARAM"    source="ARRAY_COUNTER"                datatype="INT"        description="Image counter"/>
-    <Attribute name="MaxSizeX"            type="PARAM"    source="MAX_SIZE_X"                   datatype="INT"        description="Detector X size"/>
-    <Attribute name="MaxSizeY"            type="PARAM"    source="MAX_SIZE_Y"                   datatype="INT"        description="Detector Y size"/>
-    <Attribute name="CameraModel"         type="PARAM"    source="MODEL"                        datatype="STRING"     description="Camera model"/>
     <Attribute name="CameraManufacturer"  type="PARAM"    source="MANUFACTURER"                 datatype="STRING"     description="Camera manufacturer"/>
-    <!--Attribute name="Pi"                  type="FUNCTION" source="myAttrFunct1"                 param="PI"            description="Value of PI"/>
-    <Attribute name="E"                   type="FUNCTION" source="myAttrFunct1"                 param="E"             description="Value of exp(1.0)"/>
-    <Attribute name="Ten"                 type="FUNCTION" source="myAttrFunct1"                 param="10"            description="Value 10"/>
-    <Attribute name="Gettysburg"          type="FUNCTION" source="myAttrFunct1"                 param="GETTYSBURG"    description="Start of Gettysburg address"/-->
+    <Attribute name="CameraModel"         type="PARAM"    source="MODEL"                        datatype="STRING"     description="Camera model"/>
+    <Attribute name="MaxSizeX"            type="PARAM"    source="MAX_SIZE_X"                   datatype="INT"        description="Sensor X Size"/>
+    <Attribute name="MaxSizeY"            type="PARAM"    source="MAX_SIZE_Y"                   datatype="INT"        description="Sensor Y Size"/>
+    <Attribute name="UniqueId"            type="PARAM"    source="UNIQUE_ID"                    datatype="INT"        description="Unique Id"/>
+    <Attribute name="ImageCounter"        type="PARAM"    source="ARRAY_COUNTER"                datatype="INT"        description="Image counter"/>
+    <Attribute name="TimeStamp"           type="PARAM"    source="TIME_STAMP"                   datatype="DOUBLE"      description="Time Stamp"/>
+    <Attribute name="TimeStampSec"        type="PARAM"    source="EPICS_TS_SEC"                 datatype="INT"        description="EPICS Seconds"/>
+    <Attribute name="TimeStampNSec"       type="PARAM"    source="EPICS_TS_NSEC"                datatype="INT"        description="EPICS Nanoseconds"/>
+    <Attribute name="SizeX"               type="PARAM"    source="SIZE_X"                       datatype="INT"        description="Image X Size"/>
+    <Attribute name="SizeY"               type="PARAM"    source="SIZE_Y"                       datatype="INT"        description="Image Y Size"/>
+    <Attribute name="MinX"                type="PARAM"    source="MIN_X"                        datatype="INT"        description="Image X Position"/>
+    <Attribute name="MinY"                type="PARAM"    source="MIN_Y"                        datatype="INT"        description="Image Y Position"/>
+    <Attribute name="CameraMode"          type="PARAM"    source="PHOTRON_CAM_MODE"             datatype="INT"        description="Camera Mode"/>
+    <Attribute name="AcquireMode"         type="PARAM"    source="PHOTRON_ACQUIRE_MODE"         datatype="INT"        description="Acquire Mode"/>
+    <Attribute name="RecordRate"          type="PARAM"    source="PHOTRON_REC_RATE"             datatype="INT"        description="Record Rate"/>
+    <Attribute name="ShutterRate"         type="PARAM"    source="PHOTRON_SHUTTER_FPS"          datatype="INT"        description="Shutter Rate"/>
+    <Attribute name="AcqPeriod"           type="PARAM"    source="ACQ_PERIOD"                   datatype="DOUBLE"      description="Acquire Period"/>
+    <Attribute name="DataType"            type="PARAM"    source="DATA_TYPE"                    datatype="INT"        description="Data Type"/>
+    <Attribute name="ColorMode"           type="PARAM"    source="COLOR_MODE"                   datatype="INT"        description="Color Mode"/>
+    <Attribute name="8BitSelect"          type="PARAM"    source="PHOTRON_8_BIT_SEL"            datatype="INT"        description="8-Bit Select"/>
+    <Attribute name="TriggerMode"         type="PARAM"    source="TRIGGER_MODE"                 datatype="INT"        description="Trigger Mode"/>
+    <Attribute name="AfterFrames"         type="PARAM"    source="PHOTRON_AFTER_FRAMES"         datatype="INT"        description="After Frames"/>
+    <Attribute name="RandomFrames"        type="PARAM"    source="PHOTRON_RANDOM_FRAMES"        datatype="INT"        description="Random Frames"/>
+    <Attribute name="ShadingMode"         type="PARAM"    source="PHOTRON_SHADING_MODE"         datatype="INT"        description="Shading Mode"/>
+    <Attribute name="MemIRIG"             type="PARAM"    source="PHOTRON_IRIG"                 datatype="INT"        description="Memory IRIG"/>
+    <!--
+2016/02/25 16:27:58.482 paramAttribute:updateValue: ERROR reading parameter attribute value, name=MemIRIGDay, source=PHOTRON_MEM_IRIG_DAY, type=0
+2016/02/25 16:27:58.483 paramAttribute:updateValue: ERROR reading parameter attribute value, name=MemIRIGHour, source=PHOTRON_MEM_IRIG_HOUR, type=0
+2016/02/25 16:27:58.484 paramAttribute:updateValue: ERROR reading parameter attribute value, name=MemIRIGMin, source=PHOTRON_MEM_IRIG_MIN, type=0
+2016/02/25 16:27:58.484 paramAttribute:updateValue: ERROR reading parameter attribute value, name=MemIRIGSec, source=PHOTRON_MEM_IRIG_SEC, type=0
+2016/02/25 16:27:58.485 paramAttribute:updateValue: ERROR reading parameter attribute value, name=MemIRIGUSec, source=PHOTRON_MEM_IRIG_USEC, type=0
+    -->
+    <!--Attribute name="MemIRIGDay"          type="PARAM"    source="PHOTRON_MEM_IRIG_DAY"         datatype="INT"        description="Mem IRIG Day"/>
+    <Attribute name="MemIRIGHour"         type="PARAM"    source="PHOTRON_MEM_IRIG_HOUR"        datatype="INT"        description="Mem IRIG Hour"/>
+    <Attribute name="MemIRIGMin"          type="PARAM"    source="PHOTRON_MEM_IRIG_MIN"         datatype="INT"        description="Mem IRIG Min"/>
+    <Attribute name="MemIRIGSec"          type="PARAM"    source="PHOTRON_MEM_IRIG_SEC"         datatype="INT"        description="Mem IRIG Sec"/>
+    <Attribute name="MemIRIGUSec"         type="PARAM"    source="PHOTRON_MEM_IRIG_USEC"        datatype="INT"        description="Mem IRIG uSec"/-->
+    <Attribute name="SyncIn"              type="PARAM"    source="PHOTRON_EXT_IN_1_SIG"         datatype="INT"        description="Sync In"/>
+    <Attribute name="GeneralIn"           type="PARAM"    source="PHOTRON_EXT_IN_2_SIG"         datatype="INT"        description="General In"/>
+    <Attribute name="TrigTTLIn"           type="PARAM"    source="PHOTRON_EXT_IN_3_SIG"         datatype="INT"        description="Trig TTL In"/>
+    <Attribute name="GeneralOut1"         type="PARAM"    source="PHOTRON_EXT_OUT_1_SIG"        datatype="INT"        description="General Out 1"/>
+    <Attribute name="GeneralOut2"         type="PARAM"    source="PHOTRON_EXT_OUT_2_SIG"        datatype="INT"        description="General Out 2"/>
+    <Attribute name="GeneralOut3"         type="PARAM"    source="PHOTRON_EXT_OUT_3_SIG"        datatype="INT"        description="General Out 3"/>
+    <Attribute name="TrigTTLOut"          type="PARAM"    source="PHOTRON_EXT_OUT_4_SIG"        datatype="INT"        description="Trig TTL Out"/>
 </Attributes>
     
     
