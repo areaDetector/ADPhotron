@@ -2930,6 +2930,7 @@ asynStatus Photron::readImageRange() {
   int numImages, numImagesCounter;
   int imageMode;
   int arrayCallbacks;
+  int abort = 0;
   //double acquirePeriod, delay;
   epicsTimeStamp startTime, endTime;
   double elapsedTime;
@@ -2960,20 +2961,19 @@ asynStatus Photron::readImageRange() {
   // TODO: Catch random trigger modes, see if fewer than the specified
   // number of recordings have occurred, then omit the first acquisition
   
-  //for (index=this->FrameInfo.m_nStart; index<(this->FrameInfo.m_nEnd+1); index++) {
-  for (index=start; index<(end+1); index++) {
-    // Allow user to abort acquisition
-    if (this->abortFlag == 1) {
-      printf("Aborting data readout!d\n");
-      this->abortFlag = 0;
-      break;
-    }
-    
+  // Preload the first frame
+  nRet = PDC_GetMemImageDataStart(this->nDeviceNo, this->nChildNo, start,
+                                  transferBitDepth, pBuf, &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetMemImageDataStart Error %d; index = %d\n", nErrorCode, start);
+  }
+  
+  for (index=start; index<=end; index++) {
     // Retrieve a frame
-    nRet = PDC_GetMemImageData(this->nDeviceNo, this->nChildNo, index,
-                               transferBitDepth, pBuf, &nErrorCode);
+    nRet = PDC_GetMemImageDataEnd(this->nDeviceNo, this->nChildNo,
+                                    transferBitDepth, pBuf, &nErrorCode);
     if (nRet == PDC_FAILED) {
-      printf("PDC_GetMemImageData Error %d\n", nErrorCode);
+      printf("PDC_GetMemImageDataEnd Error %d\n", nErrorCode);
     }
     
     // Retrieve frame time
@@ -3007,9 +3007,33 @@ asynStatus Photron::readImageRange() {
                 "%s:%s: error allocating buffer\n", driverName, functionName);
       return(asynError);
     }
-  
+    
     memcpy(pImage->pData, pBuf, dataSize);
-  
+    
+    // Allow user to abort acquisition
+    if (this->abortFlag == 1) {
+      // reset the abort flag
+      this->abortFlag = 0;
+      abort = 1;
+    }
+    
+    // Check to see if we're on the last frame
+    if (index == end) {
+      // There isn't another frame to preload
+      abort = 1;
+    }
+    
+    if (abort == 0) {
+      // Start preloading the next frame
+      nRet = PDC_GetMemImageDataStart(this->nDeviceNo, this->nChildNo, (index+1),
+                                      transferBitDepth, pBuf, &nErrorCode);
+      if (nRet == PDC_FAILED) {
+        printf("PDC_GetMemImageDataStart Error %d; index = %d\n", nErrorCode, (index+1));
+      }
+    } else {
+      printf("Aborting after posting this last image to plugins\n");
+    }
+    
     this->pArrays[0] = pImage;
     pImage->pAttributeList->add("ColorMode", "Color mode", NDAttrInt32, 
                                 &colorMode);
@@ -3020,7 +3044,7 @@ asynStatus Photron::readImageRange() {
     
     /* Call the callbacks to update any changes */
     callParamCallbacks();
-  
+    
     /* Get the current parameters */
     getIntegerParam(NDArrayCounter, &imageCounter);
     getIntegerParam(ADNumImages, &numImages);
@@ -3031,7 +3055,7 @@ asynStatus Photron::readImageRange() {
     numImagesCounter++;
     setIntegerParam(NDArrayCounter, imageCounter);
     setIntegerParam(ADNumImagesCounter, numImagesCounter);
-
+    
     /* Put the frame number and time stamp into the buffer */
     pImage->uniqueId = imageCounter;
     if (tMode == 1) {
@@ -3042,10 +3066,10 @@ asynStatus Photron::readImageRange() {
       pImage->timeStamp = startTime.secPastEpoch + startTime.nsec / 1.e9;
     }
     updateTimeStamp(&pImage->epicsTS);
-
+    
     /* Get any attributes that have been defined for this driver */
     this->getAttributes(pImage->pAttributeList);
-
+    
     if (arrayCallbacks) {
       /* Call the NDArray callback */
       /* Must release the lock here, or we can get into a deadlock, because we
@@ -3056,6 +3080,10 @@ asynStatus Photron::readImageRange() {
                 functionName);
       doCallbacksGenericPointer(pImage, NDArrayData, 0);
       this->lock();
+    }
+    
+    if (abort == 1) {
+      break;
     }
   }
   
