@@ -35,18 +35,11 @@
     <Attribute name="RandomFrames"        type="PARAM"    source="PHOTRON_RANDOM_FRAMES"        datatype="INT"        description="Random Frames"/>
     <Attribute name="ShadingMode"         type="PARAM"    source="PHOTRON_SHADING_MODE"         datatype="INT"        description="Shading Mode"/>
     <Attribute name="MemIRIG"             type="PARAM"    source="PHOTRON_IRIG"                 datatype="INT"        description="Memory IRIG"/>
-    <!--
-2016/02/25 16:27:58.482 paramAttribute:updateValue: ERROR reading parameter attribute value, name=MemIRIGDay, source=PHOTRON_MEM_IRIG_DAY, type=0
-2016/02/25 16:27:58.483 paramAttribute:updateValue: ERROR reading parameter attribute value, name=MemIRIGHour, source=PHOTRON_MEM_IRIG_HOUR, type=0
-2016/02/25 16:27:58.484 paramAttribute:updateValue: ERROR reading parameter attribute value, name=MemIRIGMin, source=PHOTRON_MEM_IRIG_MIN, type=0
-2016/02/25 16:27:58.484 paramAttribute:updateValue: ERROR reading parameter attribute value, name=MemIRIGSec, source=PHOTRON_MEM_IRIG_SEC, type=0
-2016/02/25 16:27:58.485 paramAttribute:updateValue: ERROR reading parameter attribute value, name=MemIRIGUSec, source=PHOTRON_MEM_IRIG_USEC, type=0
-    -->
-    <!--Attribute name="MemIRIGDay"          type="PARAM"    source="PHOTRON_MEM_IRIG_DAY"         datatype="INT"        description="Mem IRIG Day"/>
+    <Attribute name="MemIRIGDay"          type="PARAM"    source="PHOTRON_MEM_IRIG_DAY"         datatype="INT"        description="Mem IRIG Day"/>
     <Attribute name="MemIRIGHour"         type="PARAM"    source="PHOTRON_MEM_IRIG_HOUR"        datatype="INT"        description="Mem IRIG Hour"/>
     <Attribute name="MemIRIGMin"          type="PARAM"    source="PHOTRON_MEM_IRIG_MIN"         datatype="INT"        description="Mem IRIG Min"/>
     <Attribute name="MemIRIGSec"          type="PARAM"    source="PHOTRON_MEM_IRIG_SEC"         datatype="INT"        description="Mem IRIG Sec"/>
-    <Attribute name="MemIRIGUSec"         type="PARAM"    source="PHOTRON_MEM_IRIG_USEC"        datatype="INT"        description="Mem IRIG uSec"/-->
+    <Attribute name="MemIRIGUSec"         type="PARAM"    source="PHOTRON_MEM_IRIG_USEC"        datatype="INT"        description="Mem IRIG uSec"/>
     <Attribute name="SyncIn"              type="PARAM"    source="PHOTRON_EXT_IN_1_SIG"         datatype="INT"        description="Sync In"/>
     <Attribute name="GeneralIn"           type="PARAM"    source="PHOTRON_EXT_IN_2_SIG"         datatype="INT"        description="General In"/>
     <Attribute name="TrigTTLIn"           type="PARAM"    source="PHOTRON_EXT_IN_3_SIG"         datatype="INT"        description="Trig TTL In"/>

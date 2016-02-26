@@ -1143,6 +1143,12 @@ asynStatus Photron::connectCamera() {
   status |= setIntegerParam(ADMaxSizeY, this->sensorHeight);
   //
   status |= setIntegerParam(PhotronVarChan, 1);
+  status |= setIntegerParam(PhotronMemIRIGDay, 0);
+  status |= setIntegerParam(PhotronMemIRIGHour, 0);
+  status |= setIntegerParam(PhotronMemIRIGMin, 0);
+  status |= setIntegerParam(PhotronMemIRIGSec, 0);
+  status |= setIntegerParam(PhotronMemIRIGUsec, 0);
+  status |= setIntegerParam(PhotronMemIRIGSigEx, 0);
   
   if (status) {
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR, 
