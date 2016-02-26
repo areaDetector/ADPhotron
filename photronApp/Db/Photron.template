@@ -235,6 +235,7 @@ record(mbbi, "$(P)$(R)CamMode_RBV")
 record(bo, "$(P)$(R)SyncPulse")
 {
    field(DTYP, "asynInt32")
+   field(PINI, "YES")
    field(DESC, "Othersync pulse pref")
    field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SYNC_PULSE")
    field(ZNAM, "Neg")
