@@ -4,18 +4,17 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="https://github.com/areaDetector/ADCore/blob/master/iocBoot/NDAttributes.xsd"
     >
-    <!--Attribute name="AcquireTime"         type="EPICS_PV" source="13SIM1:cam1:AcquireTime"      dbrtype="DBR_NATIVE"  description="Camera acquire time"/>
-    <Attribute name="RingCurrent"         type="EPICS_PV" source="S:SRcurrentAI"                dbrtype="DBR_NATIVE"  description="Storage ring current"/>
+    <!--Attribute name="RingCurrent"         type="EPICS_PV" source="S:SRcurrentAI"                dbrtype="DBR_NATIVE"  description="Storage ring current"/>
     <Attribute name="RingCurrent_EGU"     type="EPICS_PV" source="S:SRcurrentAI.EGU"            dbrtype="DBR_NATIVE"  description="Storage ring current units"/>
-    <Attribute name="ID_Energy"           type="EPICS_PV" source="ID34:Energy"                  dbrtype="DBR_NATIVE"  description="Undulator energy"/>
-    <Attribute name="ID_Energy_EGU"       type="EPICS_PV" source="ID34:Energy.EGU"              dbrtype="DBR_NATIVE"  description="Undulator energy units"/-->
+    <Attribute name="ID_Energy"           type="EPICS_PV" source="ID32:Energy"                  dbrtype="DBR_NATIVE"  description="Undulator energy"/>
+    <Attribute name="ID_Energy_EGU"       type="EPICS_PV" source="ID32:Energy.EGU"              dbrtype="DBR_NATIVE"  description="Undulator energy units"/-->
     <Attribute name="CameraManufacturer"  type="PARAM"    source="MANUFACTURER"                 datatype="STRING"     description="Camera manufacturer"/>
     <Attribute name="CameraModel"         type="PARAM"    source="MODEL"                        datatype="STRING"     description="Camera model"/>
     <Attribute name="MaxSizeX"            type="PARAM"    source="MAX_SIZE_X"                   datatype="INT"        description="Sensor X Size"/>
     <Attribute name="MaxSizeY"            type="PARAM"    source="MAX_SIZE_Y"                   datatype="INT"        description="Sensor Y Size"/>
     <Attribute name="UniqueId"            type="PARAM"    source="UNIQUE_ID"                    datatype="INT"        description="Unique Id"/>
     <Attribute name="ImageCounter"        type="PARAM"    source="ARRAY_COUNTER"                datatype="INT"        description="Image counter"/>
-    <Attribute name="TimeStamp"           type="PARAM"    source="TIME_STAMP"                   datatype="DOUBLE"      description="Time Stamp"/>
+    <Attribute name="TimeStamp"           type="PARAM"    source="TIME_STAMP"                   datatype="DOUBLE"     description="Time Stamp"/>
     <Attribute name="TimeStampSec"        type="PARAM"    source="EPICS_TS_SEC"                 datatype="INT"        description="EPICS Seconds"/>
     <Attribute name="TimeStampNSec"       type="PARAM"    source="EPICS_TS_NSEC"                datatype="INT"        description="EPICS Nanoseconds"/>
     <Attribute name="SizeX"               type="PARAM"    source="SIZE_X"                       datatype="INT"        description="Image X Size"/>
@@ -23,30 +22,46 @@
     <Attribute name="MinX"                type="PARAM"    source="MIN_X"                        datatype="INT"        description="Image X Position"/>
     <Attribute name="MinY"                type="PARAM"    source="MIN_Y"                        datatype="INT"        description="Image Y Position"/>
     <Attribute name="CameraMode"          type="PARAM"    source="PHOTRON_CAM_MODE"             datatype="INT"        description="Camera Mode"/>
+    <Attribute name="CameraModeStr"       type="EPICS_PV" source="pho:cam1:CamMode_RBV"         dbrtype="DBR_STRING"  description="Camera Mode String"/>
     <Attribute name="AcquireMode"         type="PARAM"    source="PHOTRON_ACQUIRE_MODE"         datatype="INT"        description="Acquire Mode"/>
+    <Attribute name="AcquireModeStr"      type="EPICS_PV" source="pho:cam1:AcquireMode"         dbrtype="DBR_STRING"  description="Acquire Mode String"/>
     <Attribute name="RecordRate"          type="PARAM"    source="PHOTRON_REC_RATE"             datatype="INT"        description="Record Rate"/>
     <Attribute name="ShutterRate"         type="PARAM"    source="PHOTRON_SHUTTER_FPS"          datatype="INT"        description="Shutter Rate"/>
-    <Attribute name="AcqPeriod"           type="PARAM"    source="ACQ_PERIOD"                   datatype="DOUBLE"      description="Acquire Period"/>
+    <Attribute name="AcqPeriod"           type="PARAM"    source="ACQ_PERIOD"                   datatype="DOUBLE"     description="Acquire Period"/>
     <Attribute name="DataType"            type="PARAM"    source="DATA_TYPE"                    datatype="INT"        description="Data Type"/>
+    <Attribute name="DataTypeStr"         type="EPICS_PV" source="pho:cam1:DataType_RBV"        dbrtype="DBR_STRING"  description="Data Type String"/>
     <Attribute name="ColorMode"           type="PARAM"    source="COLOR_MODE"                   datatype="INT"        description="Color Mode"/>
+    <Attribute name="ColorModeStr"        type="EPICS_PV" source="pho:cam1:ColorMode_RBV"       dbrtype="DBR_STRING"  description="Color Mode String"/>
     <Attribute name="8BitSelect"          type="PARAM"    source="PHOTRON_8_BIT_SEL"            datatype="INT"        description="8-Bit Select"/>
+    <Attribute name="8BitSelectStr"       type="EPICS_PV" source="pho:cam1:8BitSel_RBV"         dbrtype="DBR_STRING"  description="8-Bit Select String"/>
+    <Attribute name="BurstTransfer"       type="PARAM"    source="PHOTRON_BURST_TRANS"          datatype="INT"        description="Burst Transfer"/>
+    <Attribute name="BurstTransferStr"    type="EPICS_PV" source="pho:cam1:BurstTransfer_RBV"   dbrtype="DBR_STRING"  description="Burst Transfer String"/>
     <Attribute name="TriggerMode"         type="PARAM"    source="TRIGGER_MODE"                 datatype="INT"        description="Trigger Mode"/>
+    <Attribute name="TriggerModeStr"      type="EPICS_PV" source="pho:cam1:TriggerMode_RBV"     dbrtype="DBR_STRING"  description="Trigger Mode String"/>
     <Attribute name="AfterFrames"         type="PARAM"    source="PHOTRON_AFTER_FRAMES"         datatype="INT"        description="After Frames"/>
     <Attribute name="RandomFrames"        type="PARAM"    source="PHOTRON_RANDOM_FRAMES"        datatype="INT"        description="Random Frames"/>
     <Attribute name="ShadingMode"         type="PARAM"    source="PHOTRON_SHADING_MODE"         datatype="INT"        description="Shading Mode"/>
+    <Attribute name="ShadingModeStr"      type="EPICS_PV" source="pho:cam1:ShadingMode_RBV"     dbrtype="DBR_STRING"  description="Shading Mode String"/>
     <Attribute name="MemIRIG"             type="PARAM"    source="PHOTRON_IRIG"                 datatype="INT"        description="Memory IRIG"/>
+    <Attribute name="MemIRIGStr"          type="EPICS_PV" source="pho:cam1:IRIG_RBV"            dbrtype="DBR_STRING"  description="Memory IRIG String"/>
     <Attribute name="MemIRIGDay"          type="PARAM"    source="PHOTRON_MEM_IRIG_DAY"         datatype="INT"        description="Mem IRIG Day"/>
     <Attribute name="MemIRIGHour"         type="PARAM"    source="PHOTRON_MEM_IRIG_HOUR"        datatype="INT"        description="Mem IRIG Hour"/>
     <Attribute name="MemIRIGMin"          type="PARAM"    source="PHOTRON_MEM_IRIG_MIN"         datatype="INT"        description="Mem IRIG Min"/>
     <Attribute name="MemIRIGSec"          type="PARAM"    source="PHOTRON_MEM_IRIG_SEC"         datatype="INT"        description="Mem IRIG Sec"/>
     <Attribute name="MemIRIGUSec"         type="PARAM"    source="PHOTRON_MEM_IRIG_USEC"        datatype="INT"        description="Mem IRIG uSec"/>
+    <Attribute name="MemIRIGSigExist"     type="PARAM"    source="PHOTRON_MEM_IRIG_SIGEX"       datatype="INT"        description="Mem IRIG Signal Exist"/>
     <Attribute name="SyncIn"              type="PARAM"    source="PHOTRON_EXT_IN_1_SIG"         datatype="INT"        description="Sync In"/>
+    <Attribute name="SyncInStr"           type="EPICS_PV" source="pho:cam1:ExtIn1_RBV"          dbrtype="DBR_STRING"  description="Sync In String"/>
     <Attribute name="GeneralIn"           type="PARAM"    source="PHOTRON_EXT_IN_2_SIG"         datatype="INT"        description="General In"/>
+    <Attribute name="GeneralInStr"        type="EPICS_PV" source="pho:cam1:ExtIn2_RBV"          dbrtype="DBR_STRING"  description="General In String"/>
     <Attribute name="TrigTTLIn"           type="PARAM"    source="PHOTRON_EXT_IN_3_SIG"         datatype="INT"        description="Trig TTL In"/>
+    <Attribute name="TrigTTLInStr"        type="EPICS_PV" source="pho:cam1:ExtIn3_RBV"          dbrtype="DBR_STRING"  description="Trig TTL In String"/>
     <Attribute name="GeneralOut1"         type="PARAM"    source="PHOTRON_EXT_OUT_1_SIG"        datatype="INT"        description="General Out 1"/>
+    <Attribute name="GeneralOut1Str"      type="EPICS_PV" source="pho:cam1:ExtOut1_RBV"         dbrtype="DBR_STRING"  description="General Out 1 String"/>
     <Attribute name="GeneralOut2"         type="PARAM"    source="PHOTRON_EXT_OUT_2_SIG"        datatype="INT"        description="General Out 2"/>
+    <Attribute name="GeneralOut2Str"      type="EPICS_PV" source="pho:cam1:ExtOut2_RBV"         dbrtype="DBR_STRING"  description="General Out 2 String"/>
     <Attribute name="GeneralOut3"         type="PARAM"    source="PHOTRON_EXT_OUT_3_SIG"        datatype="INT"        description="General Out 3"/>
+    <Attribute name="GeneralOut3Str"      type="EPICS_PV" source="pho:cam1:ExtOut3_RBV"         dbrtype="DBR_STRING"  description="General Out 3 String"/>
     <Attribute name="TrigTTLOut"          type="PARAM"    source="PHOTRON_EXT_OUT_4_SIG"        datatype="INT"        description="Trig TTL Out"/>
+    <Attribute name="TrigTTLOutStr"       type="EPICS_PV" source="pho:cam1:ExtOut4_RBV"         dbrtype="DBR_STRING"  description="Trig TTL Out String"/>
 </Attributes>
-    
-    
