@@ -4,3 +4,20 @@ file "commonPlugin_settings.req",   P=$(P)
 
 # Remember polling frequency
 $(P)cam1:PoolUsedMem.SCAN
+
+# User support
+#!file userCalcs10_settings.req P=$(P)
+#!$(P)userCalcEnable.VAL
+#!file userCalcOuts10_settings.req P=$(P)
+#!$(P)userCalcOutEnable.VAL
+#!file userStringCalcs10_settings.req P=$(P)
+#!$(P)userStringCalcEnable.VAL
+#!file userStringSeqs10_settings.req P=$(P)
+#!$(P)userStringSeqEnable
+#!file userArrayCalcs10_settings.req P=$(P)
+#!$(P)userArrayCalcEnable.VAL
+#!file userTransforms10_settings.req P=$(P)
+#!$(P)userTranEnable.VAL
+#!file userAve10_settings.req P=$(P)
+#!$(P)userAveEnable.VAL
+#!file "gp_settings.req", P=$(P)

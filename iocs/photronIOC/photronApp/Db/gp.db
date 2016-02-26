@@ -1,0 +1,361 @@
+grecord(ao,"$(P)float1")
+{
+     field(DESC, "float1")
+}
+grecord(ao,"$(P)float2")
+{
+     field(DESC, "float2")
+}
+grecord(ao,"$(P)float3")
+{
+     field(DESC, "float3")
+}
+grecord(ao,"$(P)float4")
+{
+     field(DESC, "float4")
+}
+grecord(ao,"$(P)float5")
+{
+     field(DESC, "float5")
+}
+grecord(ao,"$(P)float6")
+{
+     field(DESC, "float6")
+}
+grecord(ao,"$(P)float7")
+{
+     field(DESC, "float7")
+}
+grecord(ao,"$(P)float8")
+{
+     field(DESC, "float8")
+}
+grecord(ao,"$(P)float9")
+{
+     field(DESC, "float9")
+}
+grecord(ao,"$(P)float10")
+{
+     field(DESC, "float10")
+}
+grecord(ao,"$(P)float11")
+{
+     field(DESC, "float11")
+}
+grecord(ao,"$(P)float12")
+{
+     field(DESC, "float12")
+}
+grecord(ao,"$(P)float13")
+{
+     field(DESC, "float13")
+}
+grecord(ao,"$(P)float14")
+{
+     field(DESC, "float14")
+}
+grecord(ao,"$(P)float15")
+{
+     field(DESC, "float15")
+}
+grecord(ao,"$(P)float16")
+{
+     field(DESC, "float16")
+}
+grecord(ao,"$(P)float17")
+{
+     field(DESC, "float17")
+}
+grecord(ao,"$(P)float18")
+{
+     field(DESC, "float18")
+}
+grecord(ao,"$(P)float19")
+{
+     field(DESC, "float19")
+}
+grecord(ao,"$(P)float20")
+{
+     field(DESC, "float20")
+}
+grecord(bo,"$(P)bit1")
+{
+     field(DESC, "bit1")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit2")
+{
+     field(DESC, "bit2")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit3")
+{
+     field(DESC, "bit3")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit4")
+{
+     field(DESC, "bit4")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit5")
+{
+     field(DESC, "bit5")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit6")
+{
+     field(DESC, "bit6")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit7")
+{
+     field(DESC, "bit7")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit8")
+{
+     field(DESC, "bit8")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit9")
+{
+     field(DESC, "bit9")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit10")
+{
+     field(DESC, "bit10")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit11")
+{
+     field(DESC, "bit11")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit12")
+{
+     field(DESC, "bit12")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit13")
+{
+     field(DESC, "bit13")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit14")
+{
+     field(DESC, "bit14")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit15")
+{
+     field(DESC, "bit15")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit16")
+{
+     field(DESC, "bit16")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit17")
+{
+     field(DESC, "bit17")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit18")
+{
+     field(DESC, "bit18")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit19")
+{
+     field(DESC, "bit19")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(bo,"$(P)bit20")
+{
+     field(DESC, "bit20")
+     field(ONAM, "ON")
+     field(ZNAM, "OFF")
+}
+grecord(longout,"$(P)long1")
+{
+     field(DESC, "long1")
+}
+grecord(longout,"$(P)long2")
+{
+     field(DESC, "long2")
+}
+grecord(longout,"$(P)long3")
+{
+     field(DESC, "long3")
+}
+grecord(longout,"$(P)long4")
+{
+     field(DESC, "long4")
+}
+grecord(longout,"$(P)long5")
+{
+     field(DESC, "long5")
+}
+grecord(longout,"$(P)long6")
+{
+     field(DESC, "long6")
+}
+grecord(longout,"$(P)long7")
+{
+     field(DESC, "long7")
+}
+grecord(longout,"$(P)long8")
+{
+     field(DESC, "long8")
+}
+grecord(longout,"$(P)long9")
+{
+     field(DESC, "long9")
+}
+grecord(longout,"$(P)long10")
+{
+     field(DESC, "long10")
+}
+grecord(longout,"$(P)long11")
+{
+     field(DESC, "long11")
+}
+grecord(longout,"$(P)long12")
+{
+     field(DESC, "long12")
+}
+grecord(longout,"$(P)long13")
+{
+     field(DESC, "long13")
+}
+grecord(longout,"$(P)long14")
+{
+     field(DESC, "long14")
+}
+grecord(longout,"$(P)long15")
+{
+     field(DESC, "long15")
+}
+grecord(longout,"$(P)long16")
+{
+     field(DESC, "long16")
+}
+grecord(longout,"$(P)long17")
+{
+     field(DESC, "long17")
+}
+grecord(longout,"$(P)long18")
+{
+     field(DESC, "long18")
+}
+grecord(longout,"$(P)long19")
+{
+     field(DESC, "long19")
+}
+grecord(longout,"$(P)long20")
+{
+     field(DESC, "long20")
+}
+grecord(stringout,"$(P)string1")
+{
+     field(DESC, "string1")
+}
+grecord(stringout,"$(P)string2")
+{
+     field(DESC, "string2")
+}
+grecord(stringout,"$(P)string3")
+{
+     field(DESC, "string3")
+}
+grecord(stringout,"$(P)string4")
+{
+     field(DESC, "string4")
+}
+grecord(stringout,"$(P)string5")
+{
+     field(DESC, "string5")
+}
+grecord(stringout,"$(P)string6")
+{
+     field(DESC, "string6")
+}
+grecord(stringout,"$(P)string7")
+{
+     field(DESC, "string7")
+}
+grecord(stringout,"$(P)string8")
+{
+     field(DESC, "string8")
+}
+grecord(stringout,"$(P)string9")
+{
+     field(DESC, "string9")
+}
+grecord(stringout,"$(P)string10")
+{
+     field(DESC, "string10")
+}
+grecord(stringout,"$(P)string11")
+{
+     field(DESC, "string11")
+}
+grecord(stringout,"$(P)string12")
+{
+     field(DESC, "string12")
+}
+grecord(stringout,"$(P)string13")
+{
+     field(DESC, "string13")
+}
+grecord(stringout,"$(P)string14")
+{
+     field(DESC, "string14")
+}
+grecord(stringout,"$(P)string15")
+{
+     field(DESC, "string15")
+}
+grecord(stringout,"$(P)string16")
+{
+     field(DESC, "string16")
+}
+grecord(stringout,"$(P)string17")
+{
+     field(DESC, "string17")
+}
+grecord(stringout,"$(P)string18")
+{
+     field(DESC, "string18")
+}
+grecord(stringout,"$(P)string19")
+{
+     field(DESC, "string19")
+}
+grecord(stringout,"$(P)string20")
+{
+     field(DESC, "string20")
+}
+

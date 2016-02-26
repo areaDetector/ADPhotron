@@ -60,6 +60,14 @@ dbLoadRecords("NDStdArrays.template", "P=$(PREFIX),R=image1:,PORT=Image1,ADDR=0,
 # Load all other plugins using commonPlugins.cmd
 < $(ADCORE)/iocBoot/commonPlugins.cmd
 set_requestfile_path("$(ADPHOTRON)/photronApp/Db")
+set_requestfile_path("$(TOP)/photronApp/Db")
+
+### Lines that are commented out in commonPlugins.cmd
+# Load alive record (requires ALIVE module)
+#dbLoadRecords("$(ALIVE)/aliveApp/Db/alive.db", "P=$(PREFIX),RHOST=192.168.1.254")
+
+# User records
+#!< user.cmd
 
 #asynSetTraceIOMask("$(PORT)",0,2)
 #asynSetTraceMask("$(PORT)",0,255)
