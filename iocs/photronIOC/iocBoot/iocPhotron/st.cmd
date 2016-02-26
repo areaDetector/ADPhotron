@@ -45,7 +45,7 @@ asynSetMinTimerPeriod(0.001)
 PhotronConfig("$(PORT)", "192.168.0.10", 0, 20, 0, 0)
 # Load the detector records
 dbLoadRecords("$(ADPHOTRON)/db/Photron.template","P=$(PREFIX),R=cam1:,PORT=$(PORT),ADDR=0,TIMEOUT=1")
-dbLoadTemplate("photronExtIO.substitutions")
+dbLoadTemplate("templates/photronExtIO.substitutions")
 
 # Load an NDFile database.  This is not supported for the Photron which does not write files.
 #dbLoadRecords("NDFile.template","P=$(PREFIX),R=cam1:,PORT=SIM1,ADDR=0,TIMEOUT=1")
