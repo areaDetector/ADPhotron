@@ -664,6 +664,6 @@ composite {
 	"dynamic attribute" {
 		vis="if zero"
 		calc="A"
-		chan="$(P)$(R)Status_RBV"
+		chan="$(P)$(R)AcquireMode"
 	}
 }

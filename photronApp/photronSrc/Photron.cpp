@@ -1833,7 +1833,8 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setExternalOutMode(4, value);
   } else if (function == PhotronShadingMode) {
     // Only allow shading to be changed in live mode
-    if (phostat == PDC_STATUS_LIVE) {
+    getIntegerParam(PhotronAcquireMode, &acqMode);
+    if (acqMode == 0) {
       setShadingMode(value);
     } else {
       // Restore the old value
