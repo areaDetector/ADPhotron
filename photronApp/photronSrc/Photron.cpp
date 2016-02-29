@@ -186,6 +186,7 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   }
   
   this->abortFlag = 0;
+  this->forceWait = 0;
   
   /* Create the epicsEvents for signaling to the acquisition task when 
      acquisition starts and stops */
@@ -202,17 +203,17 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
     return;
   }
   
-  /* Create the epicsEvents for signaling to the save task when 
-     shading data is saved */
-  this->startSaveEventId = epicsEventCreate(epicsEventEmpty);
-  if (!this->startSaveEventId) {
-    printf("%s:%s epicsEventCreate failure for start save event\n",
+  /* Create the epicsEvents for signaling to the wait task when 
+     long operations are in progress */
+  this->startWaitEventId = epicsEventCreate(epicsEventEmpty);
+  if (!this->startWaitEventId) {
+    printf("%s:%s epicsEventCreate failure for start wait event\n",
            driverName, functionName);
     return;
   }
-  this->stopSaveEventId = epicsEventCreate(epicsEventEmpty);
-  if (!this->stopSaveEventId) {
-    printf("%s:%s epicsEventCreate failure for stop save event\n",
+  this->stopWaitEventId = epicsEventCreate(epicsEventEmpty);
+  if (!this->stopWaitEventId) {
+    printf("%s:%s epicsEventCreate failure for stop wait event\n",
            driverName, functionName);
     return;
   }
@@ -268,11 +269,11 @@ Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
   }
   
   /* Create the thread that polls status while saving shading data */
-  status = (epicsThreadCreate("PhotronSaveTask", epicsThreadPriorityMedium,
+  status = (epicsThreadCreate("PhotronWaitTask", epicsThreadPriorityMedium,
                 epicsThreadGetStackSize(epicsThreadStackMedium),
-                (EPICSTHREADFUNC)PhotronSaveTaskC, this) == NULL);
+                (EPICSTHREADFUNC)PhotronWaitTaskC, this) == NULL);
   if (status) {
-    printf("%s:%s epicsThreadCreate failure for image task\n",
+    printf("%s:%s epicsThreadCreate failure for wait task\n",
            driverName, functionName);
     return;
   }
@@ -649,19 +650,19 @@ void Photron::PhotronPlayTask() {
 }
 
 
-static void PhotronSaveTaskC(void *drvPvt) {
+static void PhotronWaitTaskC(void *drvPvt) {
   Photron *pPvt = (Photron *)drvPvt;
-  pPvt->PhotronSaveTask();
+  pPvt->PhotronWaitTask();
 }
 
 /** Saving the shading data takes a long time. Spawn a task to poll the status
   */
-void Photron::PhotronSaveTask() {
+void Photron::PhotronWaitTask() {
   unsigned long status = 0;
   unsigned long nRet;
   unsigned long nErrorCode;
   int eStatus;
-  const char *functionName = "PhotronSaveTask";
+  const char *functionName = "PhotronWaitTask";
   
   this->lock();
   /* Loop forever */
@@ -670,15 +671,15 @@ void Photron::PhotronSaveTask() {
     /* Release the lock while we wait for an event that says acquire has 
        started, then lock again */
     asynPrint(this->pasynUserSelf, ASYN_TRACE_FLOW,
-              "%s:%s: waiting for saving shading data to start\n", driverName, 
+              "%s:%s: waiting for long operation to start\n", driverName, 
               functionName);
     this->unlock();
-    epicsEventWait(this->startSaveEventId);
+    epicsEventWait(this->startWaitEventId);
     this->lock();
     
-    // Wait until saving is done
+    // Wait until long operaion (saving/loading) is done
     while (1) {
-      printf("Waiting for saving to be done...\n");
+      printf("Waiting for long operation to be done...\n");
       // Get camera status
       nRet = PDC_GetStatus(this->nDeviceNo, &status, &nErrorCode);
       if (nRet == PDC_FAILED) {
@@ -689,13 +690,18 @@ void Photron::PhotronSaveTask() {
       setIntegerParam(PhotronStatusName, eStatus);
       callParamCallbacks();
       
-      if (status != PDC_STATUS_SAVE) {
+      if ((status == PDC_STATUS_SAVE) || (status == PDC_STATUS_LOAD)) {
+        // the state we've been waiting for has occurred
+        this->forceWait = 0;
+      }
+      
+      if ((status != PDC_STATUS_SAVE) && (status != PDC_STATUS_LOAD) && this->forceWait == 0) {
         break;
       }
       
       // release the lock so other things can happen, even though they shouldn't
       this->unlock();
-      epicsEventWaitWithTimeout(this->stopSaveEventId, 1.0);
+      epicsEventWaitWithTimeout(this->stopWaitEventId, 1.0);
       this->lock();
     }
     
@@ -1522,9 +1528,9 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   functionToAllow = ((function >= PhotronPMStart) && (function <= PhotronPMRepeat));
   functionToReject = ((function >= PhotronPMStart) && (function <= PhotronPMCancel));
   
-  if (phostat == PDC_STATUS_SAVE) {
-    // Don't allow any PVs to change while camera is in the save state
-    printf("Save in progress: function = %d\tvalue = %d\toldValue = %d\n", function, value, oldValue);
+  if ((phostat == PDC_STATUS_SAVE) || (phostat == PDC_STATUS_LOAD) || (this->forceWait == 1)) {
+    // Don't allow any PVs to change while camera is the state
+    printf("Long operation in progress: function = %d\tvalue = %d\toldValue = %d\n", function, value, oldValue);
     // Revert requested change
     setIntegerParam(function, oldValue);
     skipReadParams = 1;
@@ -1823,10 +1829,6 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setExternalOutMode(4, value);
   } else if (function == PhotronShadingMode) {
     setShadingMode(value);
-    if (value == 2) {
-      // Don't read parameters if "Save" is selected; the save task will do that
-      skipReadParams = 1;
-    }
   } else if (function == PhotronBurstTrans) {
     setBurstTransfer(value);
   } else if (function == PhotronTest) {
@@ -2470,9 +2472,8 @@ asynStatus Photron::setShadingMode(epicsInt32 value) {
     }
     
     if (apiMode == PDC_SHADING_SAVE) {
-      // The "Save" operation takes a long time; wake up the save task to 
-      // poll the camera status in a separate thread
-      epicsEventSignal(this->startSaveEventId);
+      // The SA-Z takes a little while before the status switches to save mode
+      this->forceWait = 1;
     }
     
   } else {
@@ -4726,6 +4727,13 @@ asynStatus Photron::readParameters() {
   callParamCallbacks();
   
   //printf("Done reading parameters\n");
+  
+  // start save thread, if necessary
+  if ((this->nStatus == PDC_STATUS_SAVE) || (this->nStatus == PDC_STATUS_LOAD) || (this->forceWait == 1)) {
+    // The Shading "Save" operation takes a long time; wake up the wait task to 
+    // poll the camera status in a separate thread
+    epicsEventSignal(this->startWaitEventId);
+  }
   
   if (status)
     asynPrint(this->pasynUserSelf, ASYN_TRACE_ERROR,

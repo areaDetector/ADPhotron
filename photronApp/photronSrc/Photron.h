@@ -121,7 +121,7 @@ public:
   virtual void report(FILE *fp, int details);
   /* PhotronTask should be private, but gets called from C, so must be public */
   void PhotronTask(); 
-  void PhotronSaveTask(); 
+  void PhotronWaitTask(); 
   void PhotronRecTask(); 
   void PhotronPlayTask(); 
   
@@ -302,8 +302,8 @@ private:
   int autoDetect;
   epicsEventId startEventId;
   epicsEventId stopEventId;
-  epicsEventId startSaveEventId;
-  epicsEventId stopSaveEventId;
+  epicsEventId startWaitEventId;
+  epicsEventId stopWaitEventId;
   epicsEventId startRecEventId;
   epicsEventId stopRecEventId;
   epicsEventId resumeRecEventId;
@@ -406,6 +406,8 @@ private:
   //
   int stopRecFlag;
   int previewDone;
+  //
+  int forceWait;
   /* Our data */
   NDArray *pRaw;
   int numValidTriggerModes_;
@@ -421,7 +423,7 @@ private:
 /* Declare this function here so that its implementation can appear below
    the contructor in the source file */ 
 static void PhotronTaskC(void *drvPvt);
-static void PhotronSaveTaskC(void *drvPvt);
+static void PhotronWaitTaskC(void *drvPvt);
 static void PhotronRecTaskC(void *drvPvt);
 static void PhotronPlayTaskC(void *drvPvt);
 
