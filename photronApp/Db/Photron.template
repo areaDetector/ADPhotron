@@ -360,6 +360,38 @@ record(bo, "$(P)$(R)JumpShutterFps")
    field(ONAM, "Maximum")
 }
 
+# The actual trigger-mode PVs get enums from the driver, however, we still need
+# a readback on the main page, otherwise the user will keep the popup open
+record(mbbi, "$(P)$(R)TriggerModeAll_RBV")
+{
+   field(DTYP, "asynInt32")
+   field(DESC, "Static Trig RBV")
+   field(INP,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))TRIGGER_MODE")
+   field(ZRST, "Start")
+   field(ZRVL, "0")
+   field(ONST, "Center")
+   field(ONVL, "1")
+   field(TWST, "End")
+   field(TWVL, "2")
+   field(THST, "Manual")
+   field(THVL, "4")
+   field(FRST, "Random")
+   field(FRVL, "3")
+   field(FVST, "Random reset")
+   field(FVVL, "5")
+   field(SXST, "Random center")
+   field(SXVL, "6")
+   field(SVST, "Random manual")
+   field(SVVL, "7")
+   field(EIST, "Two-stage half")
+   field(EIVL, "8")
+   field(NIST, "Two-stage quarter")
+   field(NIVL, "9")
+   field(TEST, "Two-stage one-eigth")
+   field(TEVL, "10")
+   field(SCAN, "I/O Intr")
+}
+
 record(longout, "$(P)$(R)AfterFrames")
 {
    field(DTYP, "asynInt32")
@@ -809,6 +841,7 @@ record(bo, "$(P)$(R)IRIG")
    field(ZNAM, "Off")
    field(ONAM, "On")
    field(VAL,  "1")
+   info(asyn:READBACK, "1")
 }
 
 record(bi, "$(P)$(R)IRIG_RBV")

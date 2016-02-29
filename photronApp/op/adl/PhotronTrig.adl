@@ -166,19 +166,6 @@ text {
 	textix="Trig mode"
 	align="horiz. right"
 }
-menu {
-	object {
-		x=100
-		y=30
-		width=120
-		height=20
-	}
-	control {
-		chan="$(P)$(R)TriggerMode"
-		clr=14
-		bclr=51
-	}
-}
 "text update" {
 	object {
 		x=225
@@ -187,7 +174,7 @@ menu {
 		height=18
 	}
 	monitor {
-		chan="$(P)$(R)TriggerMode_RBV"
+		chan="$(P)$(R)TriggerModeAll_RBV"
 		clr=54
 		bclr=4
 	}
@@ -461,4 +448,18 @@ composite {
 		calc="A<8"
 		chan="$(P)$(R)TriggerMode_RBV"
 	}
+}
+"related display" {
+	object {
+		x=100
+		y=30
+		width=120
+		height=20
+	}
+	display[0] {
+		name="PhotronTrigSelect.adl"
+		args="P=$(P),R=$(R)"
+	}
+	clr=14
+	bclr=51
 }
