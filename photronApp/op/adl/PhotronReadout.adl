@@ -511,58 +511,34 @@ composite {
 		}
 	}
 }
-composite {
+text {
 	object {
 		x=12
 		y=200
-		width=303
+		width=120
 		height=20
 	}
-	"composite name"=""
-	children {
-		text {
-			object {
-				x=12
-				y=200
-				width=120
-				height=20
-			}
-			"basic attribute" {
-				clr=14
-			}
-			textix="Shading Mode"
-			align="horiz. right"
-		}
-		menu {
-			object {
-				x=138
-				y=200
-				width=80
-				height=20
-			}
-			control {
-				chan="$(P)$(R)ShadingMode"
-				clr=14
-				bclr=51
-			}
-		}
-		"text update" {
-			object {
-				x=236
-				y=201
-				width=79
-				height=18
-			}
-			monitor {
-				chan="$(P)$(R)ShadingMode_RBV"
-				clr=54
-				bclr=4
-			}
-			align="horiz. centered"
-			format="string"
-			limits {
-			}
-		}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Shading Mode"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=236
+		y=201
+		width=79
+		height=18
+	}
+	monitor {
+		chan="$(P)$(R)ShadingMode_RBV"
+		clr=54
+		bclr=4
+	}
+	align="horiz. centered"
+	format="string"
+	limits {
 	}
 }
 composite {
@@ -660,5 +636,34 @@ menu {
 	align="horiz. centered"
 	format="string"
 	limits {
+	}
+}
+composite {
+	object {
+		x=138
+		y=200
+		width=80
+		height=20
+	}
+	"composite name"=""
+	children {
+		menu {
+			object {
+				x=138
+				y=200
+				width=80
+				height=20
+			}
+			control {
+				chan="$(P)$(R)ShadingMode"
+				clr=14
+				bclr=51
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="if zero"
+		calc="A"
+		chan="$(P)$(R)Status_RBV"
 	}
 }

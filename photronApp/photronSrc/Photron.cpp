@@ -484,6 +484,10 @@ void Photron::PhotronPlayTask() {
           setIntegerParam(PhotronMemIRIGSec, tData.m_nSecond);
           setIntegerParam(PhotronMemIRIGUsec, tData.m_nMicroSecond);
           setIntegerParam(PhotronMemIRIGSigEx, tData.m_ExistSignal);
+        
+          /*printf("(%d, %d, %d, %d, %d, %d)\n", tData.m_nDayOfYear, tData.m_nHour, 
+                 tData.m_nMinute, tData.m_nSecond, tData.m_nMicroSecond, 
+                 tData.m_ExistSignal);*/
         }
         
         /* We save the most recent image buffer so it can be used in the read() 
@@ -1828,7 +1832,14 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   } else if (function == PhotronExtOut4Sig) {
     setExternalOutMode(4, value);
   } else if (function == PhotronShadingMode) {
-    setShadingMode(value);
+    // Only allow shading to be changed in live mode
+    if (phostat == PDC_STATUS_LIVE) {
+      setShadingMode(value);
+    } else {
+      // Restore the old value
+      setIntegerParam(function, oldValue);
+      skipReadParams = 1;
+    }
   } else if (function == PhotronBurstTrans) {
     setBurstTransfer(value);
   } else if (function == PhotronTest) {
