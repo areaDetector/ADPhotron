@@ -228,6 +228,16 @@ composite {
 		name="ADBuffers.adl"
 		args="P=$(P),R=$(R)"
 	}
+	display[7] {
+		label="Acq Time Calc"
+		name="userCalcOut_full.adl"
+		args="P=$(P),C=$(R)AcqTimeCalc"
+	}
+	display[8] {
+		label="Trigger Reset Calc"
+		name="userCalcOut_full.adl"
+		args="P=$(P),C=$(R)TrigResetCalc"
+	}
 	display[15] {
 		label="ADBase"
 		name="ADBase.adl"
