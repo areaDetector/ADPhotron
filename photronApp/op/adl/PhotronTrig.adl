@@ -463,3 +463,35 @@ composite {
 	clr=14
 	bclr=51
 }
+composite {
+	object {
+		x=265
+		y=155
+		width=80
+		height=20
+	}
+	"composite name"=""
+	children {
+		"message button" {
+			object {
+				x=265
+				y=155
+				width=80
+				height=20
+			}
+			control {
+				chan="$(P)$(R)LiveMode.VAL"
+				clr=14
+				bclr=51
+			}
+			label="Readout"
+			press_msg="1"
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A>3&&A<8&&B>1"
+		chan="$(P)$(R)TriggerMode_RBV"
+		chanB="$(P)$(R)RecCount_RBV"
+	}
+}
