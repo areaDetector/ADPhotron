@@ -269,6 +269,7 @@ private:
   asynStatus setEndless();
   asynStatus setLive();
   asynStatus setPlayback();
+  asynStatus testMethod();
   asynStatus setPMIndex(epicsInt32 value);
   asynStatus changePMIndex(epicsInt32 value);
   asynStatus setPreviewRange(epicsInt32 function, epicsInt32 value);

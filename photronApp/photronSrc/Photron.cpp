@@ -1857,6 +1857,9 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     if ((value % 4) == 0) {
       // The value is good
       setIntegerParam(function, value);
+      
+      // 
+      testMethod();
     } else {
       // The new value is bad; restore the old value
       setIntegerParam(function, oldValue);
@@ -1890,6 +1893,36 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
               "%s:%s: function=%d, value=%d\n",
               driverName, functionName, function, value);
   return((asynStatus)status);
+}
+
+
+asynStatus Photron::testMethod() {
+  unsigned long nRet, nErrorCode;
+  int index;
+  static const char *functionName = "testMethod";
+  
+  // Retrieves frame information 
+  nRet = PDC_GetMemFrameInfo(this->nDeviceNo, this->nChildNo, &FrameInfo,
+                             &nErrorCode);
+  if (nRet == PDC_FAILED) {
+    printf("PDC_GetMemFrameInfo Error %d\n", nErrorCode);
+    return asynError;
+  }
+  // display frame info
+  printf("Frame Info:\n");
+  printf("\tFrame Start:\t%d\n", FrameInfo.m_nStart);
+  printf("\tFrame Trigger:\t%d\n", FrameInfo.m_nTrigger);
+  printf("\tFrame End:\t%d\n", FrameInfo.m_nEnd);
+  printf("\t2S Low->High:\t%d\n", FrameInfo.m_nTwoStageLowToHigh);
+  printf("\t2S High->Low:\t%d\n", FrameInfo.m_nTwoStageHighToLow);
+  printf("\tEvent frame numbers:\n");
+  for (index=0; index<10; index++) {
+    printf("\t\ti=%d\tframe: %d\n", index, FrameInfo.m_nEvent[index]);
+  }
+  printf("\tEvent count:\t%d\n", FrameInfo.m_nEventCount);
+  printf("\tRecorded Frames:\t%d\n", FrameInfo.m_nRecordedFrames);
+  
+  return asynSuccess;
 }
 
 
