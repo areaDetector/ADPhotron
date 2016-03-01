@@ -768,7 +768,11 @@ void Photron::PhotronRecTask() {
       }
       setIntegerParam(PhotronStatus, status);
       if (status == PDC_STATUS_REC) {
-          setIntegerParam(ADStatus, ADStatusAcquire);
+        setIntegerParam(ADStatus, ADStatusAcquire);
+      } else if ((status == PDC_STATUS_ENDLESS) || (status == PDC_STATUS_RECREADY)) {
+        setIntegerParam(ADStatus, ADStatusWaiting);
+        // Reset the acquire button -- THIS HAPPENS TOO SOON. The status hasn't changed to record yet
+        //setIntegerParam(ADAcquire, 0);
       }
       eStatus = statusToEPICS(status);
       setIntegerParam(PhotronStatusName, eStatus);
@@ -1705,7 +1709,12 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
     setStatus(value);
   } else if (function == PhotronSoftTrig) {
     //printf("Soft Trigger changed. value = %d\n", value);
-    softwareTrigger();
+    if (value == 1) {
+      softwareTrigger();
+    } else {
+      // Don't read params when trigger PV is reset
+      skipReadParams = 1;
+    }
   } else if (function == PhotronLiveMode) {
     // Manually returning to live mode is necessary when eternally triggering
     // random modes and it is desirable to readout data before the internal
@@ -2295,7 +2304,8 @@ asynStatus Photron::setRecReady() {
       // but only if fewer than the specified number of recordings are generated
       case PDC_TRIGGER_RANDOM_CENTER:
       case PDC_TRIGGER_RANDOM_MANUAL:
-        //
+        // The SA-Z needs a delay to reliably enter endless mode
+        epicsThreadSleep(0.5);
         setEndless();
         break;
       default:

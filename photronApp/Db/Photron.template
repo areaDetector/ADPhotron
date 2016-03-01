@@ -441,12 +441,40 @@ record(longin, "$(P)$(R)RecCount_RBV")
 }
 
 ## Software trigger
-record(bo, "$(P)$(R)SoftwareTrigger") {
-  field(PINI, "NO")
+record(busy, "$(P)$(R)SoftwareTrigger")
+{
   field(DTYP, "asynInt32")
+  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SOFT_TRIG")
   field(ZNAM, "Done")
   field(ONAM, "Trigger")
-  field(OUT,  "@asyn($(PORT),$(ADDR),$(TIMEOUT))PHOTRON_SOFT_TRIG")
+  field(VAL,  "0")
+}
+
+# Calculate recording duration so that the trigger busy record can be reset. 
+# This should allow the scan record to wait for triggered recording to complete
+# It will work better with modes where most of the frames are after frames
+record(calcout, "$(P)$(R)AcqTimeCalc")
+{
+   field(DTYP, "Soft Channel")
+   field(INPA, "$(P)$(R)TriggerMode_RBV CP NMS")
+   field(INPB, "$(P)$(R)AfterFrames_RBV CP NMS")
+   field(INPC, "$(P)$(R)RecordRate_RBV CP NMS")
+   field(CALC, "(A<8)?B/C+D:0.01")
+   field(OOPT, "On Change")
+   field(DOPT, "Use CALC")
+   field(OUT,  "$(P)$(R)TrigResetCalc.ODLY NPP NMS")
+   field(PREC, "6")
+}
+
+record(calcout, "$(P)$(R)TrigResetCalc")
+{
+   field(DTYP, "Soft Channel")
+   field(INPA, "$(P)$(R)SoftwareTrigger CP NMS")
+   field(CALC, "A")
+   field(OCAL, "0")
+   field(OOPT, "Transition To Non-zero")
+   field(DOPT, "Use OCAL")
+   field(OUT,  "$(P)$(R)SoftwareTrigger CA NMS")
 }
 
 record(longin, "$(P)$(R)FrameStart_RBV")
