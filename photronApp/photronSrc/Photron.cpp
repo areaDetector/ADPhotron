@@ -1859,7 +1859,7 @@ asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
       setIntegerParam(function, value);
       
       // 
-      testMethod();
+      //testMethod();
     } else {
       // The new value is bad; restore the old value
       setIntegerParam(function, oldValue);
