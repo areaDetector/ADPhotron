@@ -1,0 +1,15 @@
+record(busy,"$(P)$(R)readoutBusy") {
+  field(ZNAM, "Done")
+  field(ONAM, "Busy")
+  field(VAL,  "0")
+}
+
+record(calcout, "$(P)$(R)readoutBusyCalc") {
+   field(DTYP, "Soft Channel")
+   field(INPA, "$(P)$(R)Status_RBV CP NMS")
+   field(CALC, "A=1")
+   field(OOPT, "Transition To Zero")
+   field(DOPT, "Use CALC")
+   # Why is a CA outlink needed for busy records?
+   field(OUT,  "$(P)$(R)readoutBusy CA NMS")
+}
