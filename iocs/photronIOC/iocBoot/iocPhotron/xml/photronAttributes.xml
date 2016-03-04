@@ -28,7 +28,8 @@
     <Attribute name="ShutterRate"         type="PARAM"    source="PHOTRON_SHUTTER_FPS"          datatype="INT"        description="Shutter Rate"/>
     <Attribute name="AcqPeriod"           type="PARAM"    source="ACQ_PERIOD"                   datatype="DOUBLE"     description="Acquire Period"/>
     <Attribute name="DataType"            type="EPICS_PV" source="pho:cam1:DataType_RBV"        dbrtype="DBR_STRING"  description="Data Type"/>
-    <Attribute name="ColorMode"           type="EPICS_PV" source="pho:cam1:ColorMode_RBV"       dbrtype="DBR_STRING"  description="Color Mode"/>
+    <!-- The following attribute can't be named ColorMode, otherwise it conflicts with an attribute added by the driver, which breaks ImageJ -->
+    <Attribute name="ColorModeStr"           type="EPICS_PV" source="pho:cam1:ColorMode_RBV"       dbrtype="DBR_STRING"  description="Color Mode String"/>
     <Attribute name="8BitSelect"          type="EPICS_PV" source="pho:cam1:8BitSel_RBV"         dbrtype="DBR_STRING"  description="8-Bit Select"/>
     <Attribute name="BurstTransfer"       type="EPICS_PV" source="pho:cam1:BurstTransfer_RBV"   dbrtype="DBR_STRING"  description="Burst Transfer"/>
     <Attribute name="TriggerMode"         type="EPICS_PV" source="pho:cam1:TriggerMode_RBV"     dbrtype="DBR_STRING"  description="Trigger Mode"/>
