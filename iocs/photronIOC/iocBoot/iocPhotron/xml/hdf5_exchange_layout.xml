@@ -44,7 +44,7 @@
             <attribute name="units" source="constant" value="Celsius" type="string"></attribute>
           </dataset>
           <dataset name="data_type" source="ndattribute" ndattribute="DataType" when="OnFileClose"></dataset>
-          <dataset name="color_mode" source="ndattribute" ndattribute="ColorMode" when="OnFileClose"></dataset>
+          <dataset name="color_mode" source="ndattribute" ndattribute="ColorModeStr" when="OnFileClose"></dataset>
           <dataset name="8_bit_select" source="ndattribute" ndattribute="8BitSelect" when="OnFileClose"></dataset>
           <dataset name="burst_transfer" source="ndattribute" ndattribute="BurstTransfer" when="OnFileClose"></dataset>
           <dataset name="shading_mode" source="ndattribute" ndattribute="ShadingMode" when="OnFileClose"></dataset>

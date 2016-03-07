@@ -14,12 +14,6 @@
     <Attribute name="TimeStamp"           type="PARAM"    source="TIME_STAMP"                   datatype="DOUBLE"     description="Time Stamp"/>
     <Attribute name="TimeStampSec"        type="PARAM"    source="EPICS_TS_SEC"                 datatype="INT"        description="EPICS Seconds"/>
     <Attribute name="TimeStampNSec"       type="PARAM"    source="EPICS_TS_NSEC"                datatype="INT"        description="EPICS Nanoseconds"/-->
-    <Attribute name="DateTimeStart"       type="EPICS_PV" source="S:IOC:timeOfDayISO8601"       dbrtype="DBR_STRING"/>
-    <Attribute name="DateTimeEnd"         type="EPICS_PV" source="S:IOC:timeOfDayISO8601"       dbrtype="DBR_STRING"/>
-    <Attribute name="Current"             type="EPICS_PV" source="S:SRcurrentAI"                dbrtype="DBR_DOUBLE"/>
-    <Attribute name="TopUpStatus"         type="EPICS_PV" source="S:TopUpStatus"                dbrtype="DBR_ENUM"/>
-    <!--<Attribute name="SourceEnergy"        type="EPICS_PV" source="ID32ds:Energy.VAL"            dbrtype="DBR_DOUBLE"/>
-    <Attribute name="SourceGap"           type="EPICS_PV" source="ID32ds:Gap.VAL"               dbrtype="DBR_DOUBLE"/-->
     <Attribute name="SizeX"               type="PARAM"    source="SIZE_X"                       datatype="INT"        description="Image X Size"/>
     <Attribute name="SizeY"               type="PARAM"    source="SIZE_Y"                       datatype="INT"        description="Image Y Size"/>
     <Attribute name="MinX"                type="PARAM"    source="MIN_X"                        datatype="INT"        description="Image X Position"/>
@@ -30,7 +24,8 @@
     <Attribute name="ShutterRate"         type="PARAM"    source="PHOTRON_SHUTTER_FPS"          datatype="INT"        description="Shutter Rate"/>
     <Attribute name="AcqPeriod"           type="PARAM"    source="ACQ_PERIOD"                   datatype="DOUBLE"     description="Acquire Period"/>
     <Attribute name="DataType"            type="EPICS_PV" source="pho:cam1:DataType_RBV"        dbrtype="DBR_STRING"  description="Data Type"/>
-    <Attribute name="ColorMode"           type="EPICS_PV" source="pho:cam1:ColorMode_RBV"       dbrtype="DBR_STRING"  description="Color Mode"/>
+    <!-- The following attribute can't be named ColorMode, otherwise it conflicts with an attribute added by the driver, which breaks ImageJ -->
+    <Attribute name="ColorModeStr"           type="EPICS_PV" source="pho:cam1:ColorMode_RBV"       dbrtype="DBR_STRING"  description="Color Mode String"/>
     <Attribute name="8BitSelect"          type="EPICS_PV" source="pho:cam1:8BitSel_RBV"         dbrtype="DBR_STRING"  description="8-Bit Select"/>
     <Attribute name="BurstTransfer"       type="EPICS_PV" source="pho:cam1:BurstTransfer_RBV"   dbrtype="DBR_STRING"  description="Burst Transfer"/>
     <Attribute name="TriggerMode"         type="EPICS_PV" source="pho:cam1:TriggerMode_RBV"     dbrtype="DBR_STRING"  description="Trigger Mode"/>
