@@ -1,0 +1,13 @@
+<?xml version="1.0" standalone="no" ?>
+<!-- Attributes -->
+<Attributes
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://github.com/areaDetector/ADCore/blob/master/iocBoot/NDAttributes.xsd"
+    >
+    <Attribute name="DateTimeStart"       type="EPICS_PV" source="S:IOC:timeOfDayISO8601"       dbrtype="DBR_STRING"/>
+    <Attribute name="DateTimeEnd"         type="EPICS_PV" source="S:IOC:timeOfDayISO8601"       dbrtype="DBR_STRING"/>
+    <Attribute name="Current"             type="EPICS_PV" source="S:SRcurrentAI"                dbrtype="DBR_DOUBLE"/>
+    <Attribute name="TopUpStatus"         type="EPICS_PV" source="S:TopUpStatus"                dbrtype="DBR_ENUM"/>
+    <!--<Attribute name="SourceEnergy"        type="EPICS_PV" source="ID32ds:Energy.VAL"            dbrtype="DBR_DOUBLE"/>
+    <Attribute name="SourceGap"           type="EPICS_PV" source="ID32ds:Gap.VAL"               dbrtype="DBR_DOUBLE"/-->
+</Attributes>
