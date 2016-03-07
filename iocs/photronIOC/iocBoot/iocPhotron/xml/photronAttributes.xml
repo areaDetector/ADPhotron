@@ -4,10 +4,6 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="https://github.com/areaDetector/ADCore/blob/master/iocBoot/NDAttributes.xsd"
     >
-    <!--Attribute name="CurrentEGU"          type="EPICS_PV" source="S:SRcurrentAI.EGU"            dbrtype="DBR_NATIVE"  description="Storage ring current units"/>
-    <Attribute name="Current"             type="EPICS_PV" source="S:SRcurrentAI"                dbrtype="DBR_NATIVE"  description="Storage ring current"/>
-    <Attribute name="SourceEnergy"        type="EPICS_PV" source="ID32:Energy"                  dbrtype="DBR_NATIVE"  description="Undulator energy"/>
-    <Attribute name="SourceEnergyEGU"     type="EPICS_PV" source="ID32:Energy.EGU"              dbrtype="DBR_NATIVE"  description="Undulator energy units"/-->
     <Attribute name="Manufacturer"        type="PARAM"    source="MANUFACTURER"                 datatype="STRING"     description="Camera manufacturer"/>
     <Attribute name="Model"               type="PARAM"    source="MODEL"                        datatype="STRING"     description="Camera model"/>
     <Attribute name="MaxSizeX"            type="PARAM"    source="MAX_SIZE_X"                   datatype="INT"        description="Sensor X Size"/>
@@ -18,6 +14,12 @@
     <Attribute name="TimeStamp"           type="PARAM"    source="TIME_STAMP"                   datatype="DOUBLE"     description="Time Stamp"/>
     <Attribute name="TimeStampSec"        type="PARAM"    source="EPICS_TS_SEC"                 datatype="INT"        description="EPICS Seconds"/>
     <Attribute name="TimeStampNSec"       type="PARAM"    source="EPICS_TS_NSEC"                datatype="INT"        description="EPICS Nanoseconds"/-->
+    <Attribute name="DateTimeStart"       type="EPICS_PV" source="S:IOC:timeOfDayISO8601"       dbrtype="DBR_STRING"/>
+    <Attribute name="DateTimeEnd"         type="EPICS_PV" source="S:IOC:timeOfDayISO8601"       dbrtype="DBR_STRING"/>
+    <Attribute name="Current"             type="EPICS_PV" source="S:SRcurrentAI"                dbrtype="DBR_DOUBLE"/>
+    <Attribute name="TopUpStatus"         type="EPICS_PV" source="S:TopUpStatus"                dbrtype="DBR_ENUM"/>
+    <!--<Attribute name="SourceEnergy"        type="EPICS_PV" source="ID32ds:Energy.VAL"            dbrtype="DBR_DOUBLE"/>
+    <Attribute name="SourceGap"           type="EPICS_PV" source="ID32ds:Gap.VAL"               dbrtype="DBR_DOUBLE"/-->
     <Attribute name="SizeX"               type="PARAM"    source="SIZE_X"                       datatype="INT"        description="Image X Size"/>
     <Attribute name="SizeY"               type="PARAM"    source="SIZE_Y"                       datatype="INT"        description="Image Y Size"/>
     <Attribute name="MinX"                type="PARAM"    source="MIN_X"                        datatype="INT"        description="Image X Position"/>

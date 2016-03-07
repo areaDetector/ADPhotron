@@ -55,10 +55,10 @@
             <dataset name="num_recordings" source="ndattribute" ndattribute="NumRecordings" when="OnFileClose"></dataset>
           </group>
           <group name="roi">
-            <dataset name="pos_x" source="ndattribute" ndattribute="MinX" when="OnFileClose"></dataset>
-            <dataset name="pos_y" source="ndattribute" ndattribute="MinY" when="OnFileClose"></dataset>
-            <dataset name="size_x" source="ndattribute" ndattribute="SizeX" when="OnFileClose"></dataset>
-            <dataset name="size_y" source="ndattribute" ndattribute="SizeY" when="OnFileClose"></dataset>
+            <dataset name="x_min" source="ndattribute" ndattribute="MinX" when="OnFileClose"></dataset>
+            <dataset name="y_min" source="ndattribute" ndattribute="MinY" when="OnFileClose"></dataset>
+            <dataset name="x_size" source="ndattribute" ndattribute="SizeX" when="OnFileClose"></dataset>
+            <dataset name="y_size" source="ndattribute" ndattribute="SizeY" when="OnFileClose"></dataset>
           </group><!-- /roi -->
           <group name="irig">
             <dataset name="mem_irig" source="ndattribute" ndattribute="MemIRIG" when="OnFileClose"></dataset>
@@ -329,7 +329,6 @@
             <attribute name="units" source="constant" value="mm" type="string"></attribute>
           </dataset>
           <dataset name="mode" source="ndattribute" ndattribute="TopUpStatus" when="OnFileClose"></dataset>
-          <dataset name="datetime" source="ndattribute" ndattribute="DateTime" when="OnFileClose"></dataset>
         </group><!-- /source -->
         <group name="mirror">
           <dataset name="type" source="constant" value="Type of mirror" type="string" when="OnFileClose"></dataset>        
