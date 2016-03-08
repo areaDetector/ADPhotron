@@ -1,78 +1,78 @@
 <?xml version="1.0" standalone="no" ?>
 <hdf_layout>
   <global name="detector_data_destination" ndattribute="SaveDest"></global>
-    <group name="exchange">
-      <dataset name="data" source="detector">
-        <attribute name="description" source="constant" value="ImageData" type="string"></attribute>
-        <attribute name="axes" source="constant" value="theta:y:x" type="string"></attribute>
-        <attribute name="units" source="constant" value="counts" type="string"></attribute>
-      </dataset>
-    </group><!-- /exchange -->
-    <group name="measurement">
-      <group name="instrument">
-        <dataset name="name" source="constant" value="NAME OF INSTRUMENT" type="string" when="OnFileClose"></dataset>        
-        <group name="detector">
-          <dataset name="manufacturer" source="ndattribute" ndattribute="Manufacturer" when="OnFileClose"></dataset>
-          <dataset name="model" source="ndattribute" ndattribute="Model" when="OnFileClose"></dataset>
-          <dataset name="serial_number" source="ndattribute" ndattribute="Serial" when="OnFileClose"></dataset>
-          <dataset name="firmware_version" source="ndattribute" ndattribute="Firmware" type="string" when="OnFileClose"></dataset>
-          <dataset name="software_version" source="ndattribute" ndattribute="Software" type="string"  when="OnFileClose"></dataset>
-          <dataset name="dimension_x" source="ndattribute" ndattribute="MaxSizeX" when="OnFileClose"></dataset>
-          <dataset name="dimension_y" source="ndattribute" ndattribute="MaxSizeY" when="OnFileClose"></dataset>
-          <dataset name="binning_x" source="ndattribute" ndattribute="BinX" when="OnFileClose"></dataset>
-          <dataset name="binning_y" source="ndattribute" ndattribute="BinY" when="OnFileClose"></dataset>
-          <dataset name="camera_mode" source="ndattribute" ndattribute="CameraMode" when="OnFileClose"></dataset>
-          <dataset name="acquire_mode" source="ndattribute" ndattribute="AcquireMode" when="OnFileClose"></dataset>
-          <dataset name="record_rate" source="ndattribute" ndattribute="RecordRate" when="OnFileClose"></dataset>
-          <dataset name="shutter_rate" source="ndattribute" ndattribute="ShutterRate" when="OnFileClose"></dataset>
-          <dataset name="exposure_time" source="ndattribute" ndattribute="AcqTime" when="OnFileClose"></dataset>
-          <dataset name="acquire_period" source="ndattribute" ndattribute="AcqPeriod" when="OnFileClose"></dataset>
-          <dataset name="gain" source="ndattribute" ndattribute="Gain" when="OnFileClose"></dataset>
-          <dataset name="temperature" source="ndattribute" ndattribute="Temperature" when="OnFileClose">
-            <attribute name="units" source="constant" value="Celsius" type="string"></attribute>
-          </dataset>
-          <dataset name="data_type" source="ndattribute" ndattribute="DataType" when="OnFileClose"></dataset>
-          <dataset name="color_mode" source="ndattribute" ndattribute="ColorModeStr" when="OnFileClose"></dataset>
-          <dataset name="8_bit_select" source="ndattribute" ndattribute="8BitSelect" when="OnFileClose"></dataset>
-          <dataset name="burst_transfer" source="ndattribute" ndattribute="BurstTransfer" when="OnFileClose"></dataset>
-          <dataset name="shading_mode" source="ndattribute" ndattribute="ShadingMode" when="OnFileClose"></dataset>
-          <group name="trigger">
-            <dataset name="trigger_mode" source="ndattribute" ndattribute="TriggerMode" when="OnFileClose"></dataset>
-            <dataset name="after_frames" source="ndattribute" ndattribute="AfterFrames" when="OnFileClose"></dataset>
-            <dataset name="random_frames" source="ndattribute" ndattribute="RandomFrames" when="OnFileClose"></dataset>
-            <dataset name="num_recordings" source="ndattribute" ndattribute="NumRecordings" when="OnFileClose"></dataset>
-          </group>
-          <group name="roi">
-            <dataset name="x_min" source="ndattribute" ndattribute="MinX" when="OnFileClose"></dataset>
-            <dataset name="y_min" source="ndattribute" ndattribute="MinY" when="OnFileClose"></dataset>
-            <dataset name="x_size" source="ndattribute" ndattribute="SizeX" when="OnFileClose"></dataset>
-            <dataset name="y_size" source="ndattribute" ndattribute="SizeY" when="OnFileClose"></dataset>
-          </group><!-- /roi -->
-          <group name="irig">
-            <dataset name="mem_irig" source="ndattribute" ndattribute="MemIRIG" when="OnFileClose"></dataset>
-            <dataset name="mem_irig_day" source="ndattribute" ndattribute="MemIRIGDay"></dataset>
-            <dataset name="mem_irig_hour" source="ndattribute" ndattribute="MemIRIGHour"></dataset>
-            <dataset name="mem_irig_min" source="ndattribute" ndattribute="MemIRIGMin"></dataset>
-            <dataset name="mem_irig_sec" source="ndattribute" ndattribute="MemIRIGSec"></dataset>
-            <dataset name="mem_irig_usec" source="ndattribute" ndattribute="MemIRIGUSec"></dataset>
-            <dataset name="mem_irig_sig_exist" source="ndattribute" ndattribute="MemIRIGSigExist"></dataset>
-          </group><!-- /irig -->
-          <group name="frame_info">
-            <dataset name="array_counter" source="ndattribute" ndattribute="ArrayCounter"></dataset>
-          </group><!-- /frame_info -->
-          <group name="io">
-            <dataset name="sync_in" source="ndattribute" ndattribute="SyncIn" when="OnFileClose"></dataset>
-            <dataset name="general_in" source="ndattribute" ndattribute="GeneralIn" when="OnFileClose"></dataset>
-            <dataset name="trig_ttl_in" source="ndattribute" ndattribute="TrigTTLIn" when="OnFileClose"></dataset>
-            <dataset name="general_out_1" source="ndattribute" ndattribute="GeneralOut1" when="OnFileClose"></dataset>
-            <dataset name="general_out_2" source="ndattribute" ndattribute="GeneralOut2" when="OnFileClose"></dataset>
-            <dataset name="general_out_3" source="ndattribute" ndattribute="GeneralOut3" when="OnFileClose"></dataset>
-            <dataset name="trig_ttl_out" source="ndattribute" ndattribute="TrigTTLOut" when="OnFileClose"></dataset>
-          </group><!-- /roi -->
-        </group><!-- /detector -->
-      </group><!-- /instrument -->
-    </group><!-- /measurement -->
-	<group name="defaults" ndattr_default="true">
+  <group name="exchange">
+    <dataset name="data" source="detector">
+      <attribute name="description" source="constant" value="ImageData" type="string"></attribute>
+      <attribute name="axes" source="constant" value="theta:y:x" type="string"></attribute>
+      <attribute name="units" source="constant" value="counts" type="string"></attribute>
+    </dataset>
+  </group><!-- /exchange -->
+  <group name="measurement">
+    <group name="instrument">
+      <dataset name="name" source="constant" value="NAME OF INSTRUMENT" type="string" when="OnFileClose"></dataset>        
+      <group name="detector">
+        <dataset name="manufacturer" source="ndattribute" ndattribute="Manufacturer" when="OnFileClose"></dataset>
+        <dataset name="model" source="ndattribute" ndattribute="Model" when="OnFileClose"></dataset>
+        <dataset name="serial_number" source="ndattribute" ndattribute="Serial" when="OnFileClose"></dataset>
+        <dataset name="firmware_version" source="ndattribute" ndattribute="Firmware" type="string" when="OnFileClose"></dataset>
+        <dataset name="software_version" source="ndattribute" ndattribute="Software" type="string"  when="OnFileClose"></dataset>
+        <dataset name="dimension_x" source="ndattribute" ndattribute="MaxSizeX" when="OnFileClose"></dataset>
+        <dataset name="dimension_y" source="ndattribute" ndattribute="MaxSizeY" when="OnFileClose"></dataset>
+        <dataset name="binning_x" source="ndattribute" ndattribute="BinX" when="OnFileClose"></dataset>
+        <dataset name="binning_y" source="ndattribute" ndattribute="BinY" when="OnFileClose"></dataset>
+        <dataset name="camera_mode" source="ndattribute" ndattribute="CameraMode" when="OnFileClose"></dataset>
+        <dataset name="acquire_mode" source="ndattribute" ndattribute="AcquireMode" when="OnFileClose"></dataset>
+        <dataset name="record_rate" source="ndattribute" ndattribute="RecordRate" when="OnFileClose"></dataset>
+        <dataset name="shutter_rate" source="ndattribute" ndattribute="ShutterRate" when="OnFileClose"></dataset>
+        <dataset name="exposure_time" source="ndattribute" ndattribute="AcqTime" when="OnFileClose"></dataset>
+        <dataset name="acquire_period" source="ndattribute" ndattribute="AcqPeriod" when="OnFileClose"></dataset>
+        <dataset name="gain" source="ndattribute" ndattribute="Gain" when="OnFileClose"></dataset>
+        <dataset name="temperature" source="ndattribute" ndattribute="Temperature" when="OnFileClose">
+          <attribute name="units" source="constant" value="Celsius" type="string"></attribute>
+        </dataset>
+        <dataset name="data_type" source="ndattribute" ndattribute="DataType" when="OnFileClose"></dataset>
+        <dataset name="color_mode" source="ndattribute" ndattribute="ColorModeStr" when="OnFileClose"></dataset>
+        <dataset name="8_bit_select" source="ndattribute" ndattribute="8BitSelect" when="OnFileClose"></dataset>
+        <dataset name="burst_transfer" source="ndattribute" ndattribute="BurstTransfer" when="OnFileClose"></dataset>
+        <dataset name="shading_mode" source="ndattribute" ndattribute="ShadingMode" when="OnFileClose"></dataset>
+        <group name="trigger">
+          <dataset name="trigger_mode" source="ndattribute" ndattribute="TriggerMode" when="OnFileClose"></dataset>
+          <dataset name="after_frames" source="ndattribute" ndattribute="AfterFrames" when="OnFileClose"></dataset>
+          <dataset name="random_frames" source="ndattribute" ndattribute="RandomFrames" when="OnFileClose"></dataset>
+          <dataset name="num_recordings" source="ndattribute" ndattribute="NumRecordings" when="OnFileClose"></dataset>
+        </group>
+        <group name="roi">
+          <dataset name="x_min" source="ndattribute" ndattribute="MinX" when="OnFileClose"></dataset>
+          <dataset name="y_min" source="ndattribute" ndattribute="MinY" when="OnFileClose"></dataset>
+          <dataset name="x_size" source="ndattribute" ndattribute="SizeX" when="OnFileClose"></dataset>
+          <dataset name="y_size" source="ndattribute" ndattribute="SizeY" when="OnFileClose"></dataset>
+        </group><!-- /roi -->
+        <group name="irig">
+          <dataset name="mem_irig" source="ndattribute" ndattribute="MemIRIG" when="OnFileClose"></dataset>
+          <dataset name="mem_irig_day" source="ndattribute" ndattribute="MemIRIGDay"></dataset>
+          <dataset name="mem_irig_hour" source="ndattribute" ndattribute="MemIRIGHour"></dataset>
+          <dataset name="mem_irig_min" source="ndattribute" ndattribute="MemIRIGMin"></dataset>
+          <dataset name="mem_irig_sec" source="ndattribute" ndattribute="MemIRIGSec"></dataset>
+          <dataset name="mem_irig_usec" source="ndattribute" ndattribute="MemIRIGUSec"></dataset>
+          <dataset name="mem_irig_sig_exist" source="ndattribute" ndattribute="MemIRIGSigExist"></dataset>
+        </group><!-- /irig -->
+        <group name="frame_info">
+          <dataset name="array_counter" source="ndattribute" ndattribute="ArrayCounter"></dataset>
+        </group><!-- /frame_info -->
+        <group name="io">
+          <dataset name="sync_in" source="ndattribute" ndattribute="SyncIn" when="OnFileClose"></dataset>
+          <dataset name="general_in" source="ndattribute" ndattribute="GeneralIn" when="OnFileClose"></dataset>
+          <dataset name="trig_ttl_in" source="ndattribute" ndattribute="TrigTTLIn" when="OnFileClose"></dataset>
+          <dataset name="general_out_1" source="ndattribute" ndattribute="GeneralOut1" when="OnFileClose"></dataset>
+          <dataset name="general_out_2" source="ndattribute" ndattribute="GeneralOut2" when="OnFileClose"></dataset>
+          <dataset name="general_out_3" source="ndattribute" ndattribute="GeneralOut3" when="OnFileClose"></dataset>
+          <dataset name="trig_ttl_out" source="ndattribute" ndattribute="TrigTTLOut" when="OnFileClose"></dataset>
+        </group><!-- /roi -->
+      </group><!-- /detector -->
+    </group><!-- /instrument -->
+  </group><!-- /measurement -->
+  <group name="defaults" ndattr_default="true">
   </group>
 </hdf_layout>
 
