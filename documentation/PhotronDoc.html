@@ -21,6 +21,11 @@
   <ul>
     <li><a href="#Overview">Overview</a></li>
     <li><a href="#Differences">Differences from other cameras</a></li>
+    <li><a href="#Modes">Operating Modes</a></li>
+    <ul>
+      <li><a href="#CamMode">Camera Mode</a></li>
+      <li><a href="#AcqMode">Acquire Mode</a></li>
+    </ul>
     <li><a href="#StandardNotes">Implementation of standard driver parameters</a></li>
     <li><a href="#Driver_parameters">Photron-specific parameters</a></li>
     <li><a href="#Configuration">Configuration</a></li>
@@ -58,10 +63,13 @@
     Some of the unique and important features of the vendor software have been implemented in the areaDetector support, despite not fitting naturally into the areaDetector model.  A non-trivial amount of code in the driver is dedicated to preventing invalid values from being sent to the camera.
   </p>
   <h2 id="Modes">
-    Modes of operating</h2>
-  <h3>
+    Operating Modes</h2>
+  <h3 id="CamMode">
     Camera mode</h3>
-    <table border="1" cellpadding="2" cellspacing="2" style="text-align: left">
+    <p>
+      Camera mode determines how the record rate, resolution, and position are determined.
+    </p>
+    <table border="1" cellpadding="2" cellspacing="2" style="text-align: center">
       <tbody>
       <tr>
         <th>
@@ -76,7 +84,7 @@
         <th>
           Flexibility</th>
         <th>
-          Changes allowed</th>
+          Major Changes allowed</th>
       </tr>
       <tr>
         <td>
@@ -132,10 +140,31 @@
       </tr>
       </tbody>
     </table>
-  <h3>
+    <p>
+      * The degrees of freedom depend on the camera model.
+    </p>
+  <h3 id="AcqMode">
     Acquire mode</h3>
-  <p>
-  </p>
+    <p>
+      Acquire mode determines whether or not images are recorded to the internal
+      memory of the camera before retrieval.
+    </p>
+    A camera in <b>live mode</b> behaves like most other areaDetectors:
+  <ul>
+    <li>Images are requested from the camera one-at-a-time.</li>
+    <li>The PVs on the ADCollect screen, with the exception of TriggerMode,
+        determine how the images are collected.</li>
+    <li>The Acquire PV is used to initiate acquisition.</li>
+    <li>Continuous acquistion will be much, much slower than the desired frame rate.</li>
+  </ul>
+    A camera in <b>record mode</b> behaves very differently than other areaDetectors:
+  <ul>
+    <li>Images are recorded to the internal memory of the camera.</li>
+    <li>The PVs on the Trigger screen determine which & how many images are recorded.</li>
+    <li>Many of the PVs on the ADCollect screen (AcquirePeriod, NumImages, NumExposures, ImageMode) are ignored.</li>
+    <li>A trigger signal (software or hardware) initiates acquisition. The Acquire PV can be used, but only if the trigger mode results in a single recording.</li>
+    <li>Acquisition occurs at the desired frame rate, but images are read from the camera much more slowly.</li>
+  </ul>
   <!--h2 id="StandardNotes" style="text-align: left">
     Implementation of standard driver parameters</h2>
   <p>
@@ -174,18 +203,18 @@
   <p>
     The color Prosilica cameras are also capable of various YUV color formats but these
     are not supported in the driver. They may be added in a future release.
-  </p>
+  </p-->
   <h2 id="Driver_parameters" style="text-align: left">
-    Prosilica specific parameters</h2>
+    Photron-specific parameters</h2>
   <p>
-    The Prosilica driver implements the following parameters in addition to those in
+    The Photron driver implements the following parameters in addition to those in
     asynNDArrayDriver.h and ADDriver.h:
   </p>
   <table border="1" cellpadding="2" cellspacing="2" style="text-align: left">
     <tbody>
       <tr>
         <td align="center" colspan="7,">
-          <b>Parameter Definitions in prosilica.cpp and EPICS Record Definitions in prosilica.template</b>
+          <b>Parameter Definitions in Photron.cpp and EPICS Record Definitions in Photron.template</b>
         </td>
       </tr>
       <tr>
@@ -206,754 +235,499 @@
       </tr>
       <tr>
         <td align="center" colspan="7,">
-          <b>Bayer Color Conversion</b></td>
+          <b>Operating Mode Parameters</b></td>
       </tr>
       <tr>
         <td>
-          PSBayerConvert</td>
+          PhotronStatus</td>
         <td>
           asynInt32</td>
         <td>
-          r/w</td>
+          r</td>
         <td>
-          Color conversion when NDColorMode is Bayer:<br />
-          None: Raw Bayer images are passed to the plugins<br />
-          RGB1: Bayer images are converted to RGB1<br />
-          RGB2: Bayer images are converted to RGB2<br />
-          RGB3: Bayer images are converted to RGB3<br />
-          Having the camera send Bayer images uses 3 times less network bandwidth than 
-          sending RGB1 images.  It does place more CPU load on the host to convert
-          from Bayer to RGB, but this is often an acceptable tradeoff.</td>
+          The status of the camera as an integer<br />
+          See PDCValue.h for allowed values</td>
         <td>
-          PS_BAYER_CONVERT</td>
+          PHOTRON_STATUS</td>
         <td>
-          $(P)$(R)BayerConvert<br />
-          $(P)$(R)BayerConvert_RBV</td>
+          $(P)$(R)Status_RBV</td>
         <td>
-          mbbo
-          <br />
-          mbbi</td>
-      </tr>
-      <tr>
-        <td align="center" colspan="7,">
-          <b>Trigger and I/O Control</b></td>
+          longin</td>
       </tr>
       <tr>
         <td>
-          PSTriggerEvent</td>
+          PhotronStatusName</td>
         <td>
           asynInt32</td>
         <td>
-          r/w</td>
+          r</td>
         <td>
-          The edge or level for the selected trigger signal when ADTriggerMode=Sync In 1 to
-          SyncIn 4. Allowed values are:<br />
-          Rising edge<br />
-          Falling edge<br />
-          Any edge<br />
-          High level<br />
-          Low level </td>
+          The human-readable status of the camera</td>
         <td>
-          PS_TRIGGER_EVENT</td>
+          PHOTRON_STATUS_NAME</td>
         <td>
-          $(P)$(R)TriggerEvent<br />
-          $(P)$(R)TriggerEvent_RBV</td>
+          $(P)$(R)StatusName_RBV</td>
         <td>
-          mbbo
-          <br />
           mbbi</td>
       </tr>
       <tr>
         <td>
-          PSTriggerDelay</td>
-        <td>
-          asynFloat64</td>
-        <td>
-          r/w</td>
-        <td>
-          The delay in seconds between the trigger signal and when the frame is actually acquired.
-          Minimum value is 1 microsecond. </td>
-        <td>
-          PS_TRIGGER_DELAY</td>
-        <td>
-          $(P)$(R)TriggerDelay<br />
-          $(P)$(R)TriggerDelay_RBV</td>
-        <td>
-          ao
-          <br />
-          ai</td>
-      </tr>
-      <tr>
-        <td>
-          PSTriggerOverlap</td>
+          PhotronCamMode</td>
         <td>
           asynInt32</td>
         <td>
           r/w</td>
         <td>
-          Controls the behavior when an external trigger signal arrives before the camera
-          is ready for the next trigger. Allowed values are:<br />
-          Off - the external trigger is ignored<br />
-          Previous frame - the external trigger is latched and triggers the next frame when
-          the current frame completes<br />
-        </td>
+          See <a href="#CamMode">camera-mode</a> section</td>
         <td>
-          PS_TRIGGER_OVERLAP</td>
+          PHOTRON_CAM_MODE</td>
         <td>
-          $(P)$(R)TriggerOverlap<br />
-          $(P)$(R)TriggerOverlap_RBV</td>
-        <td>
-          mbbo
-          <br />
-          mbbi</td>
-      </tr>
-      <tr>
-        <td>
-          PSTriggerSoftware</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          Processing this record performs a software trigger if ADTriggerMode=Software.
-        </td>
-        <td>
-          PS_TRIGGER_SOFTWARE</td>
-        <td>
-          $(P)$(R)TriggerSoftware</td>
-        <td>
-          bo</td>
-      </tr>
-      <tr>
-        <td>
-          PSSyncIn1Level</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/o</td>
-        <td>
-          The level of the Sync In 1 signal</td>
-        <td>
-          PS_SYNC_IN_1_LEVEL</td>
-        <td>
-          $(P)$(R)SyncIn1Level_RBV</td>
-        <td>
-          bi</td>
-      </tr>
-      <tr>
-        <td>
-          PSSyncIn2Level</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/o</td>
-        <td>
-          The level of the Sync In 2 signal</td>
-        <td>
-          PS_SYNC_IN_2_LEVEL</td>
-        <td>
-          $(P)$(R)SyncIn2Level_RBV</td>
-        <td>
-          bi</td>
-      </tr>
-      <tr>
-        <td>
-          PSSyncOut1Mode</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          The mode of the Sync Out 1 signal. Allowed values are:
-          <br />
-          GPO (general purpose output)
-          <br />
-          AcqTrigReady
-          <br />
-          FrameTrigReady
-          <br />
-          FrameTrigger
-          <br />
-          Exposing
-          <br />
-          FrameReadout
-          <br />
-          Imaging
-          <br />
-          Acquiring
-          <br />
-          SyncIn1
-          <br />
-          SyncIn2
-          <br />
-          SyncIn3
-          <br />
-          SyncIn4
-          <br />
-          Strobe1
-          <br />
-          Strobe2
-          <br />
-          Strobe3
-          <br />
-          Strobe4
-          <br />
-        </td>
-        <td>
-          PS_SYNC_OUT_1_MODE</td>
-        <td>
-          $(P)$(R)SyncOut1Mode
-          <br />
-          $(P)$(R)SyncOut1Mode_RBV </td>
-        <td>
-          mbbo
-          <br />
-          mbbi </td>
-      </tr>
-      <tr>
-        <td>
-          PSSyncOut1Level</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          The level of the Sync Out 1 signal. This is only programmable when SyncOut1Mode=GPO.
-        </td>
-        <td>
-          PS_SYNC_OUT_1_LEVEL</td>
-        <td>
-          $(P)$(R)SyncOut1Level<br />
-          $(P)$(R)SyncOut1Level_RBV</td>
-        <td>
-          bo<br />
-          bi</td>
-      </tr>
-      <tr>
-        <td>
-          PSSyncOut1Invert</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          Flag to invert the Sync Out 1 signal.</td>
-        <td>
-          PS_SYNC_OUT_1_INVERT</td>
-        <td>
-          $(P)$(R)SyncOut1Invert<br />
-          $(P)$(R)SyncOut1Invert_RBV</td>
-        <td>
-          bo<br />
-          bi</td>
-      </tr>
-      <tr>
-        <td>
-          PSSyncOut2Mode</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          The mode of the Sync Out 2 signal. Allowed values are the same as for PSSyncOut1Mode.
-        </td>
-        <td>
-          PS_SYNC_OUT_2_MODE</td>
-        <td>
-          $(P)$(R)SyncOut2Mode
-          <br />
-          $(P)$(R)SyncOut2Mode_RBV </td>
-        <td>
-          mbbo
-          <br />
-          mbbi </td>
-      </tr>
-      <tr>
-        <td>
-          PSSyncOut2Level</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          The level of the Sync Out 2 signal. This is only programmable when SyncOut2Mode=GPO.
-        </td>
-        <td>
-          PS_SYNC_OUT_2_LEVEL</td>
-        <td>
-          $(P)$(R)SyncOut2Level<br />
-          $(P)$(R)SyncOut1Level_RBV</td>
-        <td>
-          bo<br />
-          bi</td>
-      </tr>
-      <tr>
-        <td>
-          PSSyncOut2Invert</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          Flag to invert the Sync Out 2 signal.</td>
-        <td>
-          PS_SYNC_OUT_2_INVERT</td>
-        <td>
-          $(P)$(R)SyncOut2Invert<br />
-          $(P)$(R)SyncOut2Invert_RBV</td>
-        <td>
-          bo<br />
-          bi</td>
-      </tr>
-      <tr>
-        <td>
-          PSSyncOut3Mode</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          The mode of the Sync Out 3 signal. Allowed values are the same as for PSSyncOut1Mode.
-        </td>
-        <td>
-          PS_SYNC_OUT_3_MODE</td>
-        <td>
-          $(P)$(R)SyncOut3Mode
-          <br />
-          $(P)$(R)SyncOut3Mode_RBV </td>
-        <td>
-          mbbo
-          <br />
-          mbbi </td>
-      </tr>
-      <tr>
-        <td>
-          PSSyncOut3Level</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          The level of the Sync Out 3 signal. This is only programmable when SyncOut3Mode=GPO.
-        </td>
-        <td>
-          PS_SYNC_OUT_3_LEVEL</td>
-        <td>
-          $(P)$(R)SyncOut3Level<br />
-          $(P)$(R)SyncOut3Level_RBV</td>
-        <td>
-          bo<br />
-          bi</td>
-      </tr>
-      <tr>
-        <td>
-          PSSyncOut3Invert</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          Flag to invert the Sync Out 3 signal.</td>
-        <td>
-          PS_SYNC_OUT_3_INVERT</td>
-        <td>
-          $(P)$(R)SyncOut3Invert<br />
-          $(P)$(R)SyncOut3Invert_RBV</td>
-        <td>
-          bo<br />
-          bi</td>
-      </tr>
-      <tr>
-        <td>
-          PSStrobe1Mode</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          The mode of the Strobe 1 signal. The Strobe signals are based on the following values,
-          but allow for changing the delay and width relative to the underlying value. Any
-          of the outputs can be set to the Stobe1 value, rather than the raw values of these
-          signals. Allowed values are:
-          <br />
-          AcqTrigReady
-          <br />
-          FrameTrigReady
-          <br />
-          FrameTrigger
-          <br />
-          Exposing
-          <br />
-          FrameReadout
-          <br />
-          Acquiring
-          <br />
-          SyncIn1
-          <br />
-          SyncIn2
-          <br />
-          SyncIn3
-          <br />
-          SyncIn4
-          <br />
-        </td>
-        <td>
-          PS_STROBE_1_MODE</td>
-        <td>
-          $(P)$(R)Strobe1Mode
-          <br />
-          $(P)$(R)Strobe1Mode_RBV </td>
-        <td>
-          mbbo
-          <br />
-          mbbi </td>
-      </tr>
-      <tr>
-        <td>
-          PSStrobe1CtlDuration</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          Flag to allow controlling the strobe duration.</td>
-        <td>
-          PS_STROBE_1_CTL_DURATION</td>
-        <td>
-          $(P)$(R)Strobe1CtlDuration<br />
-          $(P)$(R)Strobe1CtlDuration_RBV</td>
-        <td>
-          bo<br />
-          bi</td>
-      </tr>
-      <tr>
-        <td>
-          PSStrobe1Duration</td>
-        <td>
-          asynFloat64</td>
-        <td>
-          r/w</td>
-        <td>
-          The strobe duration if PSStrobe1CtlDuration is On.</td>
-        <td>
-          PS_STROBE_1_DURATION</td>
-        <td>
-          $(P)$(R)Strobe1Duration<br />
-          $(P)$(R)Strobe1Duration_RBV</td>
-        <td>
-          ao<br />
-          ai</td>
-      </tr>
-      <tr>
-        <td>
-          PSStrobe1Delay</td>
-        <td>
-          asynFloat64</td>
-        <td>
-          r/w</td>
-        <td>
-          The strobe delay relative to the underlying signal that the strobe is based on.
-        </td>
-        <td>
-          PS_STROBE_1_DELAY</td>
-        <td>
-          $(P)$(R)Strobe1Delay<br />
-          $(P)$(R)Strobe1Delay_RBV</td>
-        <td>
-          ao<br />
-          ai</td>
-      </tr>
-      <tr>
-        <td align="center" colspan="7,">
-          <b>Timestamp Control</b></td>
-      </tr>
-      <tr>
-        <td>
-          PSResetTimer</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          Resets the timestamp timer in the camera. If PSTimestampType is POSIX or EPICS then
-          it also stores the current POSIX or EPICS time in the driver.</td>
-        <td>
-          PS_RESET_TIMER</td>
-        <td>
-          $(P)$(R)PSResetTimer</td>
-        <td>
-          longout</td>
-      </tr>
-      <tr>
-        <td>
-          PSTimestampType</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/w</td>
-        <td>
-          Controls the type of timestamp in the timeStamp field of each NDArray. Choices are:
-          <ul>
-            <li>NativeTicks: The number of internal camera clock ticks which have elapsed since
-              the last timer reset.</li>
-            <li>NativeSeconds: The number of seconds which have elapsed since the last timer reset.
-              This is NativeTicks divided by the internal camera clock frequency.</li>
-            <li>POSIX: The number of seconds since the POSIX Epoch (00:00:00 UTC, January 1, 1970).</li>
-            <li>EPICS The number of seconds since the EPICS Epoch (January 1, 1990).</li>
-          </ul>
-          The POSIX and EPICS timestamps are calculated as follows: when the timer is reset
-          the current POSIX or EPICS time is stored, and the internal camera timer is reset.
-          The timestamps are then computed by adding the camera ticks (converted to seconds)
-          to the stored POSIX or EPICS time. Thus, the relative times of each frame are accurately
-          controlled by the internal camera clock. The accuracy of the absolute time is determined
-          by the accuracy of the time of day clock in the IOC computer.</td>
-        <td>
-          PS_TIMESTAMP_TYPE</td>
-        <td>
-          $(P)$(R)PSTimestampType<br />
-          $(P)$(R)PSTimestampType_RBV</td>
+          $(P)$(R)CamMode<br />
+          $(P)$(R)CamMode_RBV</td>
         <td>
           mbbo<br />
           mbbi</td>
       </tr>
       <tr>
+        <td>
+          PhotronAcquireMode</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          See <a href="#AcqMode">acquire-mode</a> section</td>
+        <td>
+          PHOTRON_ACQUIRE_MODE</td>
+        <td>
+          $(P)$(R)AcquireMode</td>
+        <td>
+          mbbo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPreviewMode</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Enables (1) or disables (0) preview mode<br />
+          Only applies when AcquireMode is "Record"</td>
+        <td>
+          PHOTRON_PREVIEW_MODE</td>
+        <td>
+          $(P)$(R)PreviewMode</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
         <td align="center" colspan="7,">
-          <b>Statistics Information</b></td>
+          <b>Acquisition Parameters</b></td>
       </tr>
       <tr>
         <td>
-          PSReadStatistics</td>
+          PhotronRecordRate</td>
         <td>
           asynInt32</td>
         <td>
           r/w</td>
         <td>
-          Read the Gigabit Ethernet statistics when 1</td>
+          The desired number of frames per second<br />
+          A list of valid values is provided by the camera</td>
         <td>
-          PS_READ_STATISTICS</td>
+          PHOTRON_REC_RATE</td>
         <td>
-          $(P)$(R)PSReadStatistics</td>
+          $(P)$(R)RecordRate<br />
+          $(P)$(R)RecordRate_RBV</td>
         <td>
-          longout</td>
+          longout
+          <br />
+          longin</td>
       </tr>
       <tr>
         <td>
-          PSStatDriverType</td>
+          PhotronChangeRecRate</td>
         <td>
-          asynOctet</td>
+          asynInt32</td>
         <td>
-          r/o</td>
+          w</td>
         <td>
-          Driver type</td>
+          Increases (1) or decreases (0) the record rate</td>
         <td>
-          PS_DRIVER_TYPE</td>
+          PHOTRON_CHANGE_REC_RATE</td>
         <td>
-          $(P)$(R)PSDriverType_RBV</td>
+          $(P)$(R)ChangeRecRate</td>
         <td>
-          stringin</td>
+          bo</td>
       </tr>
       <tr>
         <td>
-          PSStatFilterVersion</td>
-        <td>
-          asynOctet</td>
-        <td>
-          r/o</td>
-        <td>
-          Packet filter version</td>
-        <td>
-          PS_FILTER_VERSION</td>
-        <td>
-          $(P)$(R)PSFilterVersion_RBV</td>
-        <td>
-          stringin</td>
-      </tr>
-      <tr>
-        <td>
-          PSStatFrameRate</td>
-        <td>
-          asynFloat64</td>
-        <td>
-          r/o</td>
-        <td>
-          Frame rate (Hz)</td>
-        <td>
-          PS_FRAME_RATE</td>
-        <td>
-          $(P)$(R)PSFrameRate_RBV</td>
-        <td>
-          ai</td>
-      </tr>
-      <tr>
-        <td>
-          PSByteRate</td>
+          PhotronResIndex</td>
         <td>
           asynInt32</td>
         <td>
           r/w</td>
         <td>
-          Stream bytes per second in the PvAPI driver. This allows limiting the bandwidth
-          that a camera uses. It also allows operation of GigE cameras on non-Gigabit Ethernet
-          networks by decreasing the value to maximum that the network supports. The default
-          of 115000000 allows full-speed operation on GigE networks.</td>
+          The index for the current resolution<br />
+          in the list of valid resolutions</td>
         <td>
-          PS_BYTE_RATE</td>
+          PHOTRON_RES_INDEX</td>
         <td>
-          $(P)$(R)PSByteRate<br />
-          $(P)$(R)PSByteRate_RBV</td>
+          $(P)$(R)ResIdx<br />
+          $(P)$(R)ResIdx_RBV</td>
         <td>
-          longout<br />
+          longout
+          <br />
           longin</td>
       </tr>
       <tr>
         <td>
-          PSPacketSize</td>
+          PhotronChangeResIdx</td>
         <td>
           asynInt32</td>
         <td>
-          r/o</td>
+          w</td>
         <td>
-          Actual packet size of Ethernet packets. When connecting to the camera the driver
-          always automatically negotiates the largest packet size that the camera and IOC
-          computer support. </td>
+          Increases (1) or decreases (0) the resolution index</td>
         <td>
-          PS_PACKET_SIZE</td>
+          PHOTRON_CHANGE_RES_IDX</td>
         <td>
-          $(P)$(R)PSPacketSize_RBV</td>
+          $(P)$(R)ChangeResIdx</td>
         <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronShutterFps</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          The shutter speed in Hz. A list of valid<br />
+          speeds is provided by the camera</td>
+        <td>
+          PHOTRON_SHUTTER_FPS</td>
+        <td>
+          $(P)$(R)ShutterFps<br />
+          $(P)$(R)ShutterFps_RBV</td>
+        <td>
+          longout
+          <br />
           longin</td>
       </tr>
       <tr>
         <td>
-          PSStatFramesCompleted</td>
+          PhotronChangeShutterFps</td>
         <td>
           asynInt32</td>
         <td>
-          r/o</td>
+          w</td>
         <td>
-          Number of frames completed</td>
+          Increases (1) or decreases (0) the shutter speed</td>
         <td>
-          PS_FRAMES_COMPLETED</td>
+          PHOTRON_CHANGE_SHUTTER_FPS</td>
         <td>
-          $(P)$(R)PSFramesCompleted_RBV</td>
+          $(P)$(R)ChangeShutterFps</td>
         <td>
-          longin</td>
+          bo</td>
       </tr>
       <tr>
         <td>
-          PSStatFramesDropped</td>
+          PhotronJumpShutterFps</td>
         <td>
           asynInt32</td>
         <td>
-          r/o</td>
+          w</td>
         <td>
-          Number of frames dropped</td>
+          Jumps to the maximum (1) or minimum (0) shutter speed</td>
         <td>
-          PS_FRAMES_DROPPED</td>
+          PHOTRON_JUMP_SHUTTER_FPS</td>
         <td>
-          $(P)$(R)PSFramesDropped_RBV</td>
+          $(P)$(R)JumpShutterFps</td>
         <td>
-          longin</td>
+          bo</td>
       </tr>
       <tr>
         <td>
-          PSStatPacketsErroneous</td>
+          PhotronShadingMode</td>
         <td>
           asynInt32</td>
         <td>
-          r/o</td>
+          r/w</td>
         <td>
-          Number of erroneous packets</td>
+          Turning the shading mode off (0) and on (1)<br />
+          performs the black-level calibration.</td>
         <td>
-          PS_PACKETS_ERRONEOUS</td>
+          PHOTRON_SHADING_MODE</td>
         <td>
-          $(P)$(R)PSPacketsErroneous_RBV</td>
+          $(P)$(R)ShadingMode<br />
+          $(P)$(R)ShadingMode_RBV</td>
         <td>
-          longin</td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td align="center" colspan="7,">
+          <b>Trigger parameters</b></td>
       </tr>
       <tr>
         <td>
-          PSStatPacketsMissed</td>
+          PhotronMaxFrames</td>
         <td>
           asynInt32</td>
         <td>
-          r/o</td>
+          r</td>
         <td>
-          Number of missed packets</td>
+          The maximum number of frames that can be<br />
+          saved in memory at the current resolution</td>
         <td>
-          PS_PACKETS_MISSED</td>
+          PHOTRON_MAX_FRAMES</td>
         <td>
-          $(P)$(R)PSPacketsMissed_RBV</td>
-        <td>
-          longin</td>
-      </tr>
-      <tr>
-        <td>
-          PSStatPacketsReceived</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/o</td>
-        <td>
-          Number of received packets</td>
-        <td>
-          PS_PACKETS_RECEIVED</td>
-        <td>
-          $(P)$(R)PSPacketsReceived_RBV</td>
-        <td>
-          longin</td>
-      </tr>
-      <tr>
-        <td>
-          PSStatPacketsRequested</td>
-        <td>
-          asynInt32</td>
-        <td>
-          r/o</td>
-        <td>
-          Number of packets requested</td>
-        <td>
-          PS_PACKETS_REQUESTED</td>
-        <td>
-          $(P)$(R)PSPacketsRequested_RBV</td>
+          $(P)$(R)MaxFrames_RBV</td>
         <td>
           longin</td>
       </tr>
       <tr>
         <td>
-          PSStatPacketsResent</td>
+          PhotronAfterFrames</td>
         <td>
           asynInt32</td>
         <td>
-          r/o</td>
+          r/w</td>
         <td>
-          Number of packets resent</td>
+          Number of frames to record after the trigger is received</td>
         <td>
-          PS_PACKETS_RESENT</td>
+          PHOTRON_AFTER_FRAMES</td>
         <td>
-          $(P)$(R)PSPacketsResent_RBV</td>
+          $(P)$(R)AfterFrames<br />
+          $(P)$(R)AfterFrames_RBV</td>
         <td>
+          longout
+          <br />
           longin</td>
       </tr>
       <tr>
         <td>
-          PSBadFrameCounter</td>
+          PhotronRandomFrames</td>
         <td>
           asynInt32</td>
         <td>
-          r/o</td>
+          r/w</td>
         <td>
-          Number of bad frames</td>
+          Total number of frames to record</td>
         <td>
-          PS_BAD_FRAME_COUNTER</td>
+          PHOTRON_RANDOM_FRAMES</td>
         <td>
-          $(P)$(R)PSBadFrameCounter_RBV</td>
+          $(P)$(R)RandomFrames<br />
+          $(P)$(R)RandomFrames_RBV</td>
         <td>
+          longout
+          <br />
           longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronRecCount</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Number of recordings before camera automatically returns <br />
+          to live mode. Limited to 10 when user-selectable.</td>
+        <td>
+          PHOTRON_REC_COUNT</td>
+        <td>
+          $(P)$(R)RecCount<br />
+          $(P)$(R)RecCount_RBV</td>
+        <td>
+          longout
+          <br />
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronSoftTrig</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Initiates a recording when AcquireMode is "Record"<br />
+          Is ignored when AcquireMode is "Live"</td>
+        <td>
+          PHOTRON_SOFT_TRIG</td>
+        <td>
+          $(P)$(R)SoftwareTrigger</td>
+        <td>
+          busy</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronLiveMode</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Initiates playback for trigger modes w/ multiple recordings
+          before the specified number of recordings has been reached.</td>
+        <td>
+          PHOTRON_LIVE_MODE</td>
+        <td>
+          $(P)$(R)LiveMode<br /></td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td align="center" colspan="7,">
+          <b>Readout parameters</b></td>
+      </tr>
+      <tr>
+        <td>
+          IndexVariable</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Description</td>
+        <td>
+          DRV_INFO_STRING</td>
+        <td>
+          $(P)$(R)Record<br />
+          $(P)$(R)Record_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td>
+          IndexVariable</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Description</td>
+        <td>
+          DRV_INFO_STRING</td>
+        <td>
+          $(P)$(R)Record<br />
+          $(P)$(R)Record_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td>
+          IndexVariable</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Description</td>
+        <td>
+          DRV_INFO_STRING</td>
+        <td>
+          $(P)$(R)Record<br />
+          $(P)$(R)Record_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td>
+          IndexVariable</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Description</td>
+        <td>
+          DRV_INFO_STRING</td>
+        <td>
+          $(P)$(R)Record<br />
+          $(P)$(R)Record_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td>
+          IndexVariable</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Description</td>
+        <td>
+          DRV_INFO_STRING</td>
+        <td>
+          $(P)$(R)Record<br />
+          $(P)$(R)Record_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td>
+          IndexVariable</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Description</td>
+        <td>
+          DRV_INFO_STRING</td>
+        <td>
+          $(P)$(R)Record<br />
+          $(P)$(R)Record_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <!-- STUFF TO COPY BELOW -->
+      <tr>
+        <td>
+          IndexVariable</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Description</td>
+        <td>
+          DRV_INFO_STRING</td>
+        <td>
+          $(P)$(R)Record<br />
+          $(P)$(R)Record_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td align="center" colspan="7,">
+          <b>HEADING</b></td>
       </tr>
     </tbody>
   </table>
-  <h2 id="Configuration">
+  <!-- KNOWN PROBLEMS -->
+  <!--h2 id="Configuration">
     Configuration</h2>
   <p>
     The Prosilica driver is created with the prosilicaConfig command, either from C/C++
