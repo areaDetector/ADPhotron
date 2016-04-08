@@ -588,18 +588,19 @@
       </tr>
       <tr>
         <td>
-          IndexVariable</td>
+          Photron8BitSelect</td>
         <td>
           asynInt32</td>
         <td>
           r/w</td>
         <td>
-          Description</td>
+          8-bit offset (only applies when when camera's dynamic<br />
+          range is > 8 bits and DataType is "UInt8")</td>
         <td>
-          DRV_INFO_STRING</td>
+          PHOTRON_8_BIT_SEL</td>
         <td>
-          $(P)$(R)Record<br />
-          $(P)$(R)Record_RBV</td>
+          $(P)$(R)8BitSel<br />
+          $(P)$(R)8BitSel_RBV</td>
         <td>
           mbbo
           <br />
@@ -607,18 +608,42 @@
       </tr>
       <tr>
         <td>
-          IndexVariable</td>
+          PhotronBurstTrans</td>
         <td>
           asynInt32</td>
         <td>
           r/w</td>
         <td>
-          Description</td>
+          Enable (1) or disable (0) burst-transfer mode<br />
+          (increases max transfer speed & transfer speed variance)</td>
         <td>
-          DRV_INFO_STRING</td>
+          PHOTRON_BURST_TRANS</td>
         <td>
-          $(P)$(R)Record<br />
-          $(P)$(R)Record_RBV</td>
+          $(P)$(R)BurstTransfer<br />
+          $(P)$(R)BurstTransfer_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td align="center" colspan="7,">
+          <b>I/O parameters</b></td>
+      </tr>
+      <tr>
+        <td>
+          PhotronExtIn1Sig</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          External sync input</td>
+        <td>
+          PHOTRON_EXT_IN_1_SIG</td>
+        <td>
+          $(P)$(R)ExtIn1<br />
+          $(P)$(R)ExtIn1_RBV</td>
         <td>
           mbbo
           <br />
@@ -626,18 +651,18 @@
       </tr>
       <tr>
         <td>
-          IndexVariable</td>
+          PhotronExtIn2Sig</td>
         <td>
           asynInt32</td>
         <td>
           r/w</td>
         <td>
-          Description</td>
+          General input</td>
         <td>
-          DRV_INFO_STRING</td>
+          PHOTRON_EXT_IN_2_SIG</td>
         <td>
-          $(P)$(R)Record<br />
-          $(P)$(R)Record_RBV</td>
+          $(P)$(R)ExtIn2<br />
+          $(P)$(R)ExtIn2_RBV</td>
         <td>
           mbbo
           <br />
@@ -645,18 +670,18 @@
       </tr>
       <tr>
         <td>
-          IndexVariable</td>
+          PhotronExtIn3Sig</td>
         <td>
           asynInt32</td>
         <td>
           r/w</td>
         <td>
-          Description</td>
+          Trigger TTL input</td>
         <td>
-          DRV_INFO_STRING</td>
+          PHOTRON_EXT_IN_3_SIG</td>
         <td>
-          $(P)$(R)Record<br />
-          $(P)$(R)Record_RBV</td>
+          $(P)$(R)ExtIn3<br />
+          $(P)$(R)ExtIn3_RBV</td>
         <td>
           mbbo
           <br />
@@ -664,18 +689,18 @@
       </tr>
       <tr>
         <td>
-          IndexVariable</td>
+          PhotronExtIn4Sig</td>
         <td>
           asynInt32</td>
         <td>
           r/w</td>
         <td>
-          Description</td>
+          N/A (present in SDK; missing from most cameras)</td>
         <td>
-          DRV_INFO_STRING</td>
+          PHOTRON_EXT_IN_4_SIG</td>
         <td>
-          $(P)$(R)Record<br />
-          $(P)$(R)Record_RBV</td>
+          $(P)$(R)ExtIn4<br />
+          $(P)$(R)ExtIn4_RBV</td>
         <td>
           mbbo
           <br />
@@ -683,24 +708,950 @@
       </tr>
       <tr>
         <td>
-          IndexVariable</td>
+          PhotronExtOut1Sig</td>
         <td>
           asynInt32</td>
         <td>
           r/w</td>
         <td>
-          Description</td>
+          General output 1 (external sync output on some cameras)</td>
         <td>
-          DRV_INFO_STRING</td>
+          PHOTRON_EXT_OUT_1_SIG</td>
         <td>
-          $(P)$(R)Record<br />
-          $(P)$(R)Record_RBV</td>
+          $(P)$(R)ExtOut1<br />
+          $(P)$(R)ExtOut1_RBV</td>
         <td>
           mbbo
           <br />
           mbbi</td>
       </tr>
-      <!-- STUFF TO COPY BELOW -->
+      <tr>
+        <td>
+          PhotronExtOut2Sig</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          General output 2</td>
+        <td>
+          PHOTRON_EXT_OUT_2_SIG</td>
+        <td>
+          $(P)$(R)ExtOut2<br />
+          $(P)$(R)ExtOut2_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronExtOut3Sig</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          General output 3</td>
+        <td>
+          PHOTRON_EXT_OUT_3_SIG</td>
+        <td>
+          $(P)$(R)ExtOut3<br />
+          $(P)$(R)ExtOut3_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronExtOut4Sig</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Trigger TTL output</td>
+        <td>
+          PHOTRON_EXT_OUT_4_SIG</td>
+        <td>
+          $(P)$(R)ExtOut4<br />
+          $(P)$(R)ExtOut4_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronSyncPriority</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Defines relationship when using sync I/O features.<br />
+          See PDCVALUE.h for allowed values.</td>
+        <td>
+          PHOTRON_SYNC_PRIORITY</td>
+        <td>
+          $(P)$(R)SyncPriority<br />
+          $(P)$(R)SyncPriority_RBV</td>
+        <td>
+          mbbo
+          <br />
+          mbbi</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronSyncPulse</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Specifies the preferred polarity to be used <br />
+          when external CamMode is selected.</td>
+        <td>
+          PHOTRON_SYNC_PULSE</td>
+        <td>
+          $(P)$(R)SyncPulse</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td align="center" colspan="7,">
+          <b>Timestamp parameters</b></td>
+      </tr>
+      <tr>
+        <td>
+          PhotronIRIG</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Enable (1) or Disable (0) the use of IRIG timecodes<br />
+          when AcquireMode is "Record"</td>
+        <td>
+          PHOTRON_IRIG</td>
+        <td>
+          $(P)$(R)IRIG<br />
+          $(P)$(R)IRIG_RBV</td>
+        <td>
+          bo
+          <br />
+          bi</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronMemIRIGDay</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Day (of the year) from IRIG timecode for current frame</td>
+        <td>
+          PHOTRON_MEM_IRIG_DAY</td>
+        <td>
+          $(P)$(R)MemIRIGDay_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronMemIRIGHour</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Hour from IRIG timecode for current frame</td>
+        <td>
+          PHOTRON_MEM_IRIG_HOUR</td>
+        <td>
+          $(P)$(R)MemIRIGHour_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronMemIRIGMin</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Minute from IRIG timecode for current frame</td>
+        <td>
+          PHOTRON_MEM_IRIG_MIN</td>
+        <td>
+          $(P)$(R)MemIRIGMin_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronMemIRIGSec</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Second from IRIG timecode for current frame</td>
+        <td>
+          PHOTRON_MEM_IRIG_SEC</td>
+        <td>
+          $(P)$(R)MemIRIGSec_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronMemIRIGUsec</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Microsecond from IRIG timecode for current frame</td>
+        <td>
+          PHOTRON_MEM_IRIG_USEC</td>
+        <td>
+          $(P)$(R)MemIRIGUsec_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronMemIRIGSigEx</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Signal-exist flag from IRIG timecode for current frame</td>
+        <td>
+          PHOTRON_MEM_IRIG_SIGEX</td>
+        <td>
+          $(P)$(R)MemIRIGSigEx_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td align="center" colspan="7,">
+          <b>Variable Channel parameters</b></td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChan</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Current variable channel (1-20)</td>
+        <td>
+          PHOTRON_VAR_CHAN</td>
+        <td>
+          $(P)$(R)Record<br />
+          $(P)$(R)Record_RBV</td>
+        <td>
+          longout
+          <br />
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronChangeVarChan</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Increases (1) or decreases (0) the current variable channel</td>
+        <td>
+          PHOTRON_CHANGE_VAR_CHAN</td>
+        <td>
+          $(P)$(R)ChangeVarChan</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanRate</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          Record rate for the current variable channel</td>
+        <td>
+          PHOTRON_VAR_CHAN_RATE</td>
+        <td>
+          $(P)$(R)VarChanRate_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanXSize</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          ROI width for the current variable channel</td>
+        <td>
+          PHOTRON_VAR_CHAN_X_SIZE</td>
+        <td>
+          $(P)$(R)VarChanXSize_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanYSize</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          ROI height for the current variable channel</td>
+        <td>
+          PHOTRON_VAR_CHAN_Y_SIZE</td>
+        <td>
+          $(P)$(R)VarChanYSize_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanXPos</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          ROI horizontal position for the current variable channel</td>
+        <td>
+          PHOTRON_VAR_CHAN_X_POS</td>
+        <td>
+          $(P)$(R)VarChanXPos_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanYPos</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          ROI vertical position for the current variable channel</td>
+        <td>
+          PHOTRON_VAR_CHAN_Y_POS</td>
+        <td>
+          $(P)$(R)VarChanYPos_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanWStep</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          Distance between valid widths for variable-channel editing</td>
+        <td>
+          PHOTRON_VAR_CHAN_W_STEP</td>
+        <td>
+          $(P)$(R)VarChanWStep_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanHStep</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          Distance between valid heights for variable-channel editing</td>
+        <td>
+          PHOTRON_VAR_CHAN_H_STEP</td>
+        <td>
+          $(P)$(R)VarChanHStep_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanXPosStep</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          Distance between valid horizontal positions for variable-channel editing</td>
+        <td>
+          PHOTRON_VAR_CHAN_X_POS_STEP</td>
+        <td>
+          $(P)$(R)VarChanXPosStep_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanYPosStep</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          Distance between valid vertical positions for variable-channel editing</td>
+        <td>
+          PHOTRON_VAR_CHAN_Y_POS_STEP</td>
+        <td>
+          $(P)$(R)VarChanYPosStep_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanWMin</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          Minimum width allowed for variable-channel editing</td>
+        <td>
+          PHOTRON_VAR_CHAN_W_MIN</td>
+        <td>
+          $(P)$(R)VarChanWMin_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanHMin</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          Minimum height allowed for variable-channel editing</td>
+        <td>
+          PHOTRON_VAR_CHAN_H_MIN</td>
+        <td>
+          $(P)$(R)VarChanHMin_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanFreePos</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          Flag indicating which dimensions allow positions to be changed<br />
+          for variable-channel editing.  See PDCVALUE.h for possible values.</td>
+        <td>
+          PHOTRON_VAR_CHAN_FREE_POS</td>
+        <td>
+          $(P)$(R)VarChanFreePos_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanApply</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Save desired settings to the current variable channel</td>
+        <td>
+          PHOTRON_VAR_CHAN_APPLY</td>
+        <td>
+          $(P)$(R)VarChanApply</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarChanErase</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Erase settings of the current variable channel</td>
+        <td>
+          PHOTRON_VAR_CHAN_ERASE</td>
+        <td>
+          $(P)$(R)VarChanErase</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarEditRate</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Desired record rate for the current variable channel</td>
+        <td>
+          PHOTRON_VAR_EDIT_RATE</td>
+        <td>
+          $(P)$(R)VarChanRate</td>
+        <td>
+          longout</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarEditXSize</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Desired ROI width for the current variable channel</td>
+        <td>
+          PHOTRON_VAR_EDIT_X_SIZE</td>
+        <td>
+          $(P)$(R)VarChanXSize</td>
+        <td>
+          longout</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarEditYSize</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Desired ROI height for the current variable channel</td>
+        <td>
+          PHOTRON_VAR_EDIT_Y_SIZE</td>
+        <td>
+          $(P)$(R)VarChanYSize</td>
+        <td>
+          longout</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarEditXPos</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Desired ROI horizontal position for the current variable channel</td>
+        <td>
+          PHOTRON_VAR_EDIT_X_POS</td>
+        <td>
+          $(P)$(R)VarChanXPos</td>
+        <td>
+          longout</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarEditYPos</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Desired ROI vertical position for the current variable channel</td>
+        <td>
+          PHOTRON_VAR_EDIT_Y_POS</td>
+        <td>
+          $(P)$(R)VarChanYPos</td>
+        <td>
+          longout</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronVarEditMaxRes</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Set desired height and width to the largest square allowed<br />
+          given the desired record rate for the current variable channel.</td>
+        <td>
+          PHOTRON_VAR_EDIT_MAX_RES</td>
+        <td>
+          $(P)$(R)VarChanMaxRes</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronChangeVarEditRate</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Increases (1) or decreases (0) the desired record rate<br />
+          for the current variable channel</td>
+        <td>
+          PHOTRON_CHANGE_VAR_EDIT_RATE</td>
+        <td>
+          $(P)$(R)ChangeVarEditRate</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronChangeVarEditXSize</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Increases (1) or decreases (0) the desired width of the<br />
+          current variable channel by the value of PhotronVarChanWStep</td>
+        <td>
+          PHOTRON_CHANGE_VAR_EDIT_X_SIZE</td>
+        <td>
+          $(P)$(R)ChangeVarEditXSize</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronChangeVarEditYSize</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Increases (1) or decreases (0) the desired height of the<br />
+          current variable channel by the value of PhotronVarChanHStep</td>
+        <td>
+          PHOTRON_CHANGE_VAR_EDIT_Y_SIZE</td>
+        <td>
+          $(P)$(R)ChangeVarEditYSize</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronChangeVarEditXPos</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Increases (1) or decreases (0) the desired horizontal position of the<br />
+          current variable channel by the value of PhotronVarChanXPosStep</td>
+        <td>
+          PHOTRON_CHANGE_VAR_EDIT_X_POS</td>
+        <td>
+          $(P)$(R)ChangeVarEditXPos</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronChangeVarEditYPos</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+           Increases (1) or decreases (0) the desired vertical position of the<br />
+          current variable channel by the value of PhotronVarChanYPosStep</td>
+        <td>
+          PHOTRON_CHANGE_VAR_EDIT_Y_POS</td>
+        <td>
+          $(P)$(R)ChangeVarEditYPos<td>
+          bo</td>
+      </tr>
+      <tr>
+        <td align="center" colspan="7,">
+          <b>Preview Mode parameters</b></td>
+      </tr>
+      <tr>
+        <td>
+          PhotronFrameStart</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          Index of the first frame of a recording</td>
+        <td>
+          PHOTRON_FRAME_START</td>
+        <td>
+          $(P)$(R)FrameStart_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronFrameEnd</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r</td>
+        <td>
+          Index of the last frame of a recording</td>
+        <td>
+          PHOTRON_FRAME_END</td>
+        <td>
+          $(P)$(R)FrameEnd_RBV</td>
+        <td>
+          longin</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMStart</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Index of the first frame of the preview range</td>
+        <td>
+          PHOTRON_PM_START</td>
+        <td>
+          $(P)$(R)PMStart</td>
+        <td>
+          longout</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMEnd</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Index of the last frame of the preview range</td>
+        <td>
+          PHOTRON_PM_END</td>
+        <td>
+          $(P)$(R)PMEnd</td>
+        <td>
+          longout</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMIndex</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Index of the current frame</td>
+        <td>
+          PHOTRON_PM_INDEX</td>
+        <td>
+          $(P)$(R)PMIndex</td>
+        <td>
+          longout</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronChangePMIndex</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Increase (1) or decrease (0) the index of the current frame by 1</td>
+        <td>
+          PHOTRON_CHANGE_PM_INDEX</td>
+        <td>
+          $(P)$(R)ChangePMIndex</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMFirst</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Jump to the first frame of the preview range</td>
+        <td>
+          PHOTRON_PM_FIRST</td>
+        <td>
+          $(P)$(R)PMFirst</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMLast</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Jump to the last frame of the preview range</td>
+        <td>
+          PHOTRON_PM_LAST</td>
+        <td>
+          $(P)$(R)PMLast</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMPlay</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Start (1) or stop (0) playing the preview range</td>
+        <td>
+          PHOTRON_PM_PLAY</td>
+        <td>
+          $(P)$(R)PMPlay</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMPlayRev</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Start (1) or stop (0) playing the preview range in reverse</td>
+        <td>
+          PHOTRON_PM_PLAY_REV</td>
+        <td>
+          $(P)$(R)PMPlayRev</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMSave</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Save the images in the preview range</td>
+        <td>
+          PHOTRON_PM_SAVE</td>
+        <td>
+          $(P)$(R)PMSave</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMCancel</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Exit preview mode without saving images in the preview range</td>
+        <td>
+          PHOTRON_PM_CANCEL</td>
+        <td>
+          $(P)$(R)PMCancel</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMPlayFPS</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Updates per second during playback of the preview range</td>
+        <td>
+          PHOTRON_PM_PLAY_FPS</td>
+        <td>
+          $(P)$(R)PMPlayFPS</td>
+        <td>
+          longout</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMPlayMult</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          Images per update during playback of the preview range</td>
+        <td>
+          PHOTRON_PM_PLAY_MULT</td>
+        <td>
+          $(P)$(R)PMPlayMult</td>
+        <td>
+          longout</td>
+      </tr>
+      <tr>
+        <td>
+          PhotronPMRepeat</td>
+        <td>
+          asynInt32</td>
+        <td>
+          w</td>
+        <td>
+          Enable (1) or disable (0) repeat during playback of the preview range</td>
+        <td>
+          PHOTRON_PM_REPEAT</td>
+        <td>
+          $(P)$(R)PMRepeat</td>
+        <td>
+          bo</td>
+      </tr>
+      <tr>
+        <td align="center" colspan="7,">
+          <b>Development parameters</b></td>
+      </tr>
+      <tr>
+        <td>
+          Test</td>
+        <td>
+          asynInt32</td>
+        <td>
+          r/w</td>
+        <td>
+          A parameter used for testing during development.</td>
+        <td>
+          PHOTRON_TEST</td>
+        <td>
+          $(P)$(R)Test<br />
+          $(P)$(R)Test_RBV</td>
+        <td>
+          longout
+          <br />
+          longin</td>
+      </tr>
+      <!-- STUFF TO COPY BELOW >
       <tr>
         <td>
           IndexVariable</td>
@@ -724,6 +1675,7 @@
         <td align="center" colspan="7,">
           <b>HEADING</b></td>
       </tr>
+      STUFF TO COPY ABOVE -->
     </tbody>
   </table>
   <!-- KNOWN PROBLEMS -->
