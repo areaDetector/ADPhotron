@@ -1714,35 +1714,35 @@
   <h2 id="MEDM_screens" style="text-align: left">
     MEDM screens</h2>
   <p>
-    The following is the main MEDM screen for Photron cameras.
+    <code>Photron.adl</code> is the main MEDM screen for Photron cameras.
   </p>
   <div style="text-align: center">
     <h3>
       Photron.adl</h3>
     <img alt="Photron.png" src="Photron.png" /></div>
   <p>
-   The list of trigger modes is dynamic.  The mbbo/mbbi record enumerations are only read when the MEDM screen is launched, so a separate adl was created to select the trigger mode.
+  <code>PhotronTrigSelect.adl</code> is the screen used to select the trigger mode. This is a separate screen because the valid enum strings for the TriggerMode record depend on other settings in the controller. Closing this screen and re-opening it is necessary for the current menu to be displayed. This is a limitation of the EPICS Channel Access which does not send monitor events for changes in enum fields.
   </p>
   <div style="text-align: center">
     <h3>
       PhotronTrigSelect.adl</h3>
     <img alt="PhotronTrigSelect.png" src="PhotronTrigSelect.png" /></div>
   <p>
-   When preview mode is on and the camera is in playback mode, the green "Slider" button from the main screen launches playback controls that provide similar functionality to the PFV software from Photron.
+   <code>PhotronPlaybackControls.adl</code> provides similar functionality to the PFV software from Photron.  It is launched by the green, "Slider" button from <code>Photron.adl</code>.
   </p>
   <div style="text-align: center">
     <h3>
       PhotronPlaybackControls.adl</h3>
     <img alt="PhotronPlaybackControls.png" src="PhotronPlaybackControls.png" /></div>
   <p>
-   The limits of the MEDM slider widget only update when an adl is launched, so the preview controls reside on separate display, accessible by clicking the green "Done" button on the playback controls screen.
+  <code>PhotronPreviewControls.adl</code> allows the preview range to be modified. It is launched by clicking the "Done" button on <code>PhotronPlaybackControls.adl</code>.  Clicking the "Slider" button reopens <code>PhotronPlaybackControls.adl</code> with updated slider limits.
   </p>
   <div style="text-align: center">
     <h3>
       PhotronPreviewControls.adl</h3>
     <img alt="PhotronPreviewControls.png" src="PhotronPreviewControls.png" /></div>
   <p>
-   PhotronMemIRIG.adl was used during development to see that the IRIG timecode info was being read properly without having to look at data files.  It isn't obvious that this is a useful screen.
+  <code>PhotronMemIRIG.adl</code> was used during development to see that the IRIG timecode info was being read properly without having to look at data files.  It isn't obvious that this is a useful screen.
   </p>
   <div style="text-align: center">
     <h3>
