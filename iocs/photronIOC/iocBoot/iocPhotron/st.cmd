@@ -40,6 +40,9 @@ asynSetMinTimerPeriod(0.001)
 # Create a Photron driver
 # PhotronConfig(const char *portName, const char *ipAddress, int autoDetect, 
 #                   int maxBuffers, int maxMemory, int priority, int stackSize)
+# Search for the camera
+#!PhotronConfig("$(PORT)", "192.168.0.0", 1, 2, 0, 0)
+# Specify the IP address of the camera
 #!PhotronConfig("$(PORT)", "192.168.0.10", 0, 2, 0, 0)
 # If plugins can't keep up and enabling blocking isn't ideal, increase the number of buffers
 PhotronConfig("$(PORT)", "192.168.0.10", 0, 20, 0, 0)
