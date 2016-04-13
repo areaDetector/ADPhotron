@@ -31,7 +31,7 @@
     <li><a href="#Configuration">Configuration</a></li>
     <li><a href="#KnownProblems">Known problems</a></li>
     <li><a href="#MEDM_screens">MEDM screens</a></li>
-    <li><a href="#ConnectionManagement">Connection management</a></li>
+    <!--li><a href="#ConnectionManagement">Connection management</a></li-->
   </ul>
   <h2 id="Overview">
     Overview</h2>
@@ -1753,6 +1753,14 @@
   <p>
     An example IOC is provided with this driver: <a href="https://github.com/kmpeters/ADPhotron/tree/master/iocs/photronIOC">photronIOC</a>
   </p>
+  <h2 id="KnownProblems">
+    Known problems</h2>
+  <ul>
+    <li>Endless-recording modes don't work well with some output settings (Expose, Rec & Trig).  The driver automatically puts the camera into the endless-recording when an endless-recording mode is selected, so all trigger modes generate N recordings for N trigger pulses.  This has the unfortunate side-effect of changing the output signal when the mode is selected.</li>
+    <li>There is no feedback while acquiring multiple recordings in random mode.  The camera doesn't leave the recording state after the first recording in random mode.  The SDK doesn't provide a way to query the number of recordings without leaving the recording state and potentially missing triggers.</li>
+    <li>When reading out images in random manual mode before the specified number of recordings are generated, an extra recording is reported.  It isn't known which images should be discarded.</li>
+    <li>Github issues can be found <a href="https://github.com/kmpeters/ADPhotron/issues">here</a>.</li>
+  </ul>
   <h2 id="MEDM_screens" style="text-align: left">
     MEDM screens</h2>
   <p>
@@ -1790,16 +1798,6 @@
     <h3>
       PhotronMemIRIG.adl</h3>
     <img alt="PhotronMemIRIG.png" src="PhotronMemIRIG.png" /></div>
-  <!-- KNOWN PROBLEMS -->
-  <h2 id="KnownProblems">
-    Known problems</h2>
-  <ul>
-
-    <li>Endless-recording modes don't work well with some output settings (Expose, Rec & Trig).  The driver automatically puts the camera into the endless-recording when an endless-recording mode is selected, so all trigger modes generate N recordings for N trigger pulses.  This has the unfortunate side-effect of changing the output signal when the mode is selected.</li>
-    <li>There is no feedback while acquiring multiple recordings in random mode.  The camera doesn't leave the recording state after the first recording in random mode.  The SDK doesn't provide a way to query the number of recordings without leaving the recording state and potentially missing triggers.</li>
-    <li>When reading out images in random manual mode before the specified number of recordings are generated, an extra recording is reported.  It isn't known which images should be discarded.</li>
-    <li>Github issues can be found <a href="https://github.com/kmpeters/ADPhotron/issues">here</a>.</li>
-  </ul>
   <!--h2 id="ConnectionManagement">
     Connection management</h2>
   <p>
