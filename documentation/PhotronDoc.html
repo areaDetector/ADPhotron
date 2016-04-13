@@ -165,45 +165,92 @@
     <li>A trigger signal (software or hardware) initiates acquisition. The Acquire PV can be used, but only if the trigger mode results in a single recording.</li>
     <li>Acquisition occurs at the desired frame rate, but images are read from the camera much more slowly.</li>
   </ul>
-  <!--h2 id="StandardNotes" style="text-align: left">
-    Implementation of standard driver parameters</h2>
+
+
+
+
+  <h2 id="StandardParameters" style="text-align: left">
+    Standard areaDetector parameters</h2>
   <p>
-    The driver redefines the choices for several of the parameters defined in ADDriver.h.
-    The ADTriggerMode choices for the Prosilica are:
+    The following table describes how the Photron driver implements some of the standard
+    driver parameters.
   </p>
-  <ul>
-    <li>Free Run (collects images as fast as allowed by the camera readout and the exposure
-      time)</li>
-    <li>Sync In 1 (external trigger on line 1)</li>
-    <li>Sync In 2 (external trigger on line 2)</li>
-    <li>Sync In 3 (external trigger on line 3)</li>
-    <li>Sync In 4 (external trigger on line 4)</li>
-    <li>Fixed Rate (collects images at a fixed rate)</li>
-    <li>Software (single software trigger)</li>
-  </ul>
-  <p>
-    The Prosilica supports hardware timing input and output signals that are supported
-    in the driver.
-  </p>
-  <p>
-    The NDDataType choices for the Prosilica are:
-  </p>
-  <ul>
-    <li>NDUInt8 (8-bit data)</li>
-    <li>NDUInt16 (12 or 16 bit data)</li>
-  </ul>
-  <p>
-    The NDColorMode choices for the Prosilica are:
-  </p>
-  <ul>
-    <li>NDColorModeMono (monochromatic data)</li>
-    <li>NDColorModeBayer (raw Bayer data)</li>
-    <li>NDColorModeRGB1 (RGB1 data)</li>
-  </ul>
-  <p>
-    The color Prosilica cameras are also capable of various YUV color formats but these
-    are not supported in the driver. They may be added in a future release.
-  </p-->
+  <table border="1" cellpadding="2" cellspacing="2" style="text-align: left">
+    <tbody>
+      <tr>
+        <td align="center" colspan="3">
+          <b>Implementation of Parameters in asynNDArrayDriver.h and ADDriver.h, and EPICS Record
+            Definitions in ADBase.template and NDFile.template</b> </td>
+      </tr>
+      <tr>
+        <th>
+          Parameter index variable </th>
+        <th>
+          EPICS record name </th>
+        <th>
+          Description </th>
+      </tr>
+      <tr>
+        <td>
+          ADTriggerMode </td>
+        <td>
+          $(P)$(R)TriggerMode </td>
+        <td>
+          The choices for the Photron trigger mode are camera-dependent and can be found in PDCVALUE.h. Refer to the camera manual for descriptions of the supported modes.</td>
+      </tr>
+      <tr>
+        <td>
+          ADNumImages </td>
+        <td>
+          $(P)$(R)NumImages </td>
+        <td>
+          Controls the number of images to acquire. When AcquireMode=Record this parameter is ignored.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          ADNumExposures </td>
+        <td>
+          $(P)$(R)NumExposures </td>
+        <td>
+          Controls the number of exposures per image. When AcquireMode=Record this parameter is ignored.</td>
+      </tr>
+      <tr>
+        <td>
+          ADAcquireTime </td>
+        <td>
+          $(P)$(R)AcquireTime </td>
+        <td>
+          Controls the acquisition time per image. This is the inverse of the record rate.</td>
+      </tr>
+      <tr>
+        <td>
+          ADAcquirePeriod </td>
+        <td>
+          $(P)$(R)AcquirePeriod </td>
+        <td>
+          Controls the period between images. When AcquireMode=Record this parameter is ignored.</td>
+      </tr>
+      <tr>
+        <td>
+          ADImageMode </td>
+        <td>
+          $(P)$(R)ImageMode </td>
+        <td>
+          Controls image mode, which defines when acquisition ends. When AcquireMode=Record this parameter is ignored.</td>
+      </tr>
+      <tr>
+        <td>
+          ADGain </td>
+        <td>
+          $(P)$(R)Gain </td>
+        <td>
+          This parameter currently has no effect.</td>
+      </tr>
+    </tbody>
+  </table>
+
+
   <h2 id="Driver_parameters" style="text-align: left">
     Photron-specific parameters</h2>
   <p>
