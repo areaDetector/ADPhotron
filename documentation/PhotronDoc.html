@@ -26,9 +26,10 @@
       <li><a href="#CamMode">Camera Mode</a></li>
       <li><a href="#AcqMode">Acquire Mode</a></li>
     </ul>
-    <li><a href="#StandardNotes">Implementation of standard driver parameters</a></li>
-    <li><a href="#Driver_parameters">Photron-specific parameters</a></li>
+    <li><a href="#StandardParameters">Standard driver parameters</a></li>
+    <li><a href="#DriverParameters">Photron-specific parameters</a></li>
     <li><a href="#Configuration">Configuration</a></li>
+    <li><a href="#KnownProblems">Known problems</a></li>
     <li><a href="#MEDM_screens">MEDM screens</a></li>
     <li><a href="#ConnectionManagement">Connection management</a></li>
   </ul>
@@ -58,6 +59,7 @@
     <li>Camera settings are frequently coupled; example: changing the frame rate sometimes changes the resolution.</li>
     <li>The standard acquistion mode involves recording images to the camera's internal memory and reading them out later.</li>
     <li>The readout time is much greater than the acquire time, so it is sometimes desirable to save a subset of images that were acquired.</li>
+    <li>Some trigger modes require N trigger pulses to generate N recordings while others require N+1 (putting the camera into endless-recording mode counts as a trigger)</li>
   </ul>
   <p>
     Some of the unique and important features of the vendor software have been implemented in the areaDetector support, despite not fitting naturally into the areaDetector model.  A non-trivial amount of code in the driver is dedicated to preventing invalid values from being sent to the camera.
@@ -165,10 +167,6 @@
     <li>A trigger signal (software or hardware) initiates acquisition. The Acquire PV can be used, but only if the trigger mode results in a single recording.</li>
     <li>Acquisition occurs at the desired frame rate, but images are read from the camera much more slowly.</li>
   </ul>
-
-
-
-
   <h2 id="StandardParameters" style="text-align: left">
     Standard areaDetector parameters</h2>
   <p>
@@ -249,9 +247,7 @@
       </tr>
     </tbody>
   </table>
-
-
-  <h2 id="Driver_parameters" style="text-align: left">
+  <h2 id="DriverParameters" style="text-align: left">
     Photron-specific parameters</h2>
   <p>
     The Photron driver implements the following parameters in addition to those in
@@ -1725,7 +1721,6 @@
       STUFF TO COPY ABOVE -->
     </tbody>
   </table>
-  <!-- KNOWN PROBLEMS -->
   <h2 id="Configuration">
     Configuration</h2>
   <p>
@@ -1795,6 +1790,16 @@
     <h3>
       PhotronMemIRIG.adl</h3>
     <img alt="PhotronMemIRIG.png" src="PhotronMemIRIG.png" /></div>
+  <!-- KNOWN PROBLEMS -->
+  <h2 id="KnownProblems">
+    Known problems</h2>
+  <ul>
+
+    <li>Endless-recording modes don't work well with some output settings (Expose, Rec & Trig).  The driver automatically puts the camera into the endless-recording when an endless-recording mode is selected, so all trigger modes generate N recordings for N trigger pulses.  This has the unfortunate side-effect of changing the output signal when the mode is selected.</li>
+    <li>There is no feedback while acquiring multiple recordings in random mode.  The camera doesn't leave the recording state after the first recording in random mode.  The SDK doesn't provide a way to query the number of recordings without leaving the recording state and potentially missing triggers.</li>
+    <li>When reading out images in random manual mode before the specified number of recordings are generated, an extra recording is reported.  It isn't known which images should be discarded.</li>
+    <li>Github issues can be found <a href="https://github.com/kmpeters/ADPhotron/issues">here</a>.</li>
+  </ul>
   <!--h2 id="ConnectionManagement">
     Connection management</h2>
   <p>
