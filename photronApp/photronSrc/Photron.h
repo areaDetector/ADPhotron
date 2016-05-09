@@ -100,7 +100,9 @@ static const char *shadingModeStrings[NUM_SHADING_MODES] = {
   "Load File"
 };
 
-/** Photron driver */
+/** Main driver class inherited from areaDetector's ADDriver class.
+ * One instance of this class will control one camera.
+ */
 class epicsShareClass Photron : public ADDriver {
 public:
   /* Constructor and Destructor */
@@ -129,47 +131,72 @@ public:
   static void shutdown(void *arg);
   
 protected:
-    int PhotronStatus;
-    int PhotronStatusName;
-    int PhotronCamMode;
-    int PhotronSyncPulse;
-    int PhotronAcquireMode;
-    int PhotronMaxFrames;
-    int Photron8BitSel;
-    int PhotronRecRate;
-    int PhotronChangeRecRate;
-    int PhotronResIndex;
-    int PhotronChangeResIdx;
-    int PhotronShutterFps;
-    int PhotronChangeShutterFps;
-    int PhotronJumpShutterFps;
-    int PhotronVarChan;
-    int PhotronChangeVarChan;
-    int PhotronVarChanRate;
-    int PhotronVarChanXSize;
-    int PhotronVarChanYSize;
-    int PhotronVarChanXPos;
-    int PhotronVarChanYPos;
-    int PhotronVarChanWStep;
-    int PhotronVarChanHStep;
-    int PhotronVarChanXPosStep;
-    int PhotronVarChanYPosStep;
-    int PhotronVarChanWMin;
-    int PhotronVarChanHMin;
-    int PhotronVarChanFreePos;
-    int PhotronVarChanApply;
-    int PhotronVarChanErase;
-    int PhotronVarEditRate;
-    int PhotronVarEditXSize;
-    int PhotronVarEditYSize;
-    int PhotronVarEditXPos;
-    int PhotronVarEditYPos;
-    int PhotronVarEditMaxRes;
-    int PhotronChangeVarEditRate;
-    int PhotronChangeVarEditXSize;
-    int PhotronChangeVarEditYSize;
-    int PhotronChangeVarEditXPos;
-    int PhotronChangeVarEditYPos;
+    int PhotronStatus;          /** Camera status                             (int32 read) */
+    int PhotronStatusName;      /** Camera status string                      (int32 read) */
+    int PhotronCamMode;         /** Camera mode                               (int32 read/write) */
+    int PhotronSyncPulse;       /** Preferred ext sync polarity               (int32 write) */
+    int PhotronAcquireMode;     /** Acquire mode                              (int32 write) */
+    int PhotronMaxFrames;       /** Max frames that can be saved in memory
+                                    at the current resolution                 (int32 read) */
+    int Photron8BitSel;         /** 8-bit offset. Only applies when 
+                                    data type is UInt8                        (int32 read/write) */
+    int PhotronRecRate;         /** Record rate. Units are frames per second  (int32 read/write) */
+    int PhotronChangeRecRate;   /** Increases or decreases the record rate    (int32 write) */
+    int PhotronResIndex;        /** Index of the current resolution           (int32 read/write) */
+    int PhotronChangeResIdx;    /** Increases or decreases the res index      (int32 write) */
+    int PhotronShutterFps;      /** The shutter speed in Hz                   (int32 read/write) */
+    int PhotronChangeShutterFps;/** Increases or decreases the shutter speed  (int32 write) */
+    int PhotronJumpShutterFps;  /** Jumps to the max or min shutter speed     (int32 write) */
+    int PhotronVarChan;         /** Current variable channel (1-20)           (int32 read/write) */
+    int PhotronChangeVarChan;   /** Increases or decreases the variable chan  (int32 write) */
+    int PhotronVarChanRate;     /** Record rate for the current variable chan (int32 read) */
+    int PhotronVarChanXSize;    /** ROI width for the current variable chan   (int32 read) */
+    int PhotronVarChanYSize;    /** ROI height for the current variable chan  (int32 read) */
+    int PhotronVarChanXPos;     /** ROI hoirzontal position for the current 
+                                    variable channel                          (int32 read) */
+    int PhotronVarChanYPos;     /** ROI vertical position for the current 
+                                    variable channel                          (int32 read) */
+    int PhotronVarChanWStep;    /** Distance between valid widths for
+                                    variable-channel editing                  (int32 read) */
+    int PhotronVarChanHStep;    /** Distance between valid heights for
+                                    variable-channel editing                  (int32 read) */
+    int PhotronVarChanXPosStep; /** Distance between valid horizontal
+                                    positions for variable-channel editing    (int32 read) */
+    int PhotronVarChanYPosStep; /** Distance between valid vertical
+                                    positions for variable-channel editing    (int32 read) */
+    int PhotronVarChanWMin;     /** Minimum width allowed for 
+                                    variable-channel editing                  (int32 read) */
+    int PhotronVarChanHMin;     /** Minimum height allowed for
+                                    variable-channel editing                  (int32 read) */
+    int PhotronVarChanFreePos;  /** Flag indicating dimensions allowing
+                                    positions to be changed in var-chan edit  (int32 read) */
+    int PhotronVarChanApply;    /** Save desired settings to the current
+                                    variable channel                          (int32 write) */
+    int PhotronVarChanErase;    /** Erase settings of current variable chan   (int32 write) */
+    int PhotronVarEditRate;     /** Desired record rate for current var chan  (int32 read/write) */
+    int PhotronVarEditXSize;    /** Desired ROI width for current var chan    (int32 read/write) */
+    int PhotronVarEditYSize;    /** Desired ROI height for current var chan   (int32 read/write) */
+    int PhotronVarEditXPos;     /** Desired ROI horizontal position for the 
+                                    current variable channnel                 (int32 read/write) */
+    int PhotronVarEditYPos;     /** Desired ROI vertical position for the
+                                    current variable channel                  (int32 read/write) */
+    int PhotronVarEditMaxRes;   /** Set desired height and width to the largest
+                                    square allowed given the desired record rate
+                                    for the current variable channel          (int32 read/write) */
+    int PhotronChangeVarEditRate;   /** Increases or decreases the desired record
+                                        rate for the current variable channel     (int32 write) */
+    int PhotronChangeVarEditXSize;  /** Increases or decreases the desired width
+                                        of the current variable channel by the
+                                        value of PhotronVarChanWStep              (int32 write) */
+    int PhotronChangeVarEditYSize;  /** Increases or decreases the desired height
+                                        of the current variable channel by the
+                                        value of PhotronVarChanHStep              (int32 write) */
+    int PhotronChangeVarEditXPos;   /** Increases or decreases the desired horizontal
+                                        position of the current variable channel 
+                                        by the value of PhotronVarChanXPosStep    (int32 write) */
+    int PhotronChangeVarEditYPos;   /** Increases or decreases the desired vertical
+                                        position of the current variable channel
+                                        by the value of PhotronVarChanYPosStep    (int32 write) */
     int PhotronAfterFrames;
     int PhotronRandomFrames;
     int PhotronRecCount;
@@ -434,51 +461,50 @@ typedef struct {
 } cameraNode;
 
 // Define param strings here
- /*                             String                  interface  access   */
-#define PhotronStatusString     "PHOTRON_STATUS"     /* (asynInt32,    rw)   */
-#define PhotronStatusNameString  "PHOTRON_STATUS_NAME" /* (asynInt32,   rw)   */
-#define PhotronCamModeString    "PHOTRON_CAM_MODE"   /* (asynInt32,    r)   */
-#define PhotronSyncPulseString    "PHOTRON_SYNC_PULSE"   /* (asynInt32,    r)   */
-#define PhotronAcquireModeString "PHOTRON_ACQUIRE_MODE" /* (asynInt32,    w) */
-#define PhotronMaxFramesString  "PHOTRON_MAX_FRAMES" /* (asynInt32,    r)   */
-#define Photron8BitSelectString "PHOTRON_8_BIT_SEL"  /* (asynInt32,    rw)   */
-#define PhotronRecordRateString "PHOTRON_REC_RATE"   /* (asynInt32,    rw)   */
-#define PhotronChangeRecRateString "PHOTRON_CHANGE_REC_RATE" /* (asynInt32, w) */
-#define PhotronResIndexString   "PHOTRON_RES_INDEX"  /* (asynInt32, rw) */
-#define PhotronChangeResIdxString "PHOTRON_CHANGE_RES_IDX" /* (asynInt32, w) */
-#define PhotronShutterFpsString   "PHOTRON_SHUTTER_FPS"  /* (asynInt32, rw) */
-#define PhotronChangeShutterFpsString "PHOTRON_CHANGE_SHUTTER_FPS" /* (asynInt32, w) */
-#define PhotronJumpShutterFpsString "PHOTRON_JUMP_SHUTTER_FPS" /* (asynInt32, w) */
+#define PhotronStatusString           "PHOTRON_STATUS"
+#define PhotronStatusNameString       "PHOTRON_STATUS_NAME"
+#define PhotronCamModeString          "PHOTRON_CAM_MODE"
+#define PhotronSyncPulseString        "PHOTRON_SYNC_PULSE"
+#define PhotronAcquireModeString      "PHOTRON_ACQUIRE_MODE"
+#define PhotronMaxFramesString        "PHOTRON_MAX_FRAMES"
+#define Photron8BitSelectString       "PHOTRON_8_BIT_SEL"
+#define PhotronRecordRateString       "PHOTRON_REC_RATE"
+#define PhotronChangeRecRateString    "PHOTRON_CHANGE_REC_RATE"
+#define PhotronResIndexString         "PHOTRON_RES_INDEX"
+#define PhotronChangeResIdxString     "PHOTRON_CHANGE_RES_IDX"
+#define PhotronShutterFpsString       "PHOTRON_SHUTTER_FPS"
+#define PhotronChangeShutterFpsString "PHOTRON_CHANGE_SHUTTER_FPS"
+#define PhotronJumpShutterFpsString   "PHOTRON_JUMP_SHUTTER_FPS"
 // Var chan selection 
-#define PhotronVarChanString "PHOTRON_VAR_CHAN"   /* (asynInt32,    rw)   */
-#define PhotronChangeVarChanString "PHOTRON_CHANGE_VAR_CHAN" /* (asynInt32, w) */
-#define PhotronVarChanRateString "PHOTRON_VAR_CHAN_RATE" /* (asynInt32,  r) */
-#define PhotronVarChanXSizeString "PHOTRON_VAR_CHAN_X_SIZE" /* (asynInt32,  r) */
-#define PhotronVarChanYSizeString "PHOTRON_VAR_CHAN_Y_SIZE" /* (asynInt32,  r) */
-#define PhotronVarChanXPosString "PHOTRON_VAR_CHAN_X_POS" /* (asynInt32,  r) */
-#define PhotronVarChanYPosString "PHOTRON_VAR_CHAN_Y_POS" /* (asynInt32,  r) */
+#define PhotronVarChanString          "PHOTRON_VAR_CHAN"
+#define PhotronChangeVarChanString    "PHOTRON_CHANGE_VAR_CHAN"
+#define PhotronVarChanRateString      "PHOTRON_VAR_CHAN_RATE"
+#define PhotronVarChanXSizeString     "PHOTRON_VAR_CHAN_X_SIZE"
+#define PhotronVarChanYSizeString     "PHOTRON_VAR_CHAN_Y_SIZE"
+#define PhotronVarChanXPosString      "PHOTRON_VAR_CHAN_X_POS"
+#define PhotronVarChanYPosString      "PHOTRON_VAR_CHAN_Y_POS"
 // Var chan limits (fixed for camera)
-#define PhotronVarChanWStepString "PHOTRON_VAR_CHAN_W_STEP" /* (asynInt32,  r) */
-#define PhotronVarChanHStepString "PHOTRON_VAR_CHAN_H_STEP" /* (asynInt32,  r) */
-#define PhotronVarChanXPosStepString "PHOTRON_VAR_CHAN_X_POS_STEP" /* (asynInt32,  r) */
-#define PhotronVarChanYPosStepString "PHOTRON_VAR_CHAN_Y_POS_STEP" /* (asynInt32,  r) */
-#define PhotronVarChanWMinString  "PHOTRON_VAR_CHAN_W_MIN" /* (asynInt32,  r) */
-#define PhotronVarChanHMinString  "PHOTRON_VAR_CHAN_H_MIN" /* (asynInt32,  r) */
-#define PhotronVarChanFreePosString "PHOTRON_VAR_CHAN_FREE_POS" /* (asynInt32, r) */
+#define PhotronVarChanWStepString     "PHOTRON_VAR_CHAN_W_STEP"
+#define PhotronVarChanHStepString     "PHOTRON_VAR_CHAN_H_STEP"
+#define PhotronVarChanXPosStepString  "PHOTRON_VAR_CHAN_X_POS_STEP"
+#define PhotronVarChanYPosStepString  "PHOTRON_VAR_CHAN_Y_POS_STEP"
+#define PhotronVarChanWMinString      "PHOTRON_VAR_CHAN_W_MIN"
+#define PhotronVarChanHMinString      "PHOTRON_VAR_CHAN_H_MIN"
+#define PhotronVarChanFreePosString   "PHOTRON_VAR_CHAN_FREE_POS"
 // Var chan editing
-#define PhotronVarChanApplyString "PHOTRON_VAR_CHAN_APPLY" /* (asynInt32, w) */
-#define PhotronVarChanEraseString "PHOTRON_VAR_CHAN_ERASE" /* (asynInt32, w) */
-#define PhotronVarEditRateString "PHOTRON_VAR_EDIT_RATE" /* (asynInt32,  r) */
-#define PhotronVarEditXSizeString "PHOTRON_VAR_EDIT_X_SIZE" /* (asynInt32,  r) */
-#define PhotronVarEditYSizeString "PHOTRON_VAR_EDIT_Y_SIZE" /* (asynInt32,  r) */
-#define PhotronVarEditXPosString "PHOTRON_VAR_EDIT_X_POS" /* (asynInt32,  r) */
-#define PhotronVarEditYPosString "PHOTRON_VAR_EDIT_Y_POS" /* (asynInt32,  r) */
-#define PhotronVarEditMaxResString "PHOTRON_VAR_EDIT_MAX_RES" /* (asynInt32,  r) */
-#define PhotronChangeVarEditRateString "PHOTRON_CHANGE_VAR_EDIT_RATE" /* (asynInt32, w) */
-#define PhotronChangeVarEditXSizeString "PHOTRON_CHANGE_VAR_EDIT_X_SIZE" /* (asynInt32, w) */
-#define PhotronChangeVarEditYSizeString "PHOTRON_CHANGE_VAR_EDIT_Y_SIZE" /* (asynInt32, w) */
-#define PhotronChangeVarEditXPosString "PHOTRON_CHANGE_VAR_EDIT_X_POS" /* (asynInt32, w) */
-#define PhotronChangeVarEditYPosString "PHOTRON_CHANGE_VAR_EDIT_Y_POS" /* (asynInt32, w) */
+#define PhotronVarChanApplyString     "PHOTRON_VAR_CHAN_APPLY"
+#define PhotronVarChanEraseString     "PHOTRON_VAR_CHAN_ERASE"
+#define PhotronVarEditRateString      "PHOTRON_VAR_EDIT_RATE"
+#define PhotronVarEditXSizeString     "PHOTRON_VAR_EDIT_X_SIZE"
+#define PhotronVarEditYSizeString     "PHOTRON_VAR_EDIT_Y_SIZE"
+#define PhotronVarEditXPosString      "PHOTRON_VAR_EDIT_X_POS"
+#define PhotronVarEditYPosString      "PHOTRON_VAR_EDIT_Y_POS"
+#define PhotronVarEditMaxResString    "PHOTRON_VAR_EDIT_MAX_RES"
+#define PhotronChangeVarEditRateString  "PHOTRON_CHANGE_VAR_EDIT_RATE"
+#define PhotronChangeVarEditXSizeString "PHOTRON_CHANGE_VAR_EDIT_X_SIZE"
+#define PhotronChangeVarEditYSizeString "PHOTRON_CHANGE_VAR_EDIT_Y_SIZE"
+#define PhotronChangeVarEditXPosString  "PHOTRON_CHANGE_VAR_EDIT_X_POS"
+#define PhotronChangeVarEditYPosString  "PHOTRON_CHANGE_VAR_EDIT_Y_POS"
 //
 #define PhotronAfterFramesString "PHOTRON_AFTER_FRAMES" /* (asynInt32,    rw) */
 #define PhotronRandomFramesString "PHOTRON_RANDOM_FRAMES" /* (asynInt32,  rw) */
