@@ -231,18 +231,19 @@ protected:
     int PhotronMemIRIGSec;      /** Second from timecode for current frame    (int32 read) */
     int PhotronMemIRIGUsec;     /** Microsecond from timecode for current frame (int32 read) */
     int PhotronMemIRIGSigEx;    /** Signal-exist flag for current frame       (int32 read) */
-    int PhotronSyncPriority;
-    int PhotronTest;
-    int PhotronExtIn1Sig;
-    int PhotronExtIn2Sig;
-    int PhotronExtIn3Sig;
-    int PhotronExtIn4Sig;
-    int PhotronExtOut1Sig;
-    int PhotronExtOut2Sig;
-    int PhotronExtOut3Sig;
-    int PhotronExtOut4Sig;
-    int PhotronShadingMode;
-    int PhotronBurstTrans;
+    int PhotronSyncPriority;    /** Defines relationship when using sync I/O  (int32 read/write */
+    int PhotronTest;            /** Parameter used during testing             (int32 read/write) */
+    int PhotronExtIn1Sig;       /** External sync input                       (int32 read/write) */
+    int PhotronExtIn2Sig;       /** General input                             (int32 read/write) */
+    int PhotronExtIn3Sig;       /** Trigger TTL input                         (int32 read/write) */
+    int PhotronExtIn4Sig;       /** N/A (missing from most cameras)           (int32 read/write) */
+    int PhotronExtOut1Sig;      /** General output 1 (or external sync out)   (int32 read/write) */
+    int PhotronExtOut2Sig;      /** General output 2                          (int32 read/write) */
+    int PhotronExtOut3Sig;      /** General output 3                          (int32 read/write) */
+    int PhotronExtOut4Sig;      /** Trigger TTL output                        (int32 read/write) */
+    int PhotronShadingMode;     /** Turning the shading mode off and on
+                                    performs the black-level calibration      (int32 read/write) */
+    int PhotronBurstTrans;      /** Enable or disable burst-transfer mode     (int32 read/write) */
     #define FIRST_PHOTRON_PARAM PhotronStatus
     #define LAST_PHOTRON_PARAM PhotronBurstTrans
     
@@ -280,7 +281,6 @@ private:
   asynStatus changeVariableYSize(epicsInt32 value);
   asynStatus changeVariableXPos(epicsInt32 value);
   asynStatus changeVariableYPos(epicsInt32 value);
-  // IAMHERE
   asynStatus setShutterSpeedFps(epicsInt32 value);
   asynStatus changeShutterSpeedFps(epicsInt32 value);
   asynStatus jumpShutterSpeedFps(epicsInt32 value);
@@ -540,17 +540,18 @@ typedef struct {
 #define PhotronMemIRIGSecString       "PHOTRON_MEM_IRIG_SEC"
 #define PhotronMemIRIGUsecString      "PHOTRON_MEM_IRIG_USEC"
 #define PhotronMemIRIGSigExString     "PHOTRON_MEM_IRIG_SIGEX"
-#define PhotronSyncPriorityString     "PHOTRON_SYNC_PRIORITY" /* (asynInt32, rw)  */
-#define PhotronTestString       "PHOTRON_TEST"            /* (asynInt32, rw) */
-#define PhotronExtIn1SigString  "PHOTRON_EXT_IN_1_SIG" /* (asynInt32, rw)  */
-#define PhotronExtIn2SigString  "PHOTRON_EXT_IN_2_SIG" /* (asynInt32, rw)  */
-#define PhotronExtIn3SigString  "PHOTRON_EXT_IN_3_SIG" /* (asynInt32, rw)  */
-#define PhotronExtIn4SigString  "PHOTRON_EXT_IN_4_SIG" /* (asynInt32, rw)  */
-#define PhotronExtOut1SigString  "PHOTRON_EXT_OUT_1_SIG" /* (asynInt32, rw)  */
-#define PhotronExtOut2SigString  "PHOTRON_EXT_OUT_2_SIG" /* (asynInt32, rw)  */
-#define PhotronExtOut3SigString  "PHOTRON_EXT_OUT_3_SIG" /* (asynInt32, rw)  */
-#define PhotronExtOut4SigString  "PHOTRON_EXT_OUT_4_SIG" /* (asynInt32, rw)  */
-#define PhotronShadingModeString "PHOTRON_SHADING_MODE" /* (asynInt32, rw)  */
-#define PhotronBurstTransString  "PHOTRON_BURST_TRANS"  /* (asynInt32, rw)  */
+#define PhotronSyncPriorityString     "PHOTRON_SYNC_PRIORITY"
+#define PhotronTestString             "PHOTRON_TEST"
+#define PhotronExtIn1SigString        "PHOTRON_EXT_IN_1_SIG"
+#define PhotronExtIn2SigString        "PHOTRON_EXT_IN_2_SIG"
+#define PhotronExtIn3SigString        "PHOTRON_EXT_IN_3_SIG"
+#define PhotronExtIn4SigString        "PHOTRON_EXT_IN_4_SIG"
+#define PhotronExtOut1SigString       "PHOTRON_EXT_OUT_1_SIG"
+#define PhotronExtOut2SigString       "PHOTRON_EXT_OUT_2_SIG"
+#define PhotronExtOut3SigString       "PHOTRON_EXT_OUT_3_SIG"
+#define PhotronExtOut4SigString       "PHOTRON_EXT_OUT_4_SIG"
+#define PhotronShadingModeString      "PHOTRON_SHADING_MODE"
+#define PhotronBurstTransString       "PHOTRON_BURST_TRANS"
 
+/** Number of asynPortDriver parameters this driver supports. */
 #define NUM_PHOTRON_PARAMS ((int)(&LAST_PHOTRON_PARAM-&FIRST_PHOTRON_PARAM+1))
