@@ -365,7 +365,7 @@ static void PhotronPlayTaskC(void *drvPvt) {
   pPvt->PhotronPlayTask();
 }
 
-/** This thread retrieves the image data efficiently when play is pressed in
+/** This task retrieves the image data efficiently when play is pressed in
   * playback mode.
   */
 void Photron::PhotronPlayTask() {
@@ -720,7 +720,7 @@ static void PhotronRecTaskC(void *drvPvt) {
   pPvt->PhotronRecTask();
 }
 
-/** This thread puts the camera in playback mode and reads recorded image data
+/** This task puts the camera in playback mode and reads recorded image data
   * from the camera after recording is done.
   */
 void Photron::PhotronRecTask() {
@@ -1193,7 +1193,14 @@ asynStatus Photron::connectCamera() {
   return asynSuccess;
 }
 
-
+/** Read comera-specific settings and values from the camera.
+ * This function will collect values from the camera that aren't expected
+ * to change during operation and set the appropriate integer/double parameters
+ * in the param lib.
+ * Note: the caller is responsible for calling any update callbacks if I/O interrupts
+ * are to be processed after calling this function.
+ * Returns asynStatus asynError or asynSuccess as an int.
+ */
 asynStatus Photron::getCameraInfo() {
   unsigned long nRet;
   unsigned long nErrorCode;
@@ -1467,8 +1474,7 @@ asynStatus Photron::readImage() {
   * \param[in] pasynUser asynUser structure that contains the function code in pasynUser->reason. 
   * \param[in] value The value for this parameter 
   *
-  * Takes action if the function code requires it.  The PGPropertyValueAbs
-  * function code makes calls to the Firewire library from this function. */
+  * Takes action if the function code requires it. */
 asynStatus Photron::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
 {
     asynStatus status = asynSuccess;
@@ -1503,11 +1509,11 @@ asynStatus Photron::writeFloat64(asynUser *pasynUser, epicsFloat64 value)
     return status;
 }
 
-/** Called when asyn clients call pasynInt32->write().
-  * This function performs actions for some parameters, including ADAcquire, ADBinX, etc.
-  * For all parameters it sets the value in the parameter library and calls any registered callbacks..
-  * \param[in] pasynUser pasynUser structure that encodes the reason and address.
-  * \param[in] value Value to write. */
+/** Sets an int32 parameter.
+  * \param[in] pasynUser asynUser structure that contains the function code in pasynUser->reason. 
+  * \param[in] value The value for this parameter 
+  *
+  * Takes action if the function code requires it. */
 asynStatus Photron::writeInt32(asynUser *pasynUser, epicsInt32 value) {
   int function = pasynUser->reason;
   int status = asynSuccess;
@@ -4569,6 +4575,9 @@ asynStatus Photron::setStatus(epicsInt32 value) {
 }
 
 
+/** Read the settings and values from the camera that change regularly during 
+  * operation
+  */
 asynStatus Photron::readParameters() {
   unsigned long nRet;
   unsigned long nErrorCode;
@@ -5042,7 +5051,20 @@ void Photron::report(FILE *fp, int details) {
 }
 
 
-/** Configuration command, called directly or from iocsh */
+/** Configuration function, called directly or from iocsh
+  *
+  * This function needs to be called once for each camera to be used by the IOC.
+  * A call to this function instantiates one object from the Photron class.
+  * \param[in] portName The name of the asyn port driver to be created.
+  * \param[in] ipAddress The IP address of the camera or starting IP address for auto-detection
+  * \param[in] autoDetect Enable auto-detection of camera. Set this to 0 to specify the IP address manually
+  * \param[in] maxBuffers The maximum number of NDArray buffers that the NDArrayPool for this driver is
+  *            allowed to allocate. Set this to -1 to allow an unlimited number of buffers.
+  * \param[in] maxMemory The maximum amount of memory that the NDArrayPool for this driver is
+  *            allowed to allocate. Set this to -1 to allow an unlimited amount of memory.
+  * \param[in] priority The thread priority for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
+  * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
+  */
 extern "C" int PhotronConfig(const char *portName, const char *ipAddress,
                              int autoDetect, int maxBuffers, int maxMemory,
                              int priority, int stackSize) {
