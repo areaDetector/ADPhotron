@@ -12,6 +12,8 @@ ifeq (vxWorks,$(findstring vxWorks, $(T_A)))
 CODE_CXXFLAGS=
 endif
 
+ifeq (windows-x64, $(findstring windows-x64, $(T_A)))
+
 INC += Photron.h
 
 LIBRARY_IOC = Photron
@@ -21,6 +23,8 @@ LIB_LIBS += PDCLIB
 Photron_SYS_LIBS_WIN32 += ws2_32
 
 DBD += PhotronSupport.dbd
+
+endif
 
 include $(ADCORE)/ADApp/commonLibraryMakefile
 

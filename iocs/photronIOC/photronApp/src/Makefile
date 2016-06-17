@@ -10,6 +10,8 @@ ifeq (vxWorks,$(findstring vxWorks, $(T_A)))
 CODE_CXXFLAGS=
 endif
 
+ifeq (windows-x64, $(findstring windows-x64, $(T_A)))
+
 PROD_NAME = photronApp
 PROD_IOC = $(PROD_NAME)
 
@@ -22,6 +24,8 @@ PROD_SRCS_DEFAULT += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Mai
 PROD_SRCS_vxWorks += $(PROD_NAME)_registerRecordDeviceDriver.cpp
 
 PROD_LIBS += photron
+
+endif
 
 include $(ADCORE)/ADApp/commonDriverMakefile
 
