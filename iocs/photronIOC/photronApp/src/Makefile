@@ -24,6 +24,7 @@ PROD_SRCS_DEFAULT += $(PROD_NAME)_registerRecordDeviceDriver.cpp $(PROD_NAME)Mai
 PROD_SRCS_vxWorks += $(PROD_NAME)_registerRecordDeviceDriver.cpp
 
 PROD_LIBS += photron
+PROD_LIBS += PDCLIB
 
 endif
 
