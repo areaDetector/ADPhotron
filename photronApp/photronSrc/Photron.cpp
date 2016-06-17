@@ -46,15 +46,19 @@ static ELLLIST *cameraList;
   * After calling the base class constructor this method creates a thread to compute the simulated detector data,
   * and sets reasonable default values for parameters defined in this class, asynNDArrayDriver and ADDriver.
   * \param[in] portName The name of the asyn port driver to be created.
-  * \param[in] ipAddress The IP address of the camera or starting IP address for auto-detection
-  * \param[in] autoDetect Enable auto-detection of camera. Set this to 0 to specify the IP address manually
-  * \param[in] maxBuffers The maximum number of NDArray buffers that the NDArrayPool for this driver is
-  *            allowed to allocate. Set this to -1 to allow an unlimited number of buffers.
-  * \param[in] maxMemory The maximum amount of memory that the NDArrayPool for this driver is
-  *            allowed to allocate. Set this to -1 to allow an unlimited amount of memory.
-  * \param[in] priority The thread priority for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
-  * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
+  * \param[in] ipAddress The ip address or routing prefix of the camera
+  * \param[in] autoDetect The flag specifying whether or not to search for the camera
+  *            If set to 0, ipAddress must be the ip address of the camera
+  *            If set to 1, ipAddress must be the routing prefix of the /24 network
+  * \param[in] maxBuffers Maxiumum number of NDArray objects (image buffers) this driver is allowed to allocate.
+  *            This driver requires 2 buffers, and each queue element in a plugin can require one buffer
+  *            which will all need to be added up in this parameter. 0=unlimited.
+  * \param[in] maxMemory Maximum memory (in bytes) that this driver is allowed to allocate. So if max. size = 1024x768 (8bpp)
+  *            and maxBuffers is, say 14. maxMemory = 1024x768x14 = 11010048 bytes (~11MB). 0=unlimited.
+  * \param[in] priority The EPICS thread priority for this driver.  0=use asyn default.
+  * \param[in] stackSize The size of the stack for the EPICS port thread. 0=use asyn default.
   */
+  
 Photron::Photron(const char *portName, const char *ipAddress, int autoDetect,
                  int maxBuffers, size_t maxMemory, int priority, int stackSize)
     : ADDriver(portName, 1, NUM_PHOTRON_PARAMS, maxBuffers, maxMemory,
@@ -1193,7 +1197,7 @@ asynStatus Photron::connectCamera() {
   return asynSuccess;
 }
 
-/** Read comera-specific settings and values from the camera.
+/** Read camera-specific settings and values from the camera.
  * This function will collect values from the camera that aren't expected
  * to change during operation and set the appropriate integer/double parameters
  * in the param lib.
@@ -5056,15 +5060,19 @@ void Photron::report(FILE *fp, int details) {
   * This function needs to be called once for each camera to be used by the IOC.
   * A call to this function instantiates one object from the Photron class.
   * \param[in] portName The name of the asyn port driver to be created.
-  * \param[in] ipAddress The IP address of the camera or starting IP address for auto-detection
-  * \param[in] autoDetect Enable auto-detection of camera. Set this to 0 to specify the IP address manually
-  * \param[in] maxBuffers The maximum number of NDArray buffers that the NDArrayPool for this driver is
-  *            allowed to allocate. Set this to -1 to allow an unlimited number of buffers.
-  * \param[in] maxMemory The maximum amount of memory that the NDArrayPool for this driver is
-  *            allowed to allocate. Set this to -1 to allow an unlimited amount of memory.
-  * \param[in] priority The thread priority for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
-  * \param[in] stackSize The stack size for the asyn port driver thread if ASYN_CANBLOCK is set in asynFlags.
+  * \param[in] ipAddress The ip address or routing prefix of the camera
+  * \param[in] autoDetect The flag specifying whether or not to search for the camera
+  *            If set to 0, ipAddress must be the ip address of the camera
+  *            If set to 1, ipAddress must be the routing prefix of the /24 network
+  * \param[in] maxBuffers Maxiumum number of NDArray objects (image buffers) this driver is allowed to allocate.
+  *            This driver requires 2 buffers, and each queue element in a plugin can require one buffer
+  *            which will all need to be added up in this parameter. 0=unlimited.
+  * \param[in] maxMemory Maximum memory (in bytes) that this driver is allowed to allocate. So if max. size = 1024x768 (8bpp)
+  *            and maxBuffers is, say 14. maxMemory = 1024x768x14 = 11010048 bytes (~11MB). 0=unlimited.
+  * \param[in] priority The EPICS thread priority for this driver.  0=use asyn default.
+  * \param[in] stackSize The size of the stack for the EPICS port thread. 0=use asyn default.
   */
+
 extern "C" int PhotronConfig(const char *portName, const char *ipAddress,
                              int autoDetect, int maxBuffers, int maxMemory,
                              int priority, int stackSize) {
