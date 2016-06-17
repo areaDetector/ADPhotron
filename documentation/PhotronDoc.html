@@ -10,7 +10,7 @@
     <h1>
       Photron areaDetector driver</h1>
     <h2>
-      April 5, 2016</h2>
+      June 17, 2016</h2>
     <h2>
       Kevin Peterson</h2>
     <h2>
@@ -20,6 +20,7 @@
     Contents</h2>
   <ul>
     <li><a href="#Overview">Overview</a></li>
+    <li><a href="#Requirements">Requirements</a></li>
     <li><a href="#Differences">Differences from other cameras</a></li>
     <li><a href="#Modes">Operating Modes</a></li>
     <ul>
@@ -40,14 +41,30 @@
       areaDetector</a> driver for Gigabit Ethernet cameras from <a href="http://www.photron.com">
         Photron</a>. 
         The driver is supported under Windows using the 
-        64-bit vendor library.
+        64-bit vendor libraries.  The driver was tested using the Photron SA-Z and SA1.1 cameras.
   </p>
   <p>
     This driver inherits from <a href="areaDetectorDoc.html#ADDriver">ADDriver</a>.
     It implements nearly all of the parameters in <a href="areaDetectorDoxygenHTML/asyn_n_d_array_driver_8h.html">
       asynNDArrayDriver.h</a> and in <a href="areaDetectorDoxygenHTML/_a_d_driver_8h.html">
         ADArrayDriver.h</a>. It also implements a number of parameters that are specific
-    to Photron cameras. The Photron class documentation will describe this class in detail, but it doesn't yet exist.</p>
+    to Photron cameras. The Photron class documentation will describe this class in detail, 
+    but it doesn't yet exist.</p>
+  <h2 id="Requirements">
+    Requirements</h2>
+  <p>
+    The Photron FASTCAM Viewer (PFV) SDK is required to build the EPICS support.  Photron 
+    does not currently allow the PFV SDK to be redistributed nor do they make older 
+    versions of the PFV SDK available on the web site.  The latest version of the PFV SDK, 
+    which may or may not be compatible with the EPICS support, can be downloaded 
+    <a href="http://photron.com/support/downloads">here</a>.
+  </p>
+  <p>
+    The PFV SDK should be extracted into the following directory: <code>ADPhotron/photronSupport</code>
+  </p>
+  <p>
+    This driver was developed with version 3.6.0 of the Photron FASTCAM Viewer (PFV) SDK.  
+  </p>
   <h2 id="Differences">
     Differences from other cameras</h2>
   <p>
